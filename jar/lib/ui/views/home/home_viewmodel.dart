@@ -1,21 +1,32 @@
+import 'package:flutter/material.dart';
 import 'package:jar/helpers/database_helper.dart';
+import 'package:jar/models/user.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/views/create_received/create_received_view.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends FutureViewModel {
   List<Warehouse> warehouses = [];
+  List<User> users = [];
+  User? currentUser;
   Warehouse? selectedWarehouse;
   int get warehouseCount => warehouses.length;
 
   @override
   Future futureToRun() async {
+    await fetchUsers();
     await fetchWarehouses();
   }
 
   Future<bool> fetchWarehouses() async {
-    setBusy(true);
     warehouses = await DatabaseHelper.instance.getWarehouses();
-    setBusy(false);
+    notifyListeners();
+    return true;
+  }
+
+  Future<bool> fetchUsers() async {
+    users = await DatabaseHelper.instance.getUsers();
+    currentUser = users[0];
     notifyListeners();
     return true;
   }
@@ -57,5 +68,16 @@ class HomeViewModel extends FutureViewModel {
   // Considera añadir un método para actualizar el TabController cuando cambie la lista de almacenes
   int getTabLength() {
     return warehouses.length; // +1 por el botón de añadir
+  }
+
+  void navigateToCreateReceived(BuildContext context, int index) {
+    final Warehouse selectedWarehouse = warehouses[index];
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateReceivedView(
+            warehouse: selectedWarehouse, user: currentUser!),
+      ),
+    );
   }
 }

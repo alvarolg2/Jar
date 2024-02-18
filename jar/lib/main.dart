@@ -13,6 +13,7 @@ Future<void> main() async {
   setupBottomSheetUi();
   DatabaseHelper databaseHelper = DatabaseHelper.instance;
   await databaseHelper.database;
+  databaseHelper.ensureAdminUser();
   runApp(const MainApp());
 }
 

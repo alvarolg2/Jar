@@ -1,57 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:jar/helpers/database_helper.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/views/warehouse_detailed/warehouse_details_viewmodel.dart';
+import 'package:stacked/stacked.dart';
 
 class WarehouseDetailsView extends StatelessWidget {
   final Warehouse warehouse;
 
-  WarehouseDetailsView({required this.warehouse});
+  const WarehouseDetailsView({Key? key, required this.warehouse})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('Warehouse Name: ${warehouse.name}'),
-        ElevatedButton(
-          onPressed: () => _showEditNameDialog(context),
-          child: Text('Edit Name'),
-        ),
-        // Otros detalles del almacén aquí...
-      ],
-    );
-  }
-
-  void _showEditNameDialog(BuildContext context) {
-    TextEditingController _controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Edit Warehouse Name'),
-          content: TextField(
-            controller: _controller,
-            decoration: InputDecoration(hintText: "Enter new warehouse name"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
+    return ViewModelBuilder<WarehouseDetailsViewModel>.reactive(
+      viewModelBuilder: () => WarehouseDetailsViewModel(warehouse),
+      builder: (context, model, child) => model.isBusy
+          ? const CircularProgressIndicator()
+          : GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 1, // Ajusta según necesidad
+              ),
+              itemCount: model.data?.length ?? 0,
+              itemBuilder: (context, index) {
+                final received = model.data![index];
+                return Card(
+                  child: ListTile(
+                    title: Column(
+                      children: [
+                        Text(received.id.toString()),
+                        Text(received.date),
+                        Text(received.warehouseId.toString()),
+                      ],
+                    ), // Asume que `Received` tiene un campo `date`
+                    // Agrega más detalles según necesites
+                  ),
+                );
               },
-              child: Text('Cancel'),
             ),
-            TextButton(
-              onPressed: () async {
-                if (_controller.text.isNotEmpty) {
-                  await DatabaseHelper.instance
-                      .updateWarehouseName(warehouse.id!, _controller.text);
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text('Save'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

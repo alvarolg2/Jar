@@ -33,7 +33,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Almacén'),
+              title: Text(model.currentUser?.name ?? ""),
               bottom: PreferredSize(
                 preferredSize: const Size.fromHeight(48.0),
                 child: Row(
@@ -72,6 +72,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     .map((warehouse) =>
                         WarehouseDetailsView(warehouse: warehouse))
                     .toList()),
+            floatingActionButton: FloatingActionButton(
+              onPressed: () => model.navigateToCreateReceived(
+                  context, _tabController!.index),
+              child: Icon(Icons.add),
+            ),
           );
         });
   }

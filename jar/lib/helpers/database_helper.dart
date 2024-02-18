@@ -1,4 +1,9 @@
 import 'dart:async';
+import 'package:jar/models/batch.dart';
+import 'package:jar/models/jar.dart';
+import 'package:jar/models/pallet.dart';
+import 'package:jar/models/received.dart';
+import 'package:jar/models/user.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -53,8 +58,12 @@ class DatabaseHelper {
       date TEXT,
       warehouse_id INTEGER,
       user_id INTEGER,
+      jar_id INTEGER,
+      batch_id INTEGER,
       FOREIGN KEY(warehouse_id) REFERENCES warehouses(id),
-      FOREIGN KEY(user_id) REFERENCES users(id)
+      FOREIGN KEY(user_id) REFERENCES users(id),
+      FOREIGN KEY(jar_id) REFERENCES jar(id),
+      FOREIGN KEY(batch_id) REFERENCES batch(id)
     );
     ''';
 
@@ -106,7 +115,104 @@ class DatabaseHelper {
     await db.execute(tableTravel);
   }
 
-  // Métodos para operaciones CRUD aquí...
+  // Crea user admin si no existe
+  Future<User> ensureAdminUser() async {
+    final db = await database;
+    // Intenta encontrar un usuario administrador
+    final List<Map<String, dynamic>> users = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [
+        'admin@admin.com'
+      ], // Asume que este es el correo del administrador
+    );
+
+    if (users.isNotEmpty) {
+      // Si el usuario administrador ya existe, devuelve ese usuario
+      return User.fromMap(users.first);
+    } else {
+      // Si el usuario administrador no existe, créalo
+      int id = await db.insert('users', {
+        'name': 'Admin',
+        'email': 'admin@admin.com',
+        // Asegúrate de tener una manera de identificarlo como administrador, podría ser un campo adicional o un rol específico
+      });
+      // Devuelve el nuevo usuario administrador
+      return User(id: id, name: 'Admin', email: 'admin@admin.com');
+    }
+  }
+
+  // *USERS* //
+  Future<List<User>> getUsers() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('users');
+    return List.generate(maps.length, (i) {
+      return User.fromMap(maps[i]);
+    });
+  }
+
+  // *RECEIVED* //
+  Future<List<Received>> getReceived() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('received');
+    return List.generate(maps.length, (i) {
+      return Received.fromMap(maps[i]);
+    });
+  }
+
+  Future<List<Received>> getReceivedForIdWarehouse(int warehouseId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> result = await db.rawQuery('''
+      SELECT received.*, users.*, warehouses.*, jar.*, batch.*
+      FROM received
+      JOIN users ON users.id = received.user_id
+      JOIN warehouses ON warehouses.id = received.warehouse_id
+      JOIN jar ON jar.id = received.jar_id
+      JOIN batch ON batch.id = received.batch_id
+      WHERE received.warehouse_id = ?
+    ''', [warehouseId]);
+
+    return result.map((map) => Received.fromMap(map)).toList();
+  }
+
+  Future<Received> createReceived({
+    required String date,
+    required int warehouseId,
+    required int userId,
+    int? jarId,
+    int? batchId,
+  }) async {
+    final db = await database;
+    final id = await db.insert(
+      'received',
+      {
+        'date': date,
+        'warehouse_id': warehouseId,
+        'user_id': userId,
+        'jar_id': jarId,
+        'batch_id': batchId,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+
+    // Ahora recuperamos el objeto 'Received' basado en el ID generado.
+    final List<Map<String, dynamic>> insertedReceived = await db.query(
+      'received',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (insertedReceived.isNotEmpty) {
+      // Si se encuentra el registro, lo devolvemos como un objeto 'Received'.
+      return Received.fromMap(insertedReceived.first);
+    } else {
+      // Manejar el caso en que el registro no se pueda recuperar.
+      // Esto podría lanzar un error o manejarlo de alguna manera significativa para tu aplicación.
+      throw Exception('Failed to create received record.');
+    }
+  }
+
+  // *WAREHOUSE* //
   Future<List<Warehouse>> getWarehouses() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query('warehouses');
@@ -139,6 +245,42 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // *JAR* //
+  Future<Jar> createJar(Jar jar) async {
+    final db = await database;
+    final id = await db.insert(
+      'jar',
+      jar.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    // Retorna una nueva instancia de Jar con el ID generado
+    return Jar(id: id, name: jar.name);
+  }
+
+  // *PALLETS* //
+  Future<Pallet> createPallet(Pallet pallet) async {
+    final db = await database;
+    final id = await db.insert(
+      'pallets',
+      pallet.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    // Retorna una nueva instancia de Pallet con el ID generado
+    return Pallet(id: id, batchId: pallet.batchId, number: pallet.number);
+  }
+
+  // *BATCH* //
+  Future<Batch2> createBatch(Batch2 batch) async {
+    final db = await database;
+    final id = await db.insert(
+      'batch',
+      batch.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+    // Retorna una nueva instancia de Batch con el ID generado
+    return Batch2(id: id, name: batch.name, jarId: batch.jarId);
   }
 
   // Cerrar la base de datos
