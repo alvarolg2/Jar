@@ -5,6 +5,7 @@ import 'package:stacked/stacked.dart';
 class HomeViewModel extends FutureViewModel {
   List<Warehouse> warehouses = [];
   Warehouse? selectedWarehouse;
+  int get warehouseCount => warehouses.length;
 
   @override
   Future futureToRun() async {
@@ -24,22 +25,37 @@ class HomeViewModel extends FutureViewModel {
     notifyListeners();
   }
 
+  // Añade esta función para seleccionar el almacén por índice
+  void selectWarehouseByIndex(int index) {
+    if (index < warehouses.length) {
+      selectedWarehouse = warehouses[index];
+    } else {
+      selectedWarehouse = null; // O maneja la lógica para el botón de añadir
+    }
+    notifyListeners();
+  }
+
   Future<void> addWarehouse(String name) async {
     setBusy(true);
     await DatabaseHelper.instance.createWarehouse(Warehouse(name: name));
-    await fetchWarehouses(); // Recargar la lista de almacenes
+    await fetchWarehouses();
     setBusy(false);
   }
 
   Future<void> updateWarehouseName(int id, String newName) async {
     await DatabaseHelper.instance.updateWarehouseName(id, newName);
-    await fetchWarehouses(); // Actualizar la lista después de cambiar el nombre
+    await fetchWarehouses();
   }
 
   Future<void> deleteWarehouse(Warehouse warehouse) async {
     setBusy(true);
     await DatabaseHelper.instance.deleteWarehouse(warehouse.id!);
-    await fetchWarehouses(); // Recargar la lista de almacenes para reflejar la eliminación
+    await fetchWarehouses();
     setBusy(false);
+  }
+
+  // Considera añadir un método para actualizar el TabController cuando cambie la lista de almacenes
+  int getTabLength() {
+    return warehouses.length; // +1 por el botón de añadir
   }
 }
