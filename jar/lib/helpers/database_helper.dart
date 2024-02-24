@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'package:jar/models/batch.dart';
-import 'package:jar/models/jar.dart';
+import 'package:jar/models/lot.dart';
+import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
-import 'package:jar/models/received.dart';
-import 'package:jar/models/user.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -34,253 +32,420 @@ class DatabaseHelper {
 
   // Crear las tablas en la base de datos
   Future _createDB(Database db, int version) async {
-    // Sentencias SQL para crear las tablas
+    // Sentencia SQL para crear las tablas
+    await db.execute('''
+      CREATE TABLE "product" (
+        "id"	INTEGER NOT NULL UNIQUE,
+        "name"	TEXT,
+        "create_date"	datetime DEFAULT current_timestamp,
+        PRIMARY KEY("id" AUTOINCREMENT)
+      );
+    ''');
 
-    const String tableUsers = '''
-    CREATE TABLE users(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT,
-      email TEXT
-    );
-    ''';
+    await db.execute('''
+      CREATE TABLE "lot" (
+        "id"	INTEGER NOT NULL UNIQUE,
+        "name"	TEXT,
+        "warehouse"	INTEGER,
+        "create_date"	datetime DEFAULT current_timestamp,
+        "product"	INTEGER,
+        PRIMARY KEY("id" AUTOINCREMENT),
+        FOREIGN KEY("warehouse") REFERENCES "warehouse"("id"),
+        FOREIGN KEY("product") REFERENCES "product"("id")
+      );
+    ''');
 
-    const String tableWarehouses = '''
-    CREATE TABLE warehouses(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      location TEXT,
-      name TEXT
-    );
-    ''';
+    await db.execute('''
+      CREATE TABLE "pallet" (
+        "id"	INTEGER NOT NULL UNIQUE,
+        "name"	TEXT NOT NULL UNIQUE,
+        "create_date"	datetime DEFAULT current_timestamp,
+        "out_date"	datetime,
+        "date"	datetime,
+        "is_out"	INTEGER DEFAULT 0,
+        PRIMARY KEY("id" AUTOINCREMENT)
+      );
+    ''');
 
-    const String tableReceived = '''
-    CREATE TABLE received(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT,
-      warehouse_id INTEGER,
-      user_id INTEGER,
-      jar_id INTEGER,
-      batch_id INTEGER,
-      FOREIGN KEY(warehouse_id) REFERENCES warehouses(id),
-      FOREIGN KEY(user_id) REFERENCES users(id),
-      FOREIGN KEY(jar_id) REFERENCES jar(id),
-      FOREIGN KEY(batch_id) REFERENCES batch(id)
-    );
-    ''';
+    await db.execute('''
+      CREATE TABLE "pallet_lot" (
+        "id_pallet"	INTEGER NOT NULL UNIQUE,
+        "id_lot"	INTEGER NOT NULL,
+        PRIMARY KEY("id_pallet","id_lot")
+      );
+    ''');
 
-    const String tableJar = '''
-    CREATE TABLE jar(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT
-    );
-    ''';
-
-    const String tableBatch = '''
-    CREATE TABLE batch(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT,
-      jar_id INTEGER,
-      FOREIGN KEY(jar_id) REFERENCES jar(id)
-    );
-    ''';
-
-    const String tablePallets = '''
-    CREATE TABLE pallets(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      batch_id INTEGER,
-      number TEXT,
-      FOREIGN KEY(batch_id) REFERENCES batch(id)
-    );
-    ''';
-
-    const String tableTravel = '''
-    CREATE TABLE travel(
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      date TEXT,
-      batch_id INTEGER,
-      pallet_id INTEGER,
-      warehouse_id INTEGER,
-      FOREIGN KEY(batch_id) REFERENCES batch(id),
-      FOREIGN KEY(pallet_id) REFERENCES pallets(id),
-      FOREIGN KEY(warehouse_id) REFERENCES warehouses(id)
-    );
-    ''';
-
-    // Ejecutar las sentencias SQL para crear las tablas
-    await db.execute(tableUsers);
-    await db.execute(tableWarehouses);
-    await db.execute(tableReceived);
-    await db.execute(tableJar);
-    await db.execute(tableBatch);
-    await db.execute(tablePallets);
-    await db.execute(tableTravel);
+    await db.execute('''
+      CREATE TABLE "warehouse" (
+        "id"	INTEGER NOT NULL UNIQUE,
+        "name"	TEXT NOT NULL UNIQUE,
+        "address"	TEXT,
+        "create_date"	datetime DEFAULT current_timestamp,
+        PRIMARY KEY("id" AUTOINCREMENT)
+      );
+    ''');
   }
 
-  // Crea user admin si no existe
-  Future<User> ensureAdminUser() async {
+  // *LOT* //
+  Future<int> insertLot(Lot lot) async {
     final db = await database;
-    // Intenta encontrar un usuario administrador
-    final List<Map<String, dynamic>> users = await db.query(
-      'users',
-      where: 'email = ?',
-      whereArgs: [
-        'admin@admin.com'
-      ], // Asume que este es el correo del administrador
-    );
-
-    if (users.isNotEmpty) {
-      // Si el usuario administrador ya existe, devuelve ese usuario
-      return User.fromMap(users.first);
-    } else {
-      // Si el usuario administrador no existe, créalo
-      int id = await db.insert('users', {
-        'name': 'Admin',
-        'email': 'admin@admin.com',
-        // Asegúrate de tener una manera de identificarlo como administrador, podría ser un campo adicional o un rol específico
-      });
-      // Devuelve el nuevo usuario administrador
-      return User(id: id, name: 'Admin', email: 'admin@admin.com');
-    }
-  }
-
-  // *USERS* //
-  Future<List<User>> getUsers() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('users');
-    return List.generate(maps.length, (i) {
-      return User.fromMap(maps[i]);
-    });
-  }
-
-  // *RECEIVED* //
-  Future<List<Received>> getReceived() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('received');
-    return List.generate(maps.length, (i) {
-      return Received.fromMap(maps[i]);
-    });
-  }
-
-  Future<List<Received>> getReceivedForIdWarehouse(int warehouseId) async {
-    final db = await database;
-    final List<Map<String, dynamic>> result = await db.rawQuery('''
-      SELECT received.*, users.*, warehouses.*, jar.*, batch.*
-      FROM received
-      JOIN users ON users.id = received.user_id
-      JOIN warehouses ON warehouses.id = received.warehouse_id
-      JOIN jar ON jar.id = received.jar_id
-      JOIN batch ON batch.id = received.batch_id
-      WHERE received.warehouse_id = ?
-    ''', [warehouseId]);
-
-    return result.map((map) => Received.fromMap(map)).toList();
-  }
-
-  Future<Received> createReceived({
-    required String date,
-    required int warehouseId,
-    required int userId,
-    int? jarId,
-    int? batchId,
-  }) async {
-    final db = await database;
-    final id = await db.insert(
-      'received',
-      {
-        'date': date,
-        'warehouse_id': warehouseId,
-        'user_id': userId,
-        'jar_id': jarId,
-        'batch_id': batchId,
-      },
+    int id = await db.insert(
+      'lot',
+      lot.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+    return id;
+  }
 
-    // Ahora recuperamos el objeto 'Received' basado en el ID generado.
-    final List<Map<String, dynamic>> insertedReceived = await db.query(
-      'received',
+  Future<void> updateLot(Lot lot) async {
+    if (lot.id == null) {
+      throw ArgumentError("El lot debe tener un id para ser actualizado.");
+    }
+    final db = await database;
+    await db.update(
+      'lot',
+      lot.toJson(),
+      where: 'id = ?',
+      whereArgs: [lot.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deleteLot(int id) async {
+    final db = await database;
+    await db.delete(
+      'lot',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Lot>> getAllLots() async {
+    final db = await database;
+    // Ajusta esta consulta para incluir todos los campos necesarios de la tabla product.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT lot.*, 
+            product.id AS productId, 
+            product.name AS productName,
+            product.create_date AS productCreateDate
+      FROM lot
+      JOIN product ON lot.product = product.id
+    ''');
+
+    // Convertir la List<Map<String, dynamic>> en una List<Lot>.
+    return List.generate(maps.length, (i) {
+      // Construye el objeto Product a partir de los campos del producto.
+      final product = Product(
+        id: maps[i]['productId'],
+        name: maps[i]['productName'],
+        createDate: DateTime.parse(maps[i]['productCreateDate']),
+        // Añade aquí más campos si tu objeto Product los requiere.
+      );
+
+      // Construye el objeto Lot, ahora incluyendo el objeto Product completo.
+      return Lot(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        warehouse: Warehouse(
+            id: maps[i][
+                'warehouse']), // Asume que esto crea un objeto Warehouse adecuadamente.
+        createDate: DateTime.parse(maps[i]['create_date']),
+        product: product, // Asigna el objeto Product completo aquí.
+        // Añade cualquier otro campo que tu objeto Lot pueda requerir.
+      );
+    });
+  }
+
+  Future<List<Lot>> getAllLotsByWarehouseId(int warehouseId) async {
+    final db = await database;
+    // Añade la cláusula WHERE para filtrar por warehouseId.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT lot.*, 
+            product.id AS productId, 
+            product.name AS productName,
+            product.create_date AS productCreateDate
+      FROM lot
+      JOIN product ON lot.product = product.id
+      WHERE lot.warehouse = ?
+    ''', [warehouseId]); // Pasa warehouseId como parámetro a la consulta.
+
+    // Convertir la List<Map<String, dynamic>> en una List<Lot>.
+    return List.generate(maps.length, (i) {
+      // Construye el objeto Product a partir de los campos del producto.
+      final product = Product(
+        id: maps[i]['productId'],
+        name: maps[i]['productName'],
+        createDate: DateTime.parse(maps[i]['productCreateDate']),
+        // Añade aquí más campos si tu objeto Product los requiere.
+      );
+
+      // Construye el objeto Lot, ahora incluyendo el objeto Product completo y filtrado por warehouseId.
+      return Lot(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        warehouse: Warehouse(
+            id: maps[i][
+                'warehouse']), // Asume que esto crea un objeto Warehouse adecuadamente.
+        createDate: DateTime.parse(maps[i]['create_date']),
+        product: product, // Asigna el objeto Product completo aquí.
+        // Añade cualquier otro campo que tu objeto Lot pueda requerir.
+      );
+    });
+  }
+
+  Future<List<Lot>> getAllLotsByWarehouseIdWithPallets(int warehouseId) async {
+    final db = await database;
+    // Consulta inicial para obtener los lotes y productos.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT lot.*, 
+           product.id AS productId, 
+           product.name AS productName,
+           product.create_date AS productCreateDate
+    FROM lot
+    JOIN product ON lot.product = product.id
+    WHERE lot.warehouse = ? AND EXISTS (
+        SELECT 1 FROM pallet_lot
+        JOIN pallet ON pallet_lot.id_pallet = pallet.id
+        WHERE pallet_lot.id_lot = lot.id AND pallet.is_out = 0
+    )
+    ORDER BY lot.create_date DESC
+  ''', [warehouseId]);
+
+    List<Lot> lots = [];
+    for (var map in maps) {
+      // Construcción del objeto Product.
+      final product = Product(
+        id: map['productId'],
+        name: map['productName'],
+        createDate: DateTime.parse(map['productCreateDate']),
+      );
+
+      // Preparar el objeto Lot sin los pallets aún.
+      var lot = Lot(
+        id: map['id'],
+        name: map['name'],
+        warehouse: Warehouse(
+            id: map[
+                'warehouse']), // Asumiendo que Warehouse se maneja similarmente.
+        createDate: DateTime.parse(map['create_date']),
+        product: product,
+        pallet: [], // Inicializa la lista de pallets.
+      );
+
+      // Consulta para obtener los pallets asociados a este lote.
+      final List<Map<String, dynamic>> palletMaps = await db.rawQuery('''
+      SELECT pallet.*
+      FROM pallet
+      JOIN pallet_lot ON pallet_lot.id_pallet = pallet.id
+      WHERE pallet_lot.id_lot = ? AND pallet.is_out = 0
+    ''', [lot.id]);
+
+      // Construir los objetos Pallet y añadirlos al lote.
+      var pallets =
+          palletMaps.map((palletMap) => Pallet.fromJson(palletMap)).toList();
+      lot = lot.copyWith(
+          pallet:
+              pallets); // Asume que Lot tiene un método copyWith para actualizar la lista de pallets.
+
+      lots.add(lot);
+    }
+
+    return lots;
+  }
+
+  // *WAREHOUSE* //
+  // Función para obtener un almacén específico por su ID
+  Future<Warehouse> getWarehouse(int id) async {
+    final List<Map<String, dynamic>> maps = await _database!.query(
+      'warehouse',
       where: 'id = ?',
       whereArgs: [id],
     );
 
-    if (insertedReceived.isNotEmpty) {
-      // Si se encuentra el registro, lo devolvemos como un objeto 'Received'.
-      return Received.fromMap(insertedReceived.first);
+    if (maps.isNotEmpty) {
+      // Si encontramos el almacén, construimos y devolvemos un objeto Warehouse
+      return Warehouse.fromMap(maps.first);
     } else {
-      // Manejar el caso en que el registro no se pueda recuperar.
-      // Esto podría lanzar un error o manejarlo de alguna manera significativa para tu aplicación.
-      throw Exception('Failed to create received record.');
+      // Maneja el caso en que el almacén no se encuentra, por ejemplo, lanzando una excepción
+      throw Exception('Warehouse not found');
     }
   }
 
-  // *WAREHOUSE* //
-  Future<List<Warehouse>> getWarehouses() async {
-    final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('warehouses');
+  // Función para obtener todos los almacenes
+  Future<List<Warehouse>> getAllWarehouses() async {
+    final List<Map<String, dynamic>> maps = await _database!.query('warehouse');
+
+    // Construye y devuelve una lista de objetos Warehouse a partir de los registros recuperados
     return List.generate(maps.length, (i) {
       return Warehouse.fromMap(maps[i]);
     });
   }
 
-  Future<void> createWarehouse(Warehouse warehouse) async {
-    final db = await database;
-    // Inserta el almacén en la base de datos y obtiene el ID generado
-    await db.insert('warehouses', warehouse.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+  Future<int> createWarehouse(Warehouse warehouse) async {
+    final db = await _database;
+    return await db!.insert(
+      'warehouse',
+      warehouse.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
-  Future<void> updateWarehouseName(int id, String newName) async {
+  Future<int> updateWarehouse(Warehouse warehouse) async {
+    final db = await _database;
+    return await db!.update(
+      'warehouse',
+      warehouse.toMap(),
+      where: 'id = ?',
+      whereArgs: [warehouse.id],
+    );
+  }
+
+  Future<int> deleteWarehouse(int id) async {
+    final db = await _database;
+    return await db!.delete(
+      'warehouse',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // *PRODUCT*//
+  Future<int> insertProduct(Product product) async {
+    final db =
+        await database; // Asegúrate de que esta línea obtiene correctamente tu instancia de base de datos
+    final id = await db.insert(
+      'product',
+      product
+          .toJson(), // Asume que tienes un método toJson() que convierte el producto a un mapa
+      conflictAlgorithm: ConflictAlgorithm
+          .replace, // Usa replace para evitar conflictos si el producto ya existe
+    );
+    return id; // Devuelve el ID del producto insertado
+  }
+
+  Future<void> updateProduct(Product product) async {
+    if (product.id == null) {
+      throw ArgumentError("El lot debe tener un id para ser actualizado.");
+    }
     final db = await database;
     await db.update(
-      'warehouses',
-      {'name': newName},
+      'product',
+      product.toJson(),
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [product.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
 
-  Future<void> deleteWarehouse(int id) async {
+  Future<void> deleteProduct(int id) async {
     final db = await database;
     await db.delete(
-      'warehouses', // Asegúrate de que este es el nombre correcto de tu tabla
+      'product',
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  // *JAR* //
-  Future<Jar> createJar(Jar jar) async {
+  Future<List<Product>> getAllProduct() async {
     final db = await database;
-    final id = await db.insert(
-      'jar',
-      jar.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-    // Retorna una nueva instancia de Jar con el ID generado
-    return Jar(id: id, name: jar.name);
+    final List<Map<String, dynamic>> maps = await db.query('product');
+
+    // Convertir la List<Map<String, dynamic>> en una List<Lot>.
+    return List.generate(maps.length, (i) {
+      return Product(
+        id: maps[i]['id'],
+        name: maps[i]['name'],
+        createDate: DateTime.parse(maps[i]['create_date']),
+      );
+    });
   }
 
-  // *PALLETS* //
-  Future<Pallet> createPallet(Pallet pallet) async {
+  Future<Product?> findProductByName(String productName) async {
     final db = await database;
-    final id = await db.insert(
-      'pallets',
-      pallet.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+    final List<Map<String, dynamic>> maps = await db.query(
+      'product',
+      where: 'name = ?',
+      whereArgs: [productName],
     );
-    // Retorna una nueva instancia de Pallet con el ID generado
-    return Pallet(id: id, batchId: pallet.batchId, number: pallet.number);
+
+    if (maps.isNotEmpty) {
+      return Product.fromJson(maps.first);
+    }
+
+    return null;
   }
 
-  // *BATCH* //
-  Future<Batch2> createBatch(Batch2 batch) async {
+  //*PALLET*//
+
+  Future<void> createPalletAndLinkToLot(Pallet pallet, int lotId) async {
     final db = await database;
-    final id = await db.insert(
-      'batch',
-      batch.toMap(),
+    int palletId = await db.insert(
+      'pallet',
+      pallet.toJson(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    // Retorna una nueva instancia de Batch con el ID generado
-    return Batch2(id: id, name: batch.name, jarId: batch.jarId);
+
+    await db.insert(
+      'pallet_lot',
+      {
+        'id_pallet': palletId,
+        'id_lot': lotId,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> updatePallet(Pallet pallet) async {
+    if (pallet.id == null) {
+      throw ArgumentError("El pallet debe tener un id para ser actualizado.");
+    }
+    final db = await database;
+    await db.update(
+      'pallet',
+      pallet.toJson(),
+      where: 'id = ?',
+      whereArgs: [pallet.id],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  Future<void> deletePallet(int id) async {
+    final db = await database;
+    await db.delete(
+      'pallet',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<List<Pallet>> getPalletsForLot(Database db, int lotId) async {
+    final db = await database;
+    // Primero, obtenemos todos los id_pallet asociados con el id_lot dado.
+    final List<Map<String, dynamic>> palletLotMaps = await db.query(
+      'pallet_lot',
+      columns: ['id_pallet'],
+      where: 'id_lot = ?',
+      whereArgs: [lotId],
+    );
+
+    // Convertimos los resultados en una lista de IDs de pallet.
+    final List<int> palletIds =
+        palletLotMaps.map((map) => map['id_pallet'] as int).toList();
+
+    // Ahora, recuperamos los detalles completos de cada pallet usando los IDs obtenidos.
+    List<Pallet> pallets = [];
+    for (var palletId in palletIds) {
+      final List<Map<String, dynamic>> palletMaps = await db.query(
+        'pallet',
+        where: 'id = ?',
+        whereArgs: [palletId],
+      );
+      if (palletMaps.isNotEmpty) {
+        pallets.add(Pallet.fromJson(palletMaps.first));
+      }
+    }
+
+    return pallets;
   }
 
   // Cerrar la base de datos

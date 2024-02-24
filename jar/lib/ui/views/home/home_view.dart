@@ -33,8 +33,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
           return Scaffold(
             appBar: AppBar(
-              title: Text(model.currentUser?.name ?? ""),
-              bottom: PreferredSize(
+              title: PreferredSize(
                 preferredSize: const Size.fromHeight(48.0),
                 child: Row(
                   children: [
@@ -46,7 +45,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           tabs: List.generate(model.warehouses.length, (index) {
                             final warehouse = model.warehouses[index];
                             return _buildCustomTab(
-                              title: warehouse.name,
+                              title: warehouse.name ?? "Without name",
                               onLongPress: () => _showWarehouseOptions(
                                   context, model,
                                   warehouse: warehouse),
@@ -164,7 +163,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 if (warehouse == null) {
                   model.addWarehouse(name);
                 } else {
-                  model.updateWarehouseName(warehouse.id!, name);
+                  model.updateWarehouseName(warehouse);
                 }
                 Navigator.of(context).pop();
               },

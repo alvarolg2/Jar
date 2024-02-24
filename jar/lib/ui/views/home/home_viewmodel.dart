@@ -1,32 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:jar/helpers/database_helper.dart';
-import 'package:jar/models/user.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/views/create_received/create_received_view.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends FutureViewModel {
   List<Warehouse> warehouses = [];
-  List<User> users = [];
-  User? currentUser;
   Warehouse? selectedWarehouse;
   int get warehouseCount => warehouses.length;
 
   @override
   Future futureToRun() async {
-    await fetchUsers();
     await fetchWarehouses();
   }
 
   Future<bool> fetchWarehouses() async {
-    warehouses = await DatabaseHelper.instance.getWarehouses();
-    notifyListeners();
-    return true;
-  }
-
-  Future<bool> fetchUsers() async {
-    users = await DatabaseHelper.instance.getUsers();
-    currentUser = users[0];
+    warehouses = await DatabaseHelper.instance.getAllWarehouses();
     notifyListeners();
     return true;
   }
@@ -41,7 +30,7 @@ class HomeViewModel extends FutureViewModel {
     if (index < warehouses.length) {
       selectedWarehouse = warehouses[index];
     } else {
-      selectedWarehouse = null; // O maneja la lógica para el botón de añadir
+      selectedWarehouse = null;
     }
     notifyListeners();
   }
@@ -53,8 +42,8 @@ class HomeViewModel extends FutureViewModel {
     setBusy(false);
   }
 
-  Future<void> updateWarehouseName(int id, String newName) async {
-    await DatabaseHelper.instance.updateWarehouseName(id, newName);
+  Future<void> updateWarehouseName(Warehouse warehouse) async {
+    await DatabaseHelper.instance.updateWarehouse(warehouse);
     await fetchWarehouses();
   }
 
@@ -75,8 +64,7 @@ class HomeViewModel extends FutureViewModel {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateReceivedView(
-            warehouse: selectedWarehouse, user: currentUser!),
+        builder: (context) => CreateReceivedView(warehouse: selectedWarehouse),
       ),
     );
   }

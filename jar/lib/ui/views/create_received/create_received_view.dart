@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jar/helpers/database_helper.dart';
-import 'package:jar/models/user.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/views/create_received/create_received_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 
 class CreateReceivedView extends StatelessWidget {
   final Warehouse warehouse;
-  final User user;
 
-  const CreateReceivedView(
-      {Key? key, required this.warehouse, required this.user})
+  const CreateReceivedView({Key? key, required this.warehouse})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CreateReceivedViewModel>.reactive(
       viewModelBuilder: () => CreateReceivedViewModel(),
-      onModelReady: (viewModel) => viewModel.init(warehouse, user),
+      onModelReady: (viewModel) => viewModel.init(warehouse),
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
           title: Text('Añadir recepción'),
@@ -27,16 +25,6 @@ class CreateReceivedView extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: <Widget>[
-              TextFormField(
-                controller: viewModel.dateController,
-                decoration: InputDecoration(labelText: 'Fecha'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese una fecha';
-                  }
-                  return null;
-                },
-              ),
               TextFormField(
                 controller: viewModel.productController,
                 decoration: InputDecoration(labelText: 'Producto'),
@@ -48,7 +36,7 @@ class CreateReceivedView extends StatelessWidget {
                 },
               ),
               TextFormField(
-                controller: viewModel.batchController,
+                controller: viewModel.lotController,
                 decoration: InputDecoration(labelText: 'Lote'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -57,15 +45,32 @@ class CreateReceivedView extends StatelessWidget {
                   return null;
                 },
               ),
+              TextFormField(
+                controller: viewModel.numPalletController,
+                keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly
+                ], // Only numbers can be ent
+                decoration: const InputDecoration(labelText: 'Número de pales'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor ingrese un numero de pales';
+                  }
+                  return null;
+                },
+              ),
+              IconButton(
+                  onPressed: viewModel.captureAndRecognizeText,
+                  icon: Icon(Icons.camera)),
               SizedBox(height: 20),
               viewModel.isBusy
                   ? CircularProgressIndicator() // Muestra un indicador de carga si el ViewModel está ocupado
                   : ElevatedButton(
                       onPressed: () async {
                         // Ahora, este botón llamará al método createReceived del ViewModel
-                        await viewModel.createReceived(warehouse, user);
+                        await viewModel.createLot(warehouse);
                       },
-                      child: Text('Guardar Received'),
+                      child: Text('Guardar'),
                     ),
             ],
           ),
