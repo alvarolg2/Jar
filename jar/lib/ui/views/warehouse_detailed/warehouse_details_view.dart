@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
@@ -16,7 +15,7 @@ class WarehouseDetailsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextStyle textStyle =
-        TextStyle(fontSize: 20, color: kcTextColor); // Estilo de texto general
+        const TextStyle(color: kcTextColor); // Estilo de texto general
 
     return ViewModelBuilder<WarehouseDetailsViewModel>.reactive(
       viewModelBuilder: () => WarehouseDetailsViewModel(warehouse),
@@ -141,13 +140,26 @@ class WarehouseDetailsView extends StatelessWidget {
                                       ],
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: Icon(Icons.arrow_forward,
-                                        color: kcPrimaryColorDark),
-                                    onPressed: () async {
-                                      await model.showPalletSheet(
-                                          lot, model.getPalletsNotOut(index));
-                                    },
+                                  Column(
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.add_outlined,
+                                            color: kcPrimaryColorDark),
+                                        onPressed: () async {
+                                          await model.showPalletInSheet(
+                                            lot,
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_forward,
+                                            color: kcPrimaryColorDark),
+                                        onPressed: () async {
+                                          await model.showPalletSheet(lot,
+                                              model.getPalletsNotOut(index));
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

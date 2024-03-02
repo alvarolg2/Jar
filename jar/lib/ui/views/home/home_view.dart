@@ -24,13 +24,11 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               TabController(length: model.warehouseCount, vsync: this);
         },
         builder: (context, model, child) {
-          // Verificar si es necesario actualizar el TabController
           if (_tabController!.length != model.warehouseCount) {
             _tabController!.dispose();
             _tabController =
                 TabController(length: model.warehouseCount, vsync: this);
           }
-
           return Scaffold(
             appBar: AppBar(
               title: PreferredSize(

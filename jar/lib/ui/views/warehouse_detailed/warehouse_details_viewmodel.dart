@@ -1,5 +1,8 @@
+import 'dart:math';
+
 import 'package:jar/app/app.bottomsheets.dart';
 import 'package:jar/app/app.locator.dart';
+import 'package:jar/models/pallet.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
@@ -52,7 +55,14 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     if (extracNumPallets != null) {
       await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets);
     }
-    selectedProduct = null;
+    initialise();
+  }
+
+  Future<void> showPalletInSheet(Lot lot) async {
+    SheetResponse? response = await _sheetService.showCustomSheet(
+        variant: BottomSheetType.pallet_in,
+        title: lot.name,
+        data: {"lotId": lot.id});
     initialise();
   }
 
