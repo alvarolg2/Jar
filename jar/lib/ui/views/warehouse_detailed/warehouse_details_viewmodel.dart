@@ -4,6 +4,7 @@ import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -69,5 +70,26 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
 
   int getPalletsNotOut(int index) {
     return _lots[index].pallet?.where((p) => !p.isOut!).length ?? 0;
+  }
+
+  // Esta función calcula el número total de pallets no salidos en el almacén,
+  // y opcionalmente para un producto específico.
+  Future<int> getTotalPalletsNotOut({int? productId}) async {
+    final db = await DatabaseHelper.instance.database;
+    String query = '''
+      SELECT COUNT(*) as count FROM pallet
+      JOIN pallet_lot ON pallet.id = pallet_lot.id_pallet
+      JOIN lot ON pallet_lot.id_lot = lot.id
+      WHERE lot.warehouse = ? AND pallet.is_out = 0
+    ''';
+    List<dynamic> params = [warehouse.id!];
+
+    if (productId != null) {
+      query += ' AND lot.product = ?';
+      params.add(productId);
+    }
+
+    final result = await db.rawQuery(query, params);
+    return Sqflite.firstIntValue(result) ?? 0;
   }
 }

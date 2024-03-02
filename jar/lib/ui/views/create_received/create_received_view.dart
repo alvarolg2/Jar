@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/views/create_received/create_received_viewmodel.dart';
@@ -18,16 +19,27 @@ class CreateReceivedView extends StatelessWidget {
       onModelReady: (viewModel) => viewModel.init(warehouse),
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
-          title: Text('Añadir recepción'),
+          title: const Text('Añadir recepción',
+              style: TextStyle(color: kcTextColor)),
+          backgroundColor: kcPrimaryColor,
         ),
+        backgroundColor: kcBackgroundColor,
         body: Form(
-          // Usa viewModel.formKey si decides mover _formKey al ViewModel
           child: ListView(
             padding: const EdgeInsets.all(16.0),
             children: <Widget>[
               TextFormField(
                 controller: viewModel.productController,
-                decoration: InputDecoration(labelText: 'Producto'),
+                decoration: const InputDecoration(
+                  labelText: 'Producto',
+                  labelStyle: TextStyle(color: kcPrimaryColorDark),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kcPrimaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kcPrimaryColorDark),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese un producto';
@@ -35,9 +47,19 @@ class CreateReceivedView extends StatelessWidget {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: viewModel.lotController,
-                decoration: InputDecoration(labelText: 'Lote'),
+                decoration: const InputDecoration(
+                  labelText: 'Lote',
+                  labelStyle: TextStyle(color: kcPrimaryColorDark),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kcPrimaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kcPrimaryColorDark),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese un lote';
@@ -45,33 +67,60 @@ class CreateReceivedView extends StatelessWidget {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: viewModel.numPalletController,
                 keyboardType: TextInputType.number,
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly
-                ], // Only numbers can be ent
-                decoration: const InputDecoration(labelText: 'Número de pales'),
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'Número de palés',
+                  labelStyle: TextStyle(color: kcPrimaryColorDark),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kcPrimaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: kcPrimaryColorDark),
+                  ),
+                ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un numero de pales';
+                    return 'Por favor ingrese un número de palés';
                   }
                   return null;
                 },
               ),
-              IconButton(
-                  onPressed: viewModel.captureAndRecognizeText,
-                  icon: Icon(Icons.camera)),
               SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Escanear documento',
+                    style: TextStyle(fontSize: 16, color: kcTextColor),
+                  ),
+                  IconButton(
+                    onPressed: viewModel.captureAndRecognizeText,
+                    icon:
+                        const Icon(Icons.camera_alt, color: kcPrimaryColorDark),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               viewModel.isBusy
-                  ? CircularProgressIndicator() // Muestra un indicador de carga si el ViewModel está ocupado
-                  : ElevatedButton(
+                  ? const CircularProgressIndicator(color: kcPrimaryColor)
+                  : ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor:
+                            kcPrimaryColor, // foreground (text) color
+                      ),
                       onPressed: () async {
-                        // Ahora, este botón llamará al método createReceived del ViewModel
                         await viewModel.createLot(warehouse);
                         viewModel.navigateToHome();
                       },
-                      child: Text('Guardar'),
+                      icon: const Icon(Icons.save),
+                      label: const Text('Guardar'),
                     ),
             ],
           ),

@@ -55,6 +55,19 @@ class WarehouseDetailsView extends StatelessWidget {
                     icon: Icon(Icons.restart_alt_outlined))
               ],
             ),
+            FutureBuilder<int>(
+              future: model.getTotalPalletsNotOut(
+                  productId: model.selectedProduct?.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator(); // Mostrar un indicador de carga mientras se espera el resultado.
+                }
+                return Text(
+                  "Total de palés: ${snapshot.data}",
+                  style: TextStyle(fontSize: 20, color: Colors.black),
+                );
+              },
+            ),
             Expanded(
               child: model.isBusy
                   ? Center(

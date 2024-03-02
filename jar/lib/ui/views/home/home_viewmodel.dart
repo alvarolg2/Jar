@@ -42,7 +42,8 @@ class HomeViewModel extends FutureViewModel {
     setBusy(false);
   }
 
-  Future<void> updateWarehouseName(Warehouse warehouse) async {
+  Future<void> updateWarehouseName(Warehouse warehouse, String name) async {
+    warehouse.name = name;
     await DatabaseHelper.instance.updateWarehouse(warehouse);
     await fetchWarehouses();
   }

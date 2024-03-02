@@ -1,7 +1,7 @@
 class Warehouse {
   final int? id;
   final String? address;
-  final String? name;
+  String? name;
 
   Warehouse({this.id, this.address, this.name});
 
