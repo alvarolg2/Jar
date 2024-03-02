@@ -25,7 +25,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
   Future<List<Lot>?> futureToRun() => fetchLots();
 
   Future<List<Lot>> fetchLots({int? productId}) async {
-    allProducts = await DatabaseHelper.instance.getAllProduct();
+    allProducts = await DatabaseHelper.instance.getProductsByPalletsNotOut();
     if (productId == null) {
       _lots = await DatabaseHelper.instance
           .getAllLotsByWarehouseIdWithPallets(warehouse.id!);
@@ -80,6 +80,22 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
 
   int getPalletsNotOut(int index) {
     return _lots[index].pallet?.where((p) => !p.isOut!).length ?? 0;
+  }
+
+  int getTruckLoads(int index) {
+    // Asegúrate de que el lote tiene palés para procesar.
+    if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
+      // Filtra los palés donde `isOut` es falso y cuenta el total.
+      int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut!).length;
+
+      // Divide el total de palés no salidos por 26 y trunca el resultado para obtener cargas completas de camión.
+      int truckLoads = (notOutPallets / 26).floor();
+
+      return truckLoads;
+    } else {
+      // Devuelve 0 si no hay palés o la lista de palés está vacía.
+      return 0;
+    }
   }
 
   // Esta función calcula el número total de pallets no salidos en el almacén,

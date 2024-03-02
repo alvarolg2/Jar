@@ -306,7 +306,7 @@ class DatabaseHelper {
     return lots;
   }
 
-  Future<bool> lotNameExists(String lotName) async {
+  Future<Lot?> findLotByName(String lotName) async {
     final db = await database;
     final List<Map<String, dynamic>> results = await db.query(
       'lot',
@@ -314,8 +314,14 @@ class DatabaseHelper {
       whereArgs: [lotName],
     );
 
-    // Si la lista de resultados no está vacía, entonces el lote ya existe
-    return results.isNotEmpty;
+    // Si encuentra al menos un lote, devuelve el primer lote encontrado
+    if (results.isNotEmpty) {
+      // Asumiendo que tienes un constructor fromMap o similar para crear un objeto Lot desde un Map
+      return Lot.fromJson(results.first);
+    }
+
+    // Devuelve null si no se encuentra ningún lote con ese nombre
+    return null;
   }
 
   // *WAREHOUSE* //
@@ -422,6 +428,22 @@ class DatabaseHelper {
         name: maps[i]['name'],
         createDate: DateTime.parse(maps[i]['create_date']),
       );
+    });
+  }
+
+  Future<List<Product>> getProductsByPalletsNotOut() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT DISTINCT product.*
+      FROM product
+      JOIN lot ON product.id = lot.product
+      JOIN pallet_lot ON lot.id = pallet_lot.id_lot
+      JOIN pallet ON pallet_lot.id_pallet = pallet.id
+      WHERE pallet.is_out = 0
+    ''');
+
+    return List.generate(maps.length, (i) {
+      return Product.fromJson(maps[i]);
     });
   }
 

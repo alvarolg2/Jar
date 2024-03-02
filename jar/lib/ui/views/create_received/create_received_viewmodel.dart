@@ -142,21 +142,19 @@ class CreateReceivedViewModel extends BaseViewModel {
       } else {
         currentProductID = currentProduct.id!;
       }
-      bool repeatLot =
-          await DatabaseHelper.instance.lotNameExists(lotController.text);
-      if (!repeatLot) {
+      Lot? repeatLot =
+          await DatabaseHelper.instance.findLotByName(lotController.text);
+      if (repeatLot == null) {
         currentLot = await DatabaseHelper.instance.insertLot(Lot(
             name: lotController.text,
             warehouse: warehouse,
             product: currentProduct ?? Product(id: currentProductID)));
-        generatePallets(int.tryParse(_numPalletController.text)!, currentLot!);
+        await generatePallets(
+            int.tryParse(_numPalletController.text)!, currentLot!);
         setBusy(false);
       } else {
-        _snackbarService.showSnackbar(
-          title: 'Error',
-          message: 'El lote ya existe.',
-          duration: Duration(seconds: 3),
-        );
+        await generatePallets(
+            int.tryParse(_numPalletController.text)!, repeatLot.id!);
       }
     } catch (e) {
       setBusy(false);
@@ -177,8 +175,7 @@ class CreateReceivedViewModel extends BaseViewModel {
         date: null,
       );
 
-      await DatabaseHelper.instance
-          .createPalletAndLinkToLot(pallet, currentLot!);
+      await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }
 
     return pallets;

@@ -123,6 +123,15 @@ class WarehouseDetailsView extends StatelessWidget {
                                             Text(
                                                 "${model.getPalletsNotOut(index)} / ${model.getTotalPallets(index)} palés",
                                                 style: textStyle),
+                                            SizedBox(width: 8),
+                                            Icon(Icons.local_shipping,
+                                                color:
+                                                    kcPrimaryColorDark), // Icono de camión
+                                            SizedBox(width: 8),
+                                            Text(
+                                                "${model.getTruckLoads(index)}",
+                                                style:
+                                                    textStyle), // Cantidad de viajes de camión
                                           ],
                                         ),
                                         SizedBox(height: 8),
