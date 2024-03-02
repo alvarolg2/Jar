@@ -55,6 +55,12 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     initialise();
   }
 
+  void selectProductNull() {
+    selectedProduct = null;
+    initialise();
+    notifyListeners();
+  }
+
   List<Lot> get lots => _lots; // Proporciona acceso a _lots.
 
   int getTotalPallets(int index) {

@@ -1,6 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_viewmodel.dart';
 import 'package:stacked/stacked.dart';
@@ -13,36 +15,51 @@ class WarehouseDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle style = TextStyle(fontSize: 20);
+    TextStyle textStyle =
+        TextStyle(fontSize: 20, color: kcTextColor); // Estilo de texto general
+
     return ViewModelBuilder<WarehouseDetailsViewModel>.reactive(
       viewModelBuilder: () => WarehouseDetailsViewModel(warehouse),
-      onModelReady: (model) =>
-          model.fetchLots(), // Carga inicial de todos los lotes.
+      onModelReady: (model) => model.fetchLots(),
       builder: (context, model, child) => Scaffold(
+        backgroundColor: kcBackgroundColor, // Fondo general claro
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: DropdownButton<Product>(
-                value: model.selectedProduct,
-                hint: Text("Selecciona un producto"),
-                onChanged: (Product? newValue) {
-                  if (newValue != null) {
-                    model.setSelectedProduct(newValue);
-                  }
-                },
-                items: model.allProducts
-                    .map<DropdownMenuItem<Product>>((Product product) {
-                  return DropdownMenuItem<Product>(
-                    value: product,
-                    child: Text(product.name!),
-                  );
-                }).toList(),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: DropdownButton<Product>(
+                    value: model.selectedProduct,
+                    hint: Text("Selecciona un producto", style: textStyle),
+                    onChanged: (Product? newValue) {
+                      if (newValue != null) {
+                        model.setSelectedProduct(newValue);
+                      }
+                    },
+                    items: model.allProducts
+                        .map<DropdownMenuItem<Product>>((Product product) {
+                      return DropdownMenuItem<Product>(
+                        value: product,
+                        child: Text(product.name!, style: textStyle),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                IconButton(
+                    onPressed: () {
+                      model.selectProductNull();
+                    },
+                    color: kcPrimaryColorDark,
+                    icon: Icon(Icons.restart_alt_outlined))
+              ],
             ),
             Expanded(
               child: model.isBusy
-                  ? Center(child: const CircularProgressIndicator())
+                  ? Center(
+                      child:
+                          CircularProgressIndicator(color: kcPrimaryColorDark))
                   : ListView.builder(
                       itemCount: model.lots.length,
                       itemBuilder: (context, index) {
@@ -50,83 +67,75 @@ class WarehouseDetailsView extends StatelessWidget {
                         return Container(
                           margin: const EdgeInsets.all(8.0),
                           child: Card(
+                            color: kcMediumGrey, // Gris claro para tarjetas
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      model.selectedProduct == null
-                                          ? Row(
-                                              children: [
-                                                const Icon(
-                                                    Icons.inventory_2_outlined),
-                                                SizedBox(width: 8),
-                                                Text(
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Iconos reintegrados con su respectivo texto
+                                        if (model.selectedProduct == null)
+                                          Row(
+                                            children: [
+                                              Icon(Icons.inventory_2_outlined,
+                                                  color: kcPrimaryColorDark),
+                                              SizedBox(width: 8),
+                                              Text(
                                                   lot.product?.name ??
-                                                      "Without name",
-                                                  style: style,
-                                                ),
-                                              ],
-                                            )
-                                          : const SizedBox.shrink(),
-                                      SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.ballot),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            lot.name ?? "Without product",
-                                            style: style,
+                                                      "Sin nombre",
+                                                  style: textStyle),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.pallet),
-                                          SizedBox(width: 8),
-                                          Text(
-                                              "${model.getPalletsNotOut(index)} / ${model.getTotalPallets(index)} palés",
-                                              style: style),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.date_range),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            // Asumiendo que tienes un DateFormatter o similar para formatear la fecha
-                                            DateFormatter.format(
-                                                lot.createDate!),
-                                            style: style,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                        SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.ballot,
+                                                color: kcPrimaryColorDark),
+                                            SizedBox(width: 8),
+                                            Text(lot.name ?? "Sin producto",
+                                                style: textStyle),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.pallet,
+                                                color: kcPrimaryColorDark),
+                                            SizedBox(width: 8),
+                                            Text(
+                                                "${model.getPalletsNotOut(index)} / ${model.getTotalPallets(index)} palés",
+                                                style: textStyle),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.date_range,
+                                                color: kcPrimaryColorDark),
+                                            SizedBox(width: 8),
+                                            Text(
+                                                DateFormatter.format(
+                                                    lot.createDate!),
+                                                style: textStyle),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(Icons.arrow_outward_outlined,
-                                            size: 40),
-                                        onPressed: () async {
-                                          await model.showPalletSheet(lot,
-                                              model.getPalletsNotOut(index));
-                                        },
-                                      )
-                                    ],
-                                  )
+                                  IconButton(
+                                    icon: Icon(Icons.arrow_forward,
+                                        color: kcPrimaryColorDark),
+                                    onPressed: () async {
+                                      await model.showPalletSheet(
+                                          lot, model.getPalletsNotOut(index));
+                                    },
+                                  ),
                                 ],
                               ),
                             ),

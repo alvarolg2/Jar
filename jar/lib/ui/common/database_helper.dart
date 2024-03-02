@@ -252,7 +252,7 @@ class DatabaseHelper {
   Future<List<Lot>> getAllLotsByWarehouseIdWithPalletsAndProductId(
       int warehouseId, int productId) async {
     final db = await database;
-    // Consulta actualizada para filtrar también por el ID del producto.
+    // La consulta inicial se mantiene igual para asegurar que seleccionemos lotes que tienen al menos un pallet no salido.
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
     SELECT lot.*, 
            product.id AS productId, 
@@ -266,14 +266,11 @@ class DatabaseHelper {
         WHERE pallet_lot.id_lot = lot.id AND pallet.is_out = 0
     )
     ORDER BY lot.create_date DESC
-  ''', [
-      warehouseId,
-      productId
-    ]); // Asegúrate de pasar el productId como segundo parámetro.
+  ''', [warehouseId, productId]);
 
     List<Lot> lots = [];
     for (var map in maps) {
-      // Construcción del objeto Product.
+      // Construcción del objeto Product y preparación del objeto Lot
       final product = Product(
         id: map['productId'],
         name: map['productName'],
@@ -283,27 +280,25 @@ class DatabaseHelper {
       var lot = Lot(
         id: map['id'],
         name: map['name'],
-        warehouse: Warehouse(
-            id: map[
-                'warehouse']), // Asumiendo que Warehouse se maneja similarmente.
+        warehouse: Warehouse(id: map['warehouse']),
         createDate: DateTime.parse(map['create_date']),
         product: product,
-        pallet: [], // Inicializa la lista de pallets.
+        pallet: [], // Inicialmente lista de pallets vacía.
       );
 
-      // Consulta para obtener los pallets asociados a este lote.
+      // Modificación aquí: eliminar la condición AND pallet.is_out = 0 para obtener todos los pallets asociados a este lote.
       final List<Map<String, dynamic>> palletMaps = await db.rawQuery('''
       SELECT pallet.*
       FROM pallet
       JOIN pallet_lot ON pallet_lot.id_pallet = pallet.id
-      WHERE pallet_lot.id_lot = ? AND pallet.is_out = 0
-    ''', [lot.id]);
+      WHERE pallet_lot.id_lot = ?
+    ''', [lot.id]); // Se elimina la condición de filtrado por is_out
 
-      // Construir los objetos Pallet y añadirlos al lote.
+      // Construir los objetos Pallet y añadirlos al lote
       var pallets =
           palletMaps.map((palletMap) => Pallet.fromJson(palletMap)).toList();
       lot = lot.copyWith(
-          pallet: pallets); // Asume que Lot tiene un método copyWith.
+          pallet: pallets); // Actualizar la lista de pallets del lote
 
       lots.add(lot);
     }

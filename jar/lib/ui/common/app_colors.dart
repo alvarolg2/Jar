@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
-const Color kcPrimaryColor = Color(0xFF9600FF);
-const Color kcPrimaryColorDark = Color(0xFF300151);
-const Color kcDarkGreyColor = Color(0xFF1A1B1E);
-const Color kcMediumGrey = Color(0xFF474A54);
-const Color kcLightGrey = Color.fromARGB(255, 187, 187, 187);
-const Color kcVeryLightGrey = Color(0xFFE3E3E3);
-const Color kcBackgroundColor = kcDarkGreyColor;
+const Color kcPrimaryColor = Color(0xFF42A5F5); // Azul claro
+const Color kcPrimaryColorDark =
+    Color(0xFF1E88E5); // Azul más oscuro para detalles
+const Color kcMediumGrey =
+    Color(0xFFF0F0F0); // Gris claro para tarjetas (se mantiene)
+const Color kcTextColor =
+    Color(0xFF212121); // Casi negro para texto (se mantiene)
+const Color kcBackgroundColor =
+    Color(0xFFFAFAFA); // Fondo general claro (se mantiene)
+
