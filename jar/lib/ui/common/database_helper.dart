@@ -306,6 +306,18 @@ class DatabaseHelper {
     return lots;
   }
 
+  Future<bool> lotNameExists(String lotName) async {
+    final db = await database;
+    final List<Map<String, dynamic>> results = await db.query(
+      'lot',
+      where: 'name = ?',
+      whereArgs: [lotName],
+    );
+
+    // Si la lista de resultados no está vacía, entonces el lote ya existe
+    return results.isNotEmpty;
+  }
+
   // *WAREHOUSE* //
   // Función para obtener un almacén específico por su ID
   Future<Warehouse> getWarehouse(int id) async {

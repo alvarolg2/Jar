@@ -16,6 +16,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
+  final _snackbarService = SnackbarService();
 
   final _dateController = TextEditingController();
   final _productController = TextEditingController();
@@ -141,16 +142,22 @@ class CreateReceivedViewModel extends BaseViewModel {
       } else {
         currentProductID = currentProduct.id!;
       }
-      List<Product> l = await DatabaseHelper.instance.getAllProduct();
-      l;
-      print("Lot Name: ${lotController.text}");
-      currentLot = await DatabaseHelper.instance.insertLot(Lot(
-          name: lotController.text,
-          warehouse: warehouse,
-          product: currentProduct ?? Product(id: currentProductID)));
-      generatePallets(int.tryParse(_numPalletController.text)!, currentLot!);
-      setBusy(false);
-      // Lógica después de crear el "Received" con éxito, como mostrar un SnackBar
+      bool repeatLot =
+          await DatabaseHelper.instance.lotNameExists(lotController.text);
+      if (!repeatLot) {
+        currentLot = await DatabaseHelper.instance.insertLot(Lot(
+            name: lotController.text,
+            warehouse: warehouse,
+            product: currentProduct ?? Product(id: currentProductID)));
+        generatePallets(int.tryParse(_numPalletController.text)!, currentLot!);
+        setBusy(false);
+      } else {
+        _snackbarService.showSnackbar(
+          title: 'Error',
+          message: 'El lote ya existe.',
+          duration: Duration(seconds: 3),
+        );
+      }
     } catch (e) {
       setBusy(false);
       // Maneja cualquier error que ocurra

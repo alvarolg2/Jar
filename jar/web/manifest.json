@@ -1,6 +1,6 @@
 {
-    "name": "jar",
-    "short_name": "jar",
+    "name": "Almacén",
+    "short_name": "Almacén",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
