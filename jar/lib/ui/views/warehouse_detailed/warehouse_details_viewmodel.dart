@@ -31,8 +31,6 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
           .getAllLotsByWarehouseIdWithPalletsAndProductId(
               warehouse.id!, productId);
     }
-    List<Pallet> a = await DatabaseHelper.instance.getPalletsForLot(7);
-    a;
     return _lots; // Asegura que _lots siempre esté actualizado con los últimos datos, independientemente del filtro.
   }
 
