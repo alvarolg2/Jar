@@ -1,6 +1,5 @@
 import 'package:jar/app/app.bottomsheets.dart';
 import 'package:jar/app/app.locator.dart';
-import 'package:jar/models/pallet.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
@@ -52,6 +51,8 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     if (extracNumPallets != null) {
       await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets);
     }
+    selectedProduct = null;
+    initialise();
   }
 
   List<Lot> get lots => _lots; // Proporciona acceso a _lots.
