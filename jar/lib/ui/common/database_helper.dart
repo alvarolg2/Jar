@@ -253,6 +253,68 @@ class DatabaseHelper {
     return lots;
   }
 
+  Future<List<Lot>> getAllLotsByWarehouseIdWithPalletsAndProductId(
+      int warehouseId, int productId) async {
+    final db = await database;
+    // Consulta actualizada para filtrar también por el ID del producto.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT lot.*, 
+           product.id AS productId, 
+           product.name AS productName,
+           product.create_date AS productCreateDate
+    FROM lot
+    JOIN product ON lot.product = product.id
+    WHERE lot.warehouse = ? AND product.id = ? AND EXISTS (
+        SELECT 1 FROM pallet_lot
+        JOIN pallet ON pallet_lot.id_pallet = pallet.id
+        WHERE pallet_lot.id_lot = lot.id AND pallet.is_out = 0
+    )
+    ORDER BY lot.create_date DESC
+  ''', [
+      warehouseId,
+      productId
+    ]); // Asegúrate de pasar el productId como segundo parámetro.
+
+    List<Lot> lots = [];
+    for (var map in maps) {
+      // Construcción del objeto Product.
+      final product = Product(
+        id: map['productId'],
+        name: map['productName'],
+        createDate: DateTime.parse(map['productCreateDate']),
+      );
+
+      var lot = Lot(
+        id: map['id'],
+        name: map['name'],
+        warehouse: Warehouse(
+            id: map[
+                'warehouse']), // Asumiendo que Warehouse se maneja similarmente.
+        createDate: DateTime.parse(map['create_date']),
+        product: product,
+        pallet: [], // Inicializa la lista de pallets.
+      );
+
+      // Consulta para obtener los pallets asociados a este lote.
+      final List<Map<String, dynamic>> palletMaps = await db.rawQuery('''
+      SELECT pallet.*
+      FROM pallet
+      JOIN pallet_lot ON pallet_lot.id_pallet = pallet.id
+      WHERE pallet_lot.id_lot = ? AND pallet.is_out = 0
+    ''', [lot.id]);
+
+      // Construir los objetos Pallet y añadirlos al lote.
+      var pallets =
+          palletMaps.map((palletMap) => Pallet.fromJson(palletMap)).toList();
+      lot = lot.copyWith(
+          pallet: pallets); // Asume que Lot tiene un método copyWith.
+
+      lots.add(lot);
+    }
+
+    return lots;
+  }
+
   // *WAREHOUSE* //
   // Función para obtener un almacén específico por su ID
   Future<Warehouse> getWarehouse(int id) async {
@@ -418,7 +480,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Pallet>> getPalletsForLot(Database db, int lotId) async {
+  Future<List<Pallet>> getPalletsForLot(int lotId) async {
     final db = await database;
     // Primero, obtenemos todos los id_pallet asociados con el id_lot dado.
     final List<Map<String, dynamic>> palletLotMaps = await db.query(
@@ -446,6 +508,29 @@ class DatabaseHelper {
     }
 
     return pallets;
+  }
+
+  Future<void> markPalletsAsOut(int lotId, int numberOfPalletsToMark) async {
+    final db = await database;
+
+    // 1. Seleccionar los primeros N pallets de ese lote donde is_out es 0 a través de la tabla intermedia
+    List<Map<String, dynamic>> palletIds = await db.rawQuery('''
+    SELECT p.id FROM pallet p
+    JOIN pallet_lot pl ON p.id = pl.id_pallet
+    WHERE pl.id_lot = ? AND p.is_out = 0
+    ORDER BY p.id ASC
+    LIMIT ?
+  ''', [lotId, numberOfPalletsToMark]);
+
+    // 2. Marcar esos pallets como salidos (is_out = 1)
+    for (var row in palletIds) {
+      await db.update(
+        'pallet',
+        {'is_out': 1},
+        where: 'id = ?',
+        whereArgs: [row['id']],
+      );
+    }
   }
 
   // Cerrar la base de datos

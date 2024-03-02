@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jar/helpers/database_helper.dart';
+import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/views/create_received/create_received_view.dart';
 import 'package:stacked/stacked.dart';

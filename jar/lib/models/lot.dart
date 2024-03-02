@@ -31,9 +31,7 @@ class Lot {
         id: json['id'],
         name: json['name'],
         warehouse: Warehouse(id: json['warehouse']),
-        createDate: json['create_date'] != null
-            ? DateTime.parse(json['create_date']).toLocal()
-            : null,
+        createDate: json['create_date'] != null ? DateTime.parse(json['create_date']).toLocal() : null,
         product: json['product'] != null ? Product.fromJson(json) : null,
       );
 

@@ -20,15 +20,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return ViewModelBuilder<HomeViewModel>.reactive(
         viewModelBuilder: () => HomeViewModel(),
         onModelReady: (model) {
-          _tabController =
-              TabController(length: model.warehouseCount, vsync: this);
+          _tabController = TabController(length: model.warehouseCount, vsync: this);
         },
         builder: (context, model, child) {
           // Verificar si es necesario actualizar el TabController
           if (_tabController!.length != model.warehouseCount) {
             _tabController!.dispose();
-            _tabController =
-                TabController(length: model.warehouseCount, vsync: this);
+            _tabController = TabController(length: model.warehouseCount, vsync: this);
           }
 
           return Scaffold(
@@ -46,18 +44,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             final warehouse = model.warehouses[index];
                             return _buildCustomTab(
                               title: warehouse.name ?? "Without name",
-                              onLongPress: () => _showWarehouseOptions(
-                                  context, model,
-                                  warehouse: warehouse),
-                              onTap: () => _tabController!.animateTo(
-                                  index), // Esto debería funcionar correctamente
+                              onLongPress: () => _showWarehouseOptions(context, model, warehouse: warehouse),
+                              onTap: () => _tabController!.animateTo(index), // Esto debería funcionar correctamente
                             );
                           }).toList(),
                         ),
                         IconButton(
                           icon: const Icon(Icons.add),
-                          onPressed: () =>
-                              _showWarehouseOptions(context, model),
+                          onPressed: () => _showWarehouseOptions(context, model),
                         ),
                       ],
                     ),
@@ -65,15 +59,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ),
               ),
             ),
-            body: TabBarView(
-                controller: _tabController,
-                children: model.warehouses
-                    .map((warehouse) =>
-                        WarehouseDetailsView(warehouse: warehouse))
-                    .toList()),
+            body: TabBarView(controller: _tabController, children: model.warehouses.map((warehouse) => WarehouseDetailsView(warehouse: warehouse)).toList()),
             floatingActionButton: FloatingActionButton(
-              onPressed: () => model.navigateToCreateReceived(
-                  context, _tabController!.index),
+              onPressed: () => model.navigateToCreateReceived(context, _tabController!.index),
               child: Icon(Icons.add),
             ),
           );
@@ -119,8 +107,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget _buildCustomTab({
     required String title,
     required VoidCallback onLongPress,
-    required VoidCallback
-        onTap, // Este parámetro tampoco es necesario si ya manejas el tabController fuera
+    required VoidCallback onTap, // Este parámetro tampoco es necesario si ya manejas el tabController fuera
   }) {
     return InkWell(
       onLongPress: onLongPress,
@@ -129,10 +116,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  void _showWarehouseOptions(BuildContext context, HomeViewModel model,
-      {Warehouse? warehouse}) {
-    final TextEditingController controller =
-        TextEditingController(text: warehouse?.name);
+  void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse? warehouse}) {
+    final TextEditingController controller = TextEditingController(text: warehouse?.name);
 
     showDialog(
       context: context,

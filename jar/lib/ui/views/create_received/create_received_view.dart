@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:jar/helpers/database_helper.dart';
+import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/views/create_received/create_received_viewmodel.dart';
 import 'package:stacked/stacked.dart';
@@ -8,8 +8,7 @@ import 'package:stacked/stacked.dart';
 class CreateReceivedView extends StatelessWidget {
   final Warehouse warehouse;
 
-  const CreateReceivedView({Key? key, required this.warehouse})
-      : super(key: key);
+  const CreateReceivedView({Key? key, required this.warehouse}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +47,7 @@ class CreateReceivedView extends StatelessWidget {
               TextFormField(
                 controller: viewModel.numPalletController,
                 keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ], // Only numbers can be ent
+                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly], // Only numbers can be ent
                 decoration: const InputDecoration(labelText: 'Número de pales'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -59,9 +56,7 @@ class CreateReceivedView extends StatelessWidget {
                   return null;
                 },
               ),
-              IconButton(
-                  onPressed: viewModel.captureAndRecognizeText,
-                  icon: Icon(Icons.camera)),
+              IconButton(onPressed: viewModel.captureAndRecognizeText, icon: Icon(Icons.camera)),
               SizedBox(height: 20),
               viewModel.isBusy
                   ? CircularProgressIndicator() // Muestra un indicador de carga si el ViewModel está ocupado

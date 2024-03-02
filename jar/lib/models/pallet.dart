@@ -27,11 +27,8 @@ class Pallet {
   factory Pallet.fromJson(Map<String, dynamic> json) => Pallet(
         id: json['id'],
         name: json['name'], // Añadido lotId a partir del JSON
-        createDate: json['create_date'] != null
-            ? DateTime.parse(json['create_date'])
-            : null,
-        outDate:
-            json['out_date'] != null ? DateTime.parse(json['out_date']) : null,
+        createDate: json['create_date'] != null ? DateTime.parse(json['create_date']) : null,
+        outDate: json['out_date'] != null ? DateTime.parse(json['out_date']) : null,
         date: json['date'] != null ? DateTime.parse(json['date']) : null,
         isOut: json['is_out'] == 1 ? true : false,
       );

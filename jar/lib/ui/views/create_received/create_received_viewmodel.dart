@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:jar/helpers/database_helper.dart';
+import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
@@ -63,8 +63,7 @@ class CreateReceivedViewModel extends BaseViewModel {
       // Reconocer texto en la foto capturada
       final inputImage = InputImage.fromFilePath(scannedDocumentPath!);
       final textDetector = GoogleMlKit.vision.textRecognizer();
-      final RecognizedText recognizedText =
-          await textDetector.processImage(inputImage);
+      final RecognizedText recognizedText = await textDetector.processImage(inputImage);
 
       // Inicializar un String vacío para concatenar todo el texto
       String text = '';
@@ -72,8 +71,7 @@ class CreateReceivedViewModel extends BaseViewModel {
       // Procesar el texto reconocido y concatenarlo
       for (TextBlock block in recognizedText.blocks) {
         // Expresión regular ajustada para capturar el código de material más flexiblemente
-        RegExp patternCheck =
-            RegExp(r'^Batch\s*:\s*(\d+)|Material\s*Code\s*:\s*([\w\d]+)');
+        RegExp patternCheck = RegExp(r'^Batch\s*:\s*(\d+)|Material\s*Code\s*:\s*([\w\d]+)');
 
         // Intentar hacer coincidir el patrón con el texto del bloque
         final match = patternCheck.firstMatch(block.text);
@@ -93,8 +91,7 @@ class CreateReceivedViewModel extends BaseViewModel {
         if (block.text.contains('PAL')) {
           numPalletController.text = block.text.split('/')[0].trim();
         }
-        text +=
-            block.text + '\n'; // Añade un salto de línea entre bloques de texto
+        text += block.text + '\n'; // Añade un salto de línea entre bloques de texto
       }
 
       // Imprimir el texto completo
@@ -110,8 +107,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   Future<String> recognizeText(XFile imageFile) async {
     final inputImage = InputImage.fromFilePath(imageFile.path);
     final textDetector = GoogleMlKit.vision.textRecognizer();
-    final RecognizedText recognizedText =
-        await textDetector.processImage(inputImage);
+    final RecognizedText recognizedText = await textDetector.processImage(inputImage);
     String text = '';
     for (TextBlock block in recognizedText.blocks) {
       for (TextLine line in block.lines) {
@@ -127,22 +123,17 @@ class CreateReceivedViewModel extends BaseViewModel {
     try {
       int currentProductID;
       print("Product Name: ${productController.text}");
-      Product? currentProduct = await DatabaseHelper.instance
-          .findProductByName(productController.text);
+      Product? currentProduct = await DatabaseHelper.instance.findProductByName(productController.text);
       if (currentProduct == null) {
         print("Product Name: ${productController.text}");
-        currentProductID = await DatabaseHelper.instance
-            .insertProduct(Product(name: productController.text));
+        currentProductID = await DatabaseHelper.instance.insertProduct(Product(name: productController.text));
       } else {
         currentProductID = currentProduct.id!;
       }
       List<Product> l = await DatabaseHelper.instance.getAllProduct();
       l;
       print("Lot Name: ${lotController.text}");
-      currentLot = await DatabaseHelper.instance.insertLot(Lot(
-          name: lotController.text,
-          warehouse: warehouse,
-          product: currentProduct ?? Product(id: currentProductID)));
+      currentLot = await DatabaseHelper.instance.insertLot(Lot(name: lotController.text, warehouse: warehouse, product: currentProduct ?? Product(id: currentProductID)));
       generatePallets(int.tryParse(_numPalletController.text)!, currentLot!);
       setBusy(false);
       // Lógica después de crear el "Received" con éxito, como mostrar un SnackBar
@@ -157,16 +148,14 @@ class CreateReceivedViewModel extends BaseViewModel {
     Random random = Random();
 
     for (int i = 0; i < numberOfPallets; i++) {
-      String palletReference =
-          'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
+      String palletReference = 'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
 
       Pallet pallet = Pallet(
         name: palletReference,
         date: null,
       );
 
-      await DatabaseHelper.instance
-          .createPalletAndLinkToLot(pallet, currentLot!);
+      await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, currentLot!);
     }
 
     return pallets;

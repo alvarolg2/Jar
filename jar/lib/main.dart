@@ -4,7 +4,7 @@ import 'package:jar/app/app.dialogs.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'helpers/database_helper.dart';
+import 'ui/common/database_helper.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
