@@ -56,7 +56,8 @@ class WarehouseDetailsView extends StatelessWidget {
             ),
             FutureBuilder<int>(
               future: model.getTotalPalletsNotOut(
-                  productId: model.selectedProduct?.id),
+                  productId: model.selectedProduct?.id,
+                  warehouseId: model.warehouse.id!),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator(); // Mostrar un indicador de carga mientras se espera el resultado.

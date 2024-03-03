@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:jar/models/pallet.dart';
+import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -48,7 +49,8 @@ class PalletsInSheetModel extends BaseViewModel {
     notifyListeners(); // Asegúrate de notificar a los listeners sobre el cambio de estado.
   }
 
-  Future<List<Pallet>> generatePallets(int numberOfPallets, int lotId) async {
+  Future<List<Pallet>> generatePallets(
+      int numberOfPallets, int lotId, int warehouseId) async {
     List<Pallet> pallets = [];
     Random random = Random();
 
@@ -57,9 +59,9 @@ class PalletsInSheetModel extends BaseViewModel {
           'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
 
       Pallet pallet = Pallet(
-        name: palletReference,
-        date: null,
-      );
+          name: palletReference,
+          date: null,
+          warehouse: Warehouse(id: warehouseId));
 
       await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }

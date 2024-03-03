@@ -110,8 +110,8 @@ class PalletsInSheet extends StatelessWidget {
                     model.palletsController.text.runes.every((r) =>
                         String.fromCharCode(r).contains(RegExp(r'[0-9]')))) {
                   int numPallets = int.parse(model.palletsController.text);
-                  await model.generatePallets(
-                      numPallets, request.data['lotId']);
+                  await model.generatePallets(numPallets, request.data['lotId'],
+                      request.data['warehouseId']);
                   completer?.call(SheetResponse(confirmed: true));
                 } else {
                   // Mostrar un Snackbar o un mensaje de error si la entrada no es válida.

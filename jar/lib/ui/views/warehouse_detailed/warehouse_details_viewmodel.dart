@@ -62,7 +62,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     SheetResponse? response = await _sheetService.showCustomSheet(
         variant: BottomSheetType.pallet_in,
         title: lot.name,
-        data: {"lotId": lot.id});
+        data: {"lotId": lot.id, "warehouseId": warehouse.id});
     initialise();
   }
 
@@ -100,17 +100,22 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
 
   // Esta función calcula el número total de pallets no salidos en el almacén,
   // y opcionalmente para un producto específico.
-  Future<int> getTotalPalletsNotOut({int? productId}) async {
+  Future<int> getTotalPalletsNotOut(
+      {int? productId, required int warehouseId}) async {
     final db = await DatabaseHelper.instance.database;
+    // La consulta inicial ahora filtra por warehouse en la tabla pallet
     String query = '''
       SELECT COUNT(*) as count FROM pallet
       JOIN pallet_lot ON pallet.id = pallet_lot.id_pallet
       JOIN lot ON pallet_lot.id_lot = lot.id
-      WHERE lot.warehouse = ? AND pallet.is_out = 0
+      WHERE pallet.warehouse = ? AND pallet.is_out = 0
     ''';
-    List<dynamic> params = [warehouse.id!];
+    List<dynamic> params = [
+      warehouseId
+    ]; // Se asume que se pasa el ID del almacén como parámetro
 
     if (productId != null) {
+      // Se añade el filtro por productId en la tabla lot
       query += ' AND lot.product = ?';
       params.add(productId);
     }

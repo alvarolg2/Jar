@@ -147,14 +147,13 @@ class CreateReceivedViewModel extends BaseViewModel {
       if (repeatLot == null) {
         currentLot = await DatabaseHelper.instance.insertLot(Lot(
             name: lotController.text,
-            warehouse: warehouse,
             product: currentProduct ?? Product(id: currentProductID)));
         await generatePallets(
-            int.tryParse(_numPalletController.text)!, currentLot!);
+            int.tryParse(_numPalletController.text)!, currentLot!, warehouse);
         setBusy(false);
       } else {
         await generatePallets(
-            int.tryParse(_numPalletController.text)!, repeatLot.id!);
+            int.tryParse(_numPalletController.text)!, repeatLot.id!, warehouse);
       }
     } catch (e) {
       setBusy(false);
@@ -162,7 +161,8 @@ class CreateReceivedViewModel extends BaseViewModel {
     }
   }
 
-  Future<List<Pallet>> generatePallets(int numberOfPallets, int lotId) async {
+  Future<List<Pallet>> generatePallets(
+      int numberOfPallets, int lotId, Warehouse warehouse) async {
     List<Pallet> pallets = [];
     Random random = Random();
 
@@ -170,10 +170,8 @@ class CreateReceivedViewModel extends BaseViewModel {
       String palletReference =
           'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
 
-      Pallet pallet = Pallet(
-        name: palletReference,
-        date: null,
-      );
+      Pallet pallet =
+          Pallet(name: palletReference, date: null, warehouse: warehouse);
 
       await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }

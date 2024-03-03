@@ -46,11 +46,9 @@ class DatabaseHelper {
       CREATE TABLE "lot" (
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT,
-        "warehouse"	INTEGER,
         "create_date"	datetime DEFAULT current_timestamp,
         "product"	INTEGER,
         PRIMARY KEY("id" AUTOINCREMENT),
-        FOREIGN KEY("warehouse") REFERENCES "warehouse"("id"),
         FOREIGN KEY("product") REFERENCES "product"("id")
       );
     ''');
@@ -59,11 +57,13 @@ class DatabaseHelper {
       CREATE TABLE "pallet" (
         "id"	INTEGER NOT NULL UNIQUE,
         "name"	TEXT NOT NULL UNIQUE,
+        "warehouse"	INTEGER,
         "create_date"	datetime DEFAULT current_timestamp,
         "out_date"	datetime,
         "date"	datetime,
         "is_out"	INTEGER DEFAULT 0,
-        PRIMARY KEY("id" AUTOINCREMENT)
+        PRIMARY KEY("id" AUTOINCREMENT),
+        FOREIGN KEY("warehouse") REFERENCES "warehouse"("id")
       );
     ''');
 
@@ -146,9 +146,6 @@ class DatabaseHelper {
       return Lot(
         id: maps[i]['id'],
         name: maps[i]['name'],
-        warehouse: Warehouse(
-            id: maps[i][
-                'warehouse']), // Asume que esto crea un objeto Warehouse adecuadamente.
         createDate: DateTime.parse(maps[i]['create_date']),
         product: product, // Asigna el objeto Product completo aquí.
         // Añade cualquier otro campo que tu objeto Lot pueda requerir.
@@ -183,9 +180,6 @@ class DatabaseHelper {
       return Lot(
         id: maps[i]['id'],
         name: maps[i]['name'],
-        warehouse: Warehouse(
-            id: maps[i][
-                'warehouse']), // Asume que esto crea un objeto Warehouse adecuadamente.
         createDate: DateTime.parse(maps[i]['create_date']),
         product: product, // Asigna el objeto Product completo aquí.
         // Añade cualquier otro campo que tu objeto Lot pueda requerir.
@@ -195,25 +189,23 @@ class DatabaseHelper {
 
   Future<List<Lot>> getAllLotsByWarehouseIdWithPallets(int warehouseId) async {
     final db = await database;
-    // La consulta inicial permanece igual, asegurando que solo seleccionemos lotes que tienen al menos un pallet con is_out = 0
+    // Modificamos la consulta para filtrar por pallets en el almacén especificado con is_out = 0
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
-    SELECT lot.*, 
-           product.id AS productId, 
-           product.name AS productName,
-           product.create_date AS productCreateDate
-    FROM lot
-    JOIN product ON lot.product = product.id
-    WHERE lot.warehouse = ? AND EXISTS (
-        SELECT 1 FROM pallet_lot
-        JOIN pallet ON pallet_lot.id_pallet = pallet.id
-        WHERE pallet_lot.id_lot = lot.id AND pallet.is_out = 0
-    )
-    ORDER BY lot.create_date DESC
+  SELECT lot.*, 
+         product.id AS productId, 
+         product.name AS productName,
+         product.create_date AS productCreateDate
+  FROM lot
+  JOIN product ON lot.product = product.id
+  JOIN pallet_lot ON pallet_lot.id_lot = lot.id
+  JOIN pallet ON pallet_lot.id_pallet = pallet.id
+  WHERE pallet.warehouse = ? AND pallet.is_out = 0
+  GROUP BY lot.id
+  ORDER BY lot.create_date DESC
   ''', [warehouseId]);
 
     List<Lot> lots = [];
     for (var map in maps) {
-      // Construcción y preparación del objeto Product y Lot igual que antes
       final product = Product(
         id: map['productId'],
         name: map['productName'],
@@ -223,21 +215,19 @@ class DatabaseHelper {
       var lot = Lot(
         id: map['id'],
         name: map['name'],
-        warehouse: Warehouse(id: map['warehouse']),
         createDate: DateTime.parse(map['create_date']),
         product: product,
         pallet: [], // Inicializa la lista de pallets vacía.
       );
 
-      // Modificar esta consulta para obtener todos los pallets asociados a este lote, independientemente de su estado is_out
+      // Modificamos esta consulta para obtener todos los pallets asociados a este lote que pertenecen al warehouseId
       final List<Map<String, dynamic>> palletMaps = await db.rawQuery('''
-      SELECT pallet.*
-      FROM pallet
-      JOIN pallet_lot ON pallet_lot.id_pallet = pallet.id
-      WHERE pallet_lot.id_lot = ?
-    ''', [lot.id]); // Se elimina la condición AND pallet.is_out = 0
+    SELECT pallet.*
+    FROM pallet
+    JOIN pallet_lot ON pallet_lot.id_pallet = pallet.id
+    WHERE pallet_lot.id_lot = ? AND pallet.warehouse = ?
+    ''', [lot.id, warehouseId]);
 
-      // Construir los objetos Pallet y añadirlos al lote
       var pallets =
           palletMaps.map((palletMap) => Pallet.fromJson(palletMap)).toList();
       lot = lot.copyWith(
@@ -252,25 +242,23 @@ class DatabaseHelper {
   Future<List<Lot>> getAllLotsByWarehouseIdWithPalletsAndProductId(
       int warehouseId, int productId) async {
     final db = await database;
-    // La consulta inicial se mantiene igual para asegurar que seleccionemos lotes que tienen al menos un pallet no salido.
+    // Se añade el filtro por productId en la consulta
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
     SELECT lot.*, 
-           product.id AS productId, 
-           product.name AS productName,
-           product.create_date AS productCreateDate
+          product.id AS productId, 
+          product.name AS productName,
+          product.create_date AS productCreateDate
     FROM lot
     JOIN product ON lot.product = product.id
-    WHERE lot.warehouse = ? AND product.id = ? AND EXISTS (
-        SELECT 1 FROM pallet_lot
-        JOIN pallet ON pallet_lot.id_pallet = pallet.id
-        WHERE pallet_lot.id_lot = lot.id AND pallet.is_out = 0
-    )
+    JOIN pallet_lot ON pallet_lot.id_lot = lot.id
+    JOIN pallet ON pallet_lot.id_pallet = pallet.id
+    WHERE pallet.warehouse = ? AND pallet.is_out = 0 AND product.id = ?
+    GROUP BY lot.id
     ORDER BY lot.create_date DESC
-  ''', [warehouseId, productId]);
+    ''', [warehouseId, productId]);
 
     List<Lot> lots = [];
     for (var map in maps) {
-      // Construcción del objeto Product y preparación del objeto Lot
       final product = Product(
         id: map['productId'],
         name: map['productName'],
@@ -280,25 +268,23 @@ class DatabaseHelper {
       var lot = Lot(
         id: map['id'],
         name: map['name'],
-        warehouse: Warehouse(id: map['warehouse']),
         createDate: DateTime.parse(map['create_date']),
         product: product,
-        pallet: [], // Inicialmente lista de pallets vacía.
+        pallet: [], // Inicializa la lista de pallets vacía.
       );
 
-      // Modificación aquí: eliminar la condición AND pallet.is_out = 0 para obtener todos los pallets asociados a este lote.
+      // Consulta para obtener todos los pallets asociados a este lote que pertenecen al warehouseId
       final List<Map<String, dynamic>> palletMaps = await db.rawQuery('''
       SELECT pallet.*
       FROM pallet
       JOIN pallet_lot ON pallet_lot.id_pallet = pallet.id
-      WHERE pallet_lot.id_lot = ?
-    ''', [lot.id]); // Se elimina la condición de filtrado por is_out
+      WHERE pallet_lot.id_lot = ? AND pallet.warehouse = ?
+      ''', [lot.id, warehouseId]);
 
-      // Construir los objetos Pallet y añadirlos al lote
       var pallets =
           palletMaps.map((palletMap) => Pallet.fromJson(palletMap)).toList();
       lot = lot.copyWith(
-          pallet: pallets); // Actualizar la lista de pallets del lote
+          pallet: pallets); // Actualiza la lista de pallets del lote
 
       lots.add(lot);
     }
