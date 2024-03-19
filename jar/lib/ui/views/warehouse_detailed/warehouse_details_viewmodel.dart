@@ -82,21 +82,24 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     return _lots[index].pallet?.where((p) => !p.isOut!).length ?? 0;
   }
 
-  int getTruckLoads(int index) {
+  double getTruckLoads(int index) {
     // Asegúrate de que el lote tiene palés para procesar.
     if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
       // Filtra los palés donde `isOut` es falso y cuenta el total.
       int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut!).length;
 
-      // Divide el total de palés no salidos por 26 y trunca el resultado para obtener cargas completas de camión.
-      int truckLoads = (notOutPallets / 26).floor();
+      // Divide el total de palés no salidos por 26, no necesitas usar toStringAsFixed aquí directamente.
+      double truckLoads = notOutPallets / 26;
 
-      return truckLoads;
+      // Retorna el resultado formateado a dos decimales directamente.
+      return double.parse(truckLoads.toStringAsFixed(2));
     } else {
       // Devuelve 0 si no hay palés o la lista de palés está vacía.
-      return 0;
+      return 0.0;
     }
   }
+
+
 
   // Esta función calcula el número total de pallets no salidos en el almacén,
   // y opcionalmente para un producto específico.

@@ -122,7 +122,7 @@ class WarehouseDetailsView extends StatelessWidget {
                                                 color: kcPrimaryColorDark),
                                             SizedBox(width: 8),
                                             Text(
-                                                "${model.getPalletsNotOut(index)} / ${model.getTotalPallets(index)} palés",
+                                                "${model.getPalletsNotOut(index)} palés",
                                                 style: textStyle),
                                             SizedBox(width: 8),
                                             Icon(Icons.local_shipping,

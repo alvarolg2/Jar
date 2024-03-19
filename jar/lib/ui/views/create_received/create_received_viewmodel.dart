@@ -39,24 +39,24 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   Future<void> scanDocument() async {
     try {
-      List<String> pictures;
-      // Configuración opcional para el escáner
-      // Iniciar el escáner de documentos con la configuración deseada
-      pictures = await CunningDocumentScanner.getPictures(crop: true) ?? [];
+        List<String> pictures;
+        // Configuración opcional para el escáner
+        // Iniciar el escáner de documentos con la configuración deseada
+        pictures = await CunningDocumentScanner.getPictures(crop: true) ?? [];
 
-      if (pictures != null) {
-        print("Ruta del documento escaneado: $pictures");
+        if (pictures != null) {
+          print("Ruta del documento escaneado: $pictures");
 
-        scannedDocumentPath = pictures[0];
-        notifyListeners();
+          scannedDocumentPath = pictures[0];
+          notifyListeners();
+        }
+      } catch (e) {
+        print("Error al escanear el documento: $e");
       }
-    } catch (e) {
-      print("Error al escanear el documento: $e");
     }
-  }
 
-  // Función adaptada para usar image_picker
-  Future<void> captureAndRecognizeText() async {
+    // Función adaptada para usar image_picker
+    Future<void> captureAndRecognizeText() async {
     try {
       // Abrir la cámara y capturar una foto
       await scanDocument();
@@ -77,30 +77,31 @@ class CreateReceivedViewModel extends BaseViewModel {
 
       // Procesar el texto reconocido y concatenarlo
       for (TextBlock block in recognizedText.blocks) {
-        // Expresión regular ajustada para capturar el código de material más flexiblemente
-        RegExp patternCheck =
-            RegExp(r'^Batch\s*:\s*(\d+)|Material\s*Code\s*:\s*([\w\d]+)');
+        // Expresión regular para capturar el número completo
+        RegExp patternCheck = RegExp(r'(?<!\w)(\d+\s*\w+\s*\d*\w*)(?!\w)');
 
         // Intentar hacer coincidir el patrón con el texto del bloque
-        final match = patternCheck.firstMatch(block.text);
-        if (match != null) {
-          // Extraer el dato relevante. El grupo 1 para "Batch :", el grupo 2 para "Material Code:"
-          String? numero = match.group(1) ?? match.group(2);
-          if (numero != null) {
-            // Decide a qué controlador asignar el valor basado en cuál grupo fue capturado
-            if (match.group(1) != null) {
-              lotController.text = numero; // Caso para "Batch :"
-            } else if (match.group(2) != null) {
-              productController.text = numero; // Caso para "Material Code:"
-            }
-            print("Dato extraído: $numero");
+        final matches = patternCheck.allMatches(block.text);
+          for (final match in matches) {
+              String numero = match.group(1)!;
+              if (numero != null) {
+                  // Eliminar los espacios en blanco del número capturado
+                  numero = numero.replaceAll(' ', '');
+
+                  // Decide a qué controlador asignar el valor basado en el contexto
+                  if (block.text.contains('Batch')) {
+                      lotController.text = numero;
+                  } else if (block.text.contains('Material Code')) {
+                      productController.text = numero;
+                  }
+                  print("Dato extraído: $numero");
+              }
           }
-        }
+
         if (block.text.contains('PAL')) {
           numPalletController.text = block.text.split('/')[0].trim();
         }
-        text +=
-            block.text + '\n'; // Añade un salto de línea entre bloques de texto
+        text += block.text + '\n'; // Añade un salto de línea entre bloques de texto
       }
 
       // Imprimir el texto completo
