@@ -82,22 +82,26 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     return _lots[index].pallet?.where((p) => !p.isOut!).length ?? 0;
   }
 
-  double getTruckLoads(int index) {
-    // Asegúrate de que el lote tiene palés para procesar.
-    if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
-      // Filtra los palés donde `isOut` es falso y cuenta el total.
-      int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut!).length;
+  String getTruckLoads(int index) {
+  // Asegúrate de que el lote tiene palés para procesar.
+  if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
+    // Filtra los palés donde `isOut` es falso y cuenta el total.
+    int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut!).length;
 
-      // Divide el total de palés no salidos por 26, no necesitas usar toStringAsFixed aquí directamente.
-      double truckLoads = notOutPallets / 26;
+    // Calcula el número de viajes de camión completos (truncando el valor a un entero).
+    int fullTruckLoads = notOutPallets ~/ 26;
 
-      // Retorna el resultado formateado a dos decimales directamente.
-      return double.parse(truckLoads.toStringAsFixed(2));
-    } else {
-      // Devuelve 0 si no hay palés o la lista de palés está vacía.
-      return 0.0;
-    }
+    // Calcula el número de pallets que sobran después de llenar los viajes completos.
+    int remainingPallets = notOutPallets % 26;
+
+    // Formatea el resultado como un String que muestra ambos valores.
+    return '$fullTruckLoads, $remainingPallets';
+  } else {
+    // Devuelve un mensaje indicando que no hay pallets para procesar.
+    return '';
   }
+}
+
 
 
 
