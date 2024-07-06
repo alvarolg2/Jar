@@ -22,13 +22,25 @@ class DatabaseHelper {
     return _database!;
   }
 
-  // Inicializar la base de datos
-  Future<Database> _initDB(String filePath) async {
-    final dbPath = await getApplicationDocumentsDirectory();
-    final path = join(dbPath.path, filePath);
+ // Inicializar la base de datos
+Future<Database> _initDB(String filePath) async {
+  final dbPath = await getApplicationDocumentsDirectory();
+  final path = join(dbPath.path, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+  return await openDatabase(
+    path,
+    version: 2, // Incrementar la versión de la base de datos
+    onCreate: _createDB,
+    onUpgrade: _upgradeDB,
+  );
+}
+
+// Método para actualizar la base de datos
+Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
+  if (oldVersion < 2) {
+    await db.execute('ALTER TABLE pallet ADD COLUMN defective INTEGER DEFAULT 0');
   }
+}
 
   // Crear las tablas en la base de datos
   Future _createDB(Database db, int version) async {
@@ -507,65 +519,81 @@ class DatabaseHelper {
   }
 
   Future<List<Pallet>> getPalletsForLot(int lotId) async {
-    final db = await database;
-    // Primero, obtenemos todos los id_pallet asociados con el id_lot dado.
-    final List<Map<String, dynamic>> palletLotMaps = await db.query(
-      'pallet_lot',
-      columns: ['id_pallet'],
-      where: 'id_lot = ?',
-      whereArgs: [lotId],
+  final db = await database;
+  final List<Map<String, dynamic>> palletLotMaps = await db.query(
+    'pallet_lot',
+    columns: ['id_pallet'],
+    where: 'id_lot = ?',
+    whereArgs: [lotId],
+  );
+
+  final List<int> palletIds =
+      palletLotMaps.map((map) => map['id_pallet'] as int).toList();
+
+  List<Pallet> pallets = [];
+  for (var palletId in palletIds) {
+    final List<Map<String, dynamic>> palletMaps = await db.query(
+      'pallet',
+      where: 'id = ? AND defective = 0',
+      whereArgs: [palletId],
     );
-
-    // Convertimos los resultados en una lista de IDs de pallet.
-    final List<int> palletIds =
-        palletLotMaps.map((map) => map['id_pallet'] as int).toList();
-
-    // Ahora, recuperamos los detalles completos de cada pallet usando los IDs obtenidos.
-    List<Pallet> pallets = [];
-    for (var palletId in palletIds) {
-      final List<Map<String, dynamic>> palletMaps = await db.query(
-        'pallet',
-        where: 'id = ?',
-        whereArgs: [palletId],
-      );
-      if (palletMaps.isNotEmpty) {
-        pallets.add(Pallet.fromJson(palletMaps.first));
-      }
+    if (palletMaps.isNotEmpty) {
+      pallets.add(Pallet.fromJson(palletMaps.first));
     }
-
-    return pallets;
   }
 
-  Future<void> markPalletsAsOut(int lotId, int numberOfPalletsToMark, int warehouseId) async {
+  return pallets;
+}
+
+Future<void> markPalletsAsOut(int lotId, int numberOfPalletsToMark, int warehouseId) async {
+  final db = await database;
+  List<Map<String, dynamic>> palletIds = await db.rawQuery('''
+    SELECT p.id FROM pallet p
+    JOIN pallet_lot pl ON p.id = pl.id_pallet
+    WHERE pl.id_lot = ? AND p.is_out = 0 AND p.defective = 0 AND p.warehouse = ?
+    ORDER BY p.id ASC
+    LIMIT ?
+  ''', [lotId, warehouseId, numberOfPalletsToMark]);
+
+  String currentDateTime = DateTime.now().toIso8601String();
+
+  for (var row in palletIds) {
+    await db.update(
+      'pallet',
+      {
+        'is_out': 1,
+        'out_date': currentDateTime,
+      },
+      where: 'id = ?',
+      whereArgs: [row['id']],
+    );
+  }
+}
+
+  Future<void> markPalletsAsDefectuous(int lotId, int numberOfPalletsToMark, int warehouseId) async {
     final db = await database;
 
-    // 1. Seleccionar los primeros N pallets de ese lote donde is_out es 0 y pertenecen al almacén especificado
+    // Seleccionar los primeros N palets de ese lote que no están marcados como defectuosos y no están marcados como salidos
     List<Map<String, dynamic>> palletIds = await db.rawQuery('''
       SELECT p.id FROM pallet p
       JOIN pallet_lot pl ON p.id = pl.id_pallet
-      WHERE pl.id_lot = ? AND p.is_out = 0 AND p.warehouse = ?
+      WHERE pl.id_lot = ? AND p.defective = 0 AND p.is_out = 0 AND p.warehouse = ?
       ORDER BY p.id ASC
       LIMIT ?
     ''', [lotId, warehouseId, numberOfPalletsToMark]);
 
-    // Obtener la fecha y hora actuales en formato ISO8601
-    String currentDateTime = DateTime.now().toIso8601String();
-
-    // 2. Marcar esos pallets como salidos (is_out = 1) y actualizar out_date a la fecha y hora actuales
+    // Marcar esos palets como defectuosos
     for (var row in palletIds) {
       await db.update(
         'pallet',
         {
-          'is_out': 1,
-          'out_date': currentDateTime, // Actualiza out_date a la fecha/hora actual
+          'defective': 1,
         },
         where: 'id = ?',
         whereArgs: [row['id']],
       );
     }
   }
-
-
 
   // Cerrar la base de datos
   Future close() async {

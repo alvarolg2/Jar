@@ -23,14 +23,15 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
 
   Future<List<Lot>> fetchLots({int? productId}) async {
     allProducts = await DatabaseHelper.instance.getProductsByPalletsNotOutWithCount(warehouse.id!);
+    List<Lot> lots;
     if (productId == null) {
-      _lots = await DatabaseHelper.instance
-          .getAllLotsByWarehouseIdWithPallets(warehouse.id!);
+      lots = await DatabaseHelper.instance.getAllLotsByWarehouseIdWithPallets(warehouse.id!);
     } else {
-      _lots = await DatabaseHelper.instance
-          .getAllLotsByWarehouseIdWithPalletsAndProductId(
+      lots = await DatabaseHelper.instance.getAllLotsByWarehouseIdWithPalletsAndProductId(
               warehouse.id!, productId);
     }
+    // Filtrar lotes que tienen palets con is_out = 0 y defective = 0
+    _lots = lots.where((lot) => lot.pallet!.any((p) => !p.isOut! && !p.defective!)).toList();
     return _lots; // Asegura que _lots siempre esté actualizado con los últimos datos, independientemente del filtro.
   }
 
@@ -63,6 +64,18 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     initialise();
   }
 
+  Future<void> showPalletDefectiveSheet(Lot lot, int numPallets) async {
+    SheetResponse? response = await _sheetService.showCustomSheet(
+        variant: BottomSheetType.defective,
+        title: lot.name,
+        data: {"num_pallets": numPallets});
+    int? defectiveNumPallets = response?.data['count'];
+    if (defectiveNumPallets != null) {
+      await DatabaseHelper.instance.markPalletsAsDefectuous(lot.id!, defectiveNumPallets, warehouse.id!);
+    }
+    initialise(); // Recargar los datos después de la acción
+  }
+
   void selectProductNull() {
     selectedProduct = null;
     initialise();
@@ -72,51 +85,35 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
   List<Lot> get lots => _lots; // Proporciona acceso a _lots.
 
   int getTotalPallets(int index) {
-    return _lots[index].pallet?.length ?? 0;
+    return _lots[index].pallet?.where((p) => !p.isOut! && !p.defective!).length ?? 0;
   }
 
   int getPalletsNotOut(int index) {
-    return _lots[index].pallet?.where((p) => !p.isOut!).length ?? 0;
+    return _lots[index].pallet?.where((p) => !p.isOut! && !p.defective!).length ?? 0;
   }
 
   String getTruckLoads(int index) {
-  // Asegúrate de que el lote tiene palés para procesar.
-  if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
-    // Filtra los palés donde `isOut` es falso y cuenta el total.
-    int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut!).length;
-
-    // Calcula el número de viajes de camión completos (truncando el valor a un entero).
-    int fullTruckLoads = notOutPallets ~/ 26;
-
-    // Calcula el número de pallets que sobran después de llenar los viajes completos.
-    int remainingPallets = notOutPallets % 26;
-
-    // Formatea el resultado como un String que muestra ambos valores.
-    return '$fullTruckLoads, $remainingPallets';
-  } else {
-    // Devuelve un mensaje indicando que no hay pallets para procesar.
-    return '';
+    if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
+      int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut! && !p.defective!).length;
+      int fullTruckLoads = notOutPallets ~/ 26;
+      int remainingPallets = notOutPallets % 26;
+      return '$fullTruckLoads, $remainingPallets';
+    } else {
+      return '';
+    }
   }
-}
 
-  // Esta función calcula el número total de pallets no salidos en el almacén,
-  // y opcionalmente para un producto específico.
-  Future<int> getTotalPalletsNotOut(
-      {int? productId, required int warehouseId}) async {
+  Future<int> getTotalPalletsNotOut({int? productId, required int warehouseId}) async {
     final db = await DatabaseHelper.instance.database;
-    // La consulta inicial ahora filtra por warehouse en la tabla pallet
     String query = '''
       SELECT COUNT(*) as count FROM pallet
       JOIN pallet_lot ON pallet.id = pallet_lot.id_pallet
       JOIN lot ON pallet_lot.id_lot = lot.id
-      WHERE pallet.warehouse = ? AND pallet.is_out = 0
+      WHERE pallet.warehouse = ? AND pallet.is_out = 0 AND pallet.defective = 0
     ''';
-    List<dynamic> params = [
-      warehouseId
-    ]; // Se asume que se pasa el ID del almacén como parámetro
+    List<dynamic> params = [warehouseId];
 
     if (productId != null) {
-      // Se añade el filtro por productId en la tabla lot
       query += ' AND lot.product = ?';
       params.add(productId);
     }

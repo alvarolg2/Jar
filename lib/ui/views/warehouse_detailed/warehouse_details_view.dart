@@ -169,6 +169,14 @@ class WarehouseDetailsView extends StatelessWidget {
                                               model.getPalletsNotOut(index));
                                         },
                                       ),
+                                      IconButton(
+                                        icon: Icon(Icons.warning,
+                                            color: kcPrimaryColorDark),
+                                        onPressed: () async {
+                                          await model.showPalletDefectiveSheet(lot,
+                                              model.getPalletsNotOut(index));
+                                        },
+                                      ),
                                     ],
                                   ),
                                 ],

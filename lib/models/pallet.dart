@@ -8,6 +8,7 @@ class Pallet {
   final DateTime? outDate;
   final DateTime? date;
   final bool? isOut;
+  final bool? defective;
 
   Pallet({
     this.id,
@@ -17,6 +18,7 @@ class Pallet {
     this.outDate,
     this.date,
     this.isOut,
+    this.defective
   });
 
   Map<String, dynamic> toJson() => {
@@ -27,6 +29,7 @@ class Pallet {
         'out_date': outDate?.toIso8601String(),
         'date': date?.toIso8601String(),
         'is_out': isOut ?? false ? 1 : 0,
+        'defective': isOut ?? false ? 1 : 0,
       };
 
   factory Pallet.fromJson(Map<String, dynamic> json) => Pallet(
@@ -40,5 +43,6 @@ class Pallet {
             json['out_date'] != null ? DateTime.parse(json['out_date']) : null,
         date: json['date'] != null ? DateTime.parse(json['date']) : null,
         isOut: json['is_out'] == 1 ? true : false,
+        defective: json['defective'] == 1 ? true : false,
       );
 }
