@@ -99,9 +99,6 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
   }
 }
 
-
-
-
   // Esta función calcula el número total de pallets no salidos en el almacén,
   // y opcionalmente para un producto específico.
   Future<int> getTotalPalletsNotOut(

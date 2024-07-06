@@ -41,7 +41,7 @@ class PalletsSheetModel extends BaseViewModel {
         duration: Duration(seconds: 3),
       );
     }
-    notifyListeners(); // Asegúrate de notificar a los listeners sobre el cambio de estado.
+    notifyListeners();
   }
 
   @override
