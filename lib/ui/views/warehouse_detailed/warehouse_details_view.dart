@@ -41,7 +41,7 @@ class WarehouseDetailsView extends StatelessWidget {
                         .map<DropdownMenuItem<Product>>((Product product) {
                       return DropdownMenuItem<Product>(
                         value: product,
-                        child: Text(product.name!, style: textStyle),
+                        child: Text("${product.name!} # ${product.numPallets}" , style: textStyle),
                       );
                     }).toList(),
                   ),

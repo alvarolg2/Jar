@@ -417,21 +417,28 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<Product>> getProductsByPalletsNotOut() async {
+  Future<List<Product>> getProductsByPalletsNotOutWithCount(int warehouseId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
-      SELECT DISTINCT product.*
+      SELECT product.*, COUNT(pallet.id) AS numPallets
       FROM product
       JOIN lot ON product.id = lot.product
       JOIN pallet_lot ON lot.id = pallet_lot.id_lot
       JOIN pallet ON pallet_lot.id_pallet = pallet.id
-      WHERE pallet.is_out = 0
-    ''');
+      WHERE pallet.is_out = 0 AND pallet.warehouse = ?
+      GROUP BY product.id
+    ''', [warehouseId]);
 
     return List.generate(maps.length, (i) {
-      return Product.fromJson(maps[i]);
+      // Asumiendo que tienes un constructor que pueda manejar numPallets o ajusta según tu implementación
+      return Product.fromJson({
+        ...maps[i],
+        'numPallets': maps[i]['numPallets'],
+      });
     });
   }
+
+
 
   Future<Product?> findProductByName(String productName) async {
     final db = await database;
@@ -452,12 +459,19 @@ class DatabaseHelper {
 
   Future<void> createPalletAndLinkToLot(Pallet pallet, int lotId) async {
     final db = await database;
+
+    // Obtén un mapa del objeto Pallet y actualiza el campo 'create_date' con la fecha y hora actuales
+    Map<String, dynamic> palletData = pallet.toJson();
+    palletData['create_date'] = DateTime.now().toIso8601String(); // Añade o sobrescribe la fecha de creación
+
+    // Inserta el pallet en la base de datos con la fecha de creación actualizada
     int palletId = await db.insert(
       'pallet',
-      pallet.toJson(),
+      palletData,
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
+    // Inserta la relación entre el pallet y el lote en la tabla 'pallet_lot'
     await db.insert(
       'pallet_lot',
       {
@@ -467,6 +481,7 @@ class DatabaseHelper {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
 
   Future<void> updatePallet(Pallet pallet) async {
     if (pallet.id == null) {
@@ -521,28 +536,36 @@ class DatabaseHelper {
     return pallets;
   }
 
-  Future<void> markPalletsAsOut(int lotId, int numberOfPalletsToMark) async {
+  Future<void> markPalletsAsOut(int lotId, int numberOfPalletsToMark, int warehouseId) async {
     final db = await database;
 
-    // 1. Seleccionar los primeros N pallets de ese lote donde is_out es 0 a través de la tabla intermedia
+    // 1. Seleccionar los primeros N pallets de ese lote donde is_out es 0 y pertenecen al almacén especificado
     List<Map<String, dynamic>> palletIds = await db.rawQuery('''
-    SELECT p.id FROM pallet p
-    JOIN pallet_lot pl ON p.id = pl.id_pallet
-    WHERE pl.id_lot = ? AND p.is_out = 0
-    ORDER BY p.id ASC
-    LIMIT ?
-  ''', [lotId, numberOfPalletsToMark]);
+      SELECT p.id FROM pallet p
+      JOIN pallet_lot pl ON p.id = pl.id_pallet
+      WHERE pl.id_lot = ? AND p.is_out = 0 AND p.warehouse = ?
+      ORDER BY p.id ASC
+      LIMIT ?
+    ''', [lotId, warehouseId, numberOfPalletsToMark]);
 
-    // 2. Marcar esos pallets como salidos (is_out = 1)
+    // Obtener la fecha y hora actuales en formato ISO8601
+    String currentDateTime = DateTime.now().toIso8601String();
+
+    // 2. Marcar esos pallets como salidos (is_out = 1) y actualizar out_date a la fecha y hora actuales
     for (var row in palletIds) {
       await db.update(
         'pallet',
-        {'is_out': 1},
+        {
+          'is_out': 1,
+          'out_date': currentDateTime, // Actualiza out_date a la fecha/hora actual
+        },
         where: 'id = ?',
         whereArgs: [row['id']],
       );
     }
   }
+
+
 
   // Cerrar la base de datos
   Future close() async {

@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:jar/app/app.bottomsheets.dart';
 import 'package:jar/app/app.locator.dart';
-import 'package:jar/models/pallet.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
@@ -25,7 +22,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
   Future<List<Lot>?> futureToRun() => fetchLots();
 
   Future<List<Lot>> fetchLots({int? productId}) async {
-    allProducts = await DatabaseHelper.instance.getProductsByPalletsNotOut();
+    allProducts = await DatabaseHelper.instance.getProductsByPalletsNotOutWithCount(warehouse.id!);
     if (productId == null) {
       _lots = await DatabaseHelper.instance
           .getAllLotsByWarehouseIdWithPallets(warehouse.id!);
@@ -53,7 +50,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
         data: {"num_pallets": numPallets});
     int? extracNumPallets = response?.data['count'];
     if (extracNumPallets != null) {
-      await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets);
+      await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets, warehouse.id!);
     }
     initialise();
   }
