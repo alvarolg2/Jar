@@ -21,7 +21,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
   @override
   Future<List<Lot>?> futureToRun() => fetchLots();
 
-  Future<List<Lot>> fetchLots({int? productId}) async {
+  Future<List<Lot>> fetchLots({int? productId, bool defective = false}) async {
     allProducts = await DatabaseHelper.instance.getProductsByPalletsNotOutWithCount(warehouse.id!);
     List<Lot> lots;
     if (productId == null) {
@@ -31,7 +31,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
               warehouse.id!, productId);
     }
     // Filtrar lotes que tienen palets con is_out = 0 y defective = 0
-    _lots = lots.where((lot) => lot.pallet!.any((p) => !p.isOut! && !p.defective!)).toList();
+    _lots = defective ? lots.where((lot) => lot.pallet!.any((p) => !p.isOut! && p.defective!)).toList() : lots.where((lot) => lot.pallet!.any((p) => !p.isOut! && !p.defective!)).toList();
     return _lots; // Asegura que _lots siempre esté actualizado con los últimos datos, independientemente del filtro.
   }
 
@@ -44,14 +44,18 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     });
   }
 
-  Future<void> showPalletSheet(Lot lot, int numPallets) async {
+  Future<void> showPalletSheet(Lot lot, int numPallets, {bool defective = true}) async {
     SheetResponse? response = await _sheetService.showCustomSheet(
         variant: BottomSheetType.pallet,
         title: lot.name,
         data: {"num_pallets": numPallets});
     int? extracNumPallets = response?.data['count'];
     if (extracNumPallets != null) {
-      await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets, warehouse.id!);
+      if(defective){
+        await DatabaseHelper.instance.markPalletsAsOutDefective(lot.id!, extracNumPallets, warehouse.id!);
+      }else {
+        await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets, warehouse.id!);
+      }
     }
     initialise();
   }
@@ -92,6 +96,10 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     return _lots[index].pallet?.where((p) => !p.isOut! && !p.defective!).length ?? 0;
   }
 
+  int getPalletsNotOutDefective(int index) {
+    return _lots[index].pallet?.where((p) => !p.isOut! && p.defective!).length ?? 0;
+  }
+
   String getTruckLoads(int index) {
     if (_lots[index].pallet != null && _lots[index].pallet!.isNotEmpty) {
       int notOutPallets = _lots[index].pallet!.where((p) => !p.isOut! && !p.defective!).length;
@@ -110,6 +118,25 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
       JOIN pallet_lot ON pallet.id = pallet_lot.id_pallet
       JOIN lot ON pallet_lot.id_lot = lot.id
       WHERE pallet.warehouse = ? AND pallet.is_out = 0 AND pallet.defective = 0
+    ''';
+    List<dynamic> params = [warehouseId];
+
+    if (productId != null) {
+      query += ' AND lot.product = ?';
+      params.add(productId);
+    }
+
+    final result = await db.rawQuery(query, params);
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  Future<int> getTotalPalletsNotOutDefective({int? productId, required int warehouseId}) async {
+    final db = await DatabaseHelper.instance.database;
+    String query = '''
+      SELECT COUNT(*) as count FROM pallet
+      JOIN pallet_lot ON pallet.id = pallet_lot.id_pallet
+      JOIN lot ON pallet_lot.id_lot = lot.id
+      WHERE pallet.warehouse = ? AND pallet.is_out = 0 AND pallet.defective = 1
     ''';
     List<dynamic> params = [warehouseId];
 

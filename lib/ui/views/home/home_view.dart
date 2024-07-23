@@ -48,6 +48,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                   ),
                   IconButton(
+                    icon: Icon(Icons.warning, 
+                      color: model.isActivated ? Colors.red : Colors.grey
+                    ),
+                    onPressed: model.toggleActivation
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () => _showWarehouseOptions(context, model),
                   ),
@@ -57,7 +63,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
           body: TabBarView(
             controller: _tabController,
-            children: model.warehouses.map((warehouse) => WarehouseDetailsView(warehouse: warehouse)).toList(),
+            children: model.warehouses.map((warehouse) => WarehouseDetailsView(warehouse: warehouse, defective: model.isActivated)).toList(),
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () => model.navigateToCreateReceived(context, _tabController!.index),

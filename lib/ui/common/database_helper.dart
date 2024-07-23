@@ -570,6 +570,31 @@ Future<void> markPalletsAsOut(int lotId, int numberOfPalletsToMark, int warehous
   }
 }
 
+Future<void> markPalletsAsOutDefective(int lotId, int numberOfPalletsToMark, int warehouseId) async {
+  final db = await database;
+  List<Map<String, dynamic>> palletIds = await db.rawQuery('''
+    SELECT p.id FROM pallet p
+    JOIN pallet_lot pl ON p.id = pl.id_pallet
+    WHERE pl.id_lot = ? AND p.is_out = 0 AND p.defective = 1 AND p.warehouse = ?
+    ORDER BY p.id ASC
+    LIMIT ?
+  ''', [lotId, warehouseId, numberOfPalletsToMark]);
+
+  String currentDateTime = DateTime.now().toIso8601String();
+
+  for (var row in palletIds) {
+    await db.update(
+      'pallet',
+      {
+        'is_out': 1,
+        'out_date': currentDateTime,
+      },
+      where: 'id = ?',
+      whereArgs: [row['id']],
+    );
+  }
+}
+
   Future<void> markPalletsAsDefectuous(int lotId, int numberOfPalletsToMark, int warehouseId) async {
     final db = await database;
 

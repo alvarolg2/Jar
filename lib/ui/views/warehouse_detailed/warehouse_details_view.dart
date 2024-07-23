@@ -8,8 +8,9 @@ import 'package:stacked/stacked.dart';
 
 class WarehouseDetailsView extends StatelessWidget {
   final Warehouse warehouse;
+  final bool defective;
 
-  const WarehouseDetailsView({Key? key, required this.warehouse})
+  const WarehouseDetailsView({Key? key, required this.warehouse, required this.defective})
       : super(key: key);
 
   @override
@@ -19,12 +20,12 @@ class WarehouseDetailsView extends StatelessWidget {
 
     return ViewModelBuilder<WarehouseDetailsViewModel>.reactive(
       viewModelBuilder: () => WarehouseDetailsViewModel(warehouse),
-      onModelReady: (model) => model.fetchLots(),
+      onModelReady: (model) => model.fetchLots(defective: defective),
       builder: (context, model, child) => Scaffold(
         backgroundColor: kcBackgroundColor, // Fondo general claro
         body: Column(
           children: [
-            Row(
+            !defective ? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
@@ -53,9 +54,13 @@ class WarehouseDetailsView extends StatelessWidget {
                     color: kcPrimaryColorDark,
                     icon: Icon(Icons.restart_alt_outlined))
               ],
-            ),
+            ): const SizedBox.shrink(),
+            SizedBox(height: 10),
             FutureBuilder<int>(
-              future: model.getTotalPalletsNotOut(
+              future: !defective ? model.getTotalPalletsNotOut(
+                  productId: model.selectedProduct?.id,
+                  warehouseId: model.warehouse.id!)
+                  : model.getTotalPalletsNotOutDefective(
                   productId: model.selectedProduct?.id,
                   warehouseId: model.warehouse.id!),
               builder: (context, snapshot) {
@@ -121,37 +126,51 @@ class WarehouseDetailsView extends StatelessWidget {
                                             Icon(Icons.pallet,
                                                 color: kcPrimaryColorDark),
                                             SizedBox(width: 8),
+                                            !defective ?
                                             Text(
                                                 "${model.getPalletsNotOut(index)} palés",
-                                                style: textStyle),
-                                            SizedBox(width: 8),
-                                            Icon(Icons.local_shipping,
-                                                color:
-                                                    kcPrimaryColorDark), // Icono de camión
-                                            SizedBox(width: 8),
-                                            Text(
-                                                "${model.getTruckLoads(index)}",
-                                                style:
-                                                    textStyle), // Cantidad de viajes de camión
+                                                style: textStyle) 
+                                              : Text(
+                                                "${model.getPalletsNotOutDefective(index)} palés",
+                                                style: textStyle)  ,
+                                            !defective ? Row(
+                                              children: [
+                                                SizedBox(width: 8),
+                                                Icon(Icons.local_shipping,
+                                                    color:
+                                                        kcPrimaryColorDark), // Icono de camión
+                                                SizedBox(width: 8),
+                                                Text(
+                                                    "${model.getTruckLoads(index)}",
+                                                    style:
+                                                        textStyle), // Cantidad de viajes de camión
+                                              ],
+                                            ): SizedBox.shrink(),
                                           ],
                                         ),
-                                        SizedBox(height: 8),
-                                        Row(
+                                        !defective ?
+                                        Column(
                                           children: [
-                                            Icon(Icons.date_range,
-                                                color: kcPrimaryColorDark),
-                                            SizedBox(width: 8),
-                                            Text(
-                                                DateFormatter.format(
-                                                    lot.createDate!),
-                                                style: textStyle),
+                                            SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.date_range,
+                                                    color: kcPrimaryColorDark),
+                                                SizedBox(width: 8),
+                                                Text(
+                                                    DateFormatter.format(
+                                                        lot.createDate!),
+                                                    style: textStyle),
+                                              ],
+                                            ),
                                           ],
-                                        ),
+                                        ) : SizedBox.shrink(),
                                       ],
                                     ),
                                   ),
                                   Column(
                                     children: [
+                                      !defective ?
                                       IconButton(
                                         icon: Icon(Icons.add_outlined,
                                             color: kcPrimaryColorDark),
@@ -160,15 +179,20 @@ class WarehouseDetailsView extends StatelessWidget {
                                             lot,
                                           );
                                         },
-                                      ),
+                                      )
+                                      : SizedBox.shrink(),
                                       IconButton(
                                         icon: Icon(Icons.arrow_forward,
                                             color: kcPrimaryColorDark),
                                         onPressed: () async {
-                                          await model.showPalletSheet(lot,
-                                              model.getPalletsNotOut(index));
+                                          if(defective){
+                                            await model.showPalletSheet(lot, model.getPalletsNotOutDefective(index));
+                                          } else {
+                                           await model.showPalletSheet(lot, model.getPalletsNotOut(index));
+                                          }
                                         },
                                       ),
+                                      !defective ?
                                       IconButton(
                                         icon: Icon(Icons.warning,
                                             color: kcPrimaryColorDark),
@@ -176,7 +200,8 @@ class WarehouseDetailsView extends StatelessWidget {
                                           await model.showPalletDefectiveSheet(lot,
                                               model.getPalletsNotOut(index));
                                         },
-                                      ),
+                                      ) 
+                                      : SizedBox.shrink(),
                                     ],
                                   ),
                                 ],

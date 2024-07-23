@@ -6,6 +6,7 @@ import 'package:stacked/stacked.dart';
 
 class HomeViewModel extends FutureViewModel {
   List<Warehouse> warehouses = [];
+  bool isActivated = false;
   Warehouse? selectedWarehouse;
   int get warehouseCount => warehouses.length;
 
@@ -69,4 +70,10 @@ class HomeViewModel extends FutureViewModel {
       ),
     );
   }
+
+  void toggleActivation(){
+    isActivated = !isActivated;
+    notifyListeners();
+  }
+
 }
