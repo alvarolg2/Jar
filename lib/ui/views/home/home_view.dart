@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/common/app_colors.dart';
+import 'package:jar/ui/common/app_strings.dart';
+import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_view.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_hooks/stacked_hooks.dart';
 import 'home_viewmodel.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
 
   @override
-  _HomeViewState createState() => _HomeViewState();
+  HomeViewState createState() => HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
+class HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   TabController? _tabController;
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<HomeViewModel>.reactive(
       viewModelBuilder: () => HomeViewModel(),
-      onModelReady: (model) {
+      onViewModelReady: (model) {
         _tabController = TabController(length: model.warehouseCount, vsync: this);
       },
       builder: (context, model, child) {
@@ -28,19 +32,62 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         }
         return Scaffold(
           appBar: AppBar(
-            title: Text('HOZON-JAR'),
+            title: FutureBuilder<int>(
+              future: model.isActivated ? model.getTotalPalletsNotOutDefectiveAll() : model.getTotalPalletsNotOutAll(),
+              builder: (BuildContext context, AsyncSnapshot<int> snapshot) { 
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  // TODO: hacer banner para poner el numero por encima
+                  return Image.asset('assets/images/background.png', scale: 6);
+                } else {
+                  return Container(
+                    decoration:const  BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage('assets/images/background.png'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 30,
+                          height: 30,
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: model.isActivated ? kcDefectiveColor : kcPrimaryColorDark,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(1),
+                            child: FittedBox(
+                              child: Text(
+                                "${snapshot.data}",
+                                style: const TextStyle(color: Colors.white),
+                              ),           
+                            ),
+                          )
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              }
+            ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48.0),
               child: Row(
                 children: [
                   Expanded(
                     child: TabBar(
+                      labelColor: model.isActivated ? kcDefectiveShadeColor : null,
+                      indicatorColor: model.isActivated ? kcDefectiveShadeColor : null,
                       controller: _tabController,
                       isScrollable: true,
                       tabs: List.generate(model.warehouses.length, (index) {
                         final warehouse = model.warehouses[index];
-                        return _buildCustomTab(
-                          title: warehouse.name ?? "Without name",
+                        return _BuildCustomTab(
+                          warehouse: warehouse,
                           onLongPress: () => _showWarehouseOptions(context, model, warehouse: warehouse),
                           onTap: () => _tabController!.animateTo(index),
                         );
@@ -49,13 +96,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                   IconButton(
                     icon: Icon(Icons.warning, 
-                      color: model.isActivated ? Colors.red : Colors.grey
+                      color: model.isActivated ? kcDefectiveColor : Colors.grey
                     ),
-                    onPressed: model.toggleActivation
+                    onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
+                    tooltip: tooltipDefectiveButton,
                   ),
                   IconButton(
                     icon: const Icon(Icons.add),
                     onPressed: () => _showWarehouseOptions(context, model),
+                    tooltip: tooltipAddWarehouseButton,
                   ),
                 ],
               ),
@@ -65,10 +114,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             controller: _tabController,
             children: model.warehouses.map((warehouse) => WarehouseDetailsView(warehouse: warehouse, defective: model.isActivated)).toList(),
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () => model.navigateToCreateReceived(context, _tabController!.index),
-            child: Icon(Icons.add),
-          ),
+          floatingActionButton: (model.isActivated != true && model.warehouses.isNotEmpty) 
+            ? FloatingActionButton(
+              onPressed: () => model.navigateToCreateReceived(context, _tabController!.index),
+              tooltip: addReception,
+              child: const Icon(Icons.add),
+            ) 
+            : null,
         );
       },
     );
@@ -80,48 +132,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _createNewWarehouse(BuildContext context, HomeViewModel model) {
-    final TextEditingController controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Añadir un nuevo almacen'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(hintText: "Nombre del almacen"),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancelar'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: const Text('Añadir'),
-              onPressed: () {
-                model.addWarehouse(controller.text);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildCustomTab({
-    required String title,
-    required VoidCallback onLongPress,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onLongPress: onLongPress,
-      onTap: onTap,
-      child: Tab(text: title),
-    );
-  }
-
   void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse? warehouse}) {
     final TextEditingController controller = TextEditingController(text: warehouse?.name);
 
@@ -129,26 +139,26 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(warehouse == null ? 'Añadir almacen' : 'Editar almacen'),
+          title: Text(warehouse == null ? addWarehouse : editWarehouse),
           content: TextField(
             controller: controller,
-            decoration: const InputDecoration(hintText: "Nombre almacen"),
+            decoration: const InputDecoration(hintText: nameWarehouse),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancelar'),
+              child: const Text(cancel),
               onPressed: () => Navigator.of(context).pop(),
             ),
             if (warehouse != null)
               TextButton(
-                child: const Text('Borrar'),
+                child: const Text(delete),
                 onPressed: () {
                   model.deleteWarehouse(warehouse);
                   Navigator.of(context).pop();
                 },
               ),
             TextButton(
-              child: Text(warehouse == null ? 'Añadir' : 'Guardar'),
+              child: Text(warehouse == null ? add : save),
               onPressed: () {
                 final name = controller.text;
                 if (warehouse == null) {
@@ -162,6 +172,59 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ],
         );
       },
+    );
+  }
+}
+
+class _BuildCustomTab extends StackedHookView<HomeViewModel> {
+  final Warehouse? warehouse;
+  final VoidCallback? onLongPress;
+  final VoidCallback? onTap;
+  const _BuildCustomTab({this.warehouse, this.onLongPress, this.onTap});
+
+  @override
+  Widget builder(BuildContext context, HomeViewModel model) {
+    return InkWell(
+      onLongPress: onLongPress,
+      onTap: onTap,
+      child: Tab(
+        child: Row(
+          children: [
+            Text(warehouse?.name ?? ""),
+            horizontalSpaceTiny,
+            Container(
+              width: 30,
+              height: 30,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: model.isActivated ? kcDefectiveColor : kcPrimaryColorDark,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(1),
+                child: FittedBox(
+                  child: 
+                    FutureBuilder<int>(
+                      future: model.isActivated ? model.getTotalPalletsNotOutDefective(warehouseId: warehouse!.id!) : model.getTotalPalletsNotOut(warehouseId: warehouse!.id!), 
+                      builder: (BuildContext context, AsyncSnapshot<int> snapshot) { 
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Text(
+                            "0",
+                            style: TextStyle(color: Colors.white) ,
+                          );
+                        }
+                        return Text(
+                          "${snapshot.data}",
+                          style: const TextStyle(color: Colors.white),
+                        );
+                      },
+                    )
+                  ,
+                ),
+              )
+            ),
+          ],
+        ),),
     );
   }
 }

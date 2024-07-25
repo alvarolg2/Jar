@@ -73,3 +73,7 @@ class DateFormatter {
     return DateFormat(format).format(date);
   }
 }
+
+const Duration durationSnackbar = Duration(seconds: 3);
+const Duration waitInitial = Duration(seconds: 3);
+

@@ -61,7 +61,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
   }
 
   Future<void> showPalletInSheet(Lot lot) async {
-    SheetResponse? response = await _sheetService.showCustomSheet(
+    await _sheetService.showCustomSheet(
         variant: BottomSheetType.pallet_in,
         title: lot.name,
         data: {"lotId": lot.id, "warehouseId": warehouse.id});
@@ -85,6 +85,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>?> {
     initialise();
     notifyListeners();
   }
+
 
   List<Lot> get lots => _lots; // Proporciona acceso a _lots.
 

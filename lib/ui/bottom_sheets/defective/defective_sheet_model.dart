@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jar/ui/common/app_strings.dart';
+import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -31,14 +33,12 @@ class DefectiveSheetModel extends BaseViewModel {
 
     if (currentCount! <= numPalletsAvailable) {
       _validationPassed = true;
-      print("Confirmados $currentCount palés.");
     } else {
       _validationPassed = false;
       _snackbarService.showSnackbar(
-        title: 'Error',
-        message:
-            'El número introducido es mayor que el número de palés disponibles.',
-        duration: Duration(seconds: 3),
+        title: error,
+        message: snackbarDefective,
+        duration: durationSnackbar,
       );
     }
     notifyListeners();

@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/database_helper.dart';
+import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -27,7 +29,7 @@ class PalletsInSheetModel extends BaseViewModel {
   }
 
   void addTwentySixPallets() {
-    palletsController.text = "26";
+    palletsController.text = defaultNumberPallets;
     notifyListeners();
   }
 
@@ -36,14 +38,13 @@ class PalletsInSheetModel extends BaseViewModel {
 
     if (currentCount! <= numPalletsAvailable) {
       _validationPassed = true;
-      print("Confirmados $currentCount palés.");
     } else {
       _validationPassed = false;
       _snackbarService.showSnackbar(
-        title: 'Error',
+        title: error,
         message:
-            'El número introducido es mayor que el número de palés disponibles.',
-        duration: Duration(seconds: 3),
+            snackbarDefective,
+        duration: durationSnackbar,
       );
     }
     notifyListeners(); // Asegúrate de notificar a los listeners sobre el cambio de estado.
@@ -71,9 +72,9 @@ class PalletsInSheetModel extends BaseViewModel {
 
   void showInvalidInputError() {
     _snackbarService.showSnackbar(
-      title: 'Error',
-      message: 'Por favor, introduce un número válido de palés.',
-      duration: Duration(seconds: 3),
+      title: error,
+      message: snackbarDefective,
+      duration: durationSnackbar,
     );
   }
 

@@ -74,6 +74,7 @@ Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
         "out_date"	datetime,
         "date"	datetime,
         "is_out"	INTEGER DEFAULT 0,
+        "defective"	INTEGER DEFAULT 0,
         PRIMARY KEY("id" AUTOINCREMENT),
         FOREIGN KEY("warehouse") REFERENCES "warehouse"("id")
       );

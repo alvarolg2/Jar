@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
+import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_viewmodel.dart';
 import 'package:stacked/stacked.dart';
@@ -15,14 +16,12 @@ class WarehouseDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle textStyle =
-        const TextStyle(color: kcTextColor); // Estilo de texto general
-
+    TextStyle textStyle = const TextStyle(color: kcTextColor);
     return ViewModelBuilder<WarehouseDetailsViewModel>.reactive(
       viewModelBuilder: () => WarehouseDetailsViewModel(warehouse),
-      onModelReady: (model) => model.fetchLots(defective: defective),
+      onViewModelReady: (model) => model.fetchLots(defective: defective),
       builder: (context, model, child) => Scaffold(
-        backgroundColor: kcBackgroundColor, // Fondo general claro
+        backgroundColor: kcBackgroundColor,
         body: Column(
           children: [
             !defective ? Row(
@@ -32,7 +31,7 @@ class WarehouseDetailsView extends StatelessWidget {
                   padding: const EdgeInsets.all(8.0),
                   child: DropdownButton<Product>(
                     value: model.selectedProduct,
-                    hint: Text("Selecciona un producto", style: textStyle),
+                    hint: Text(dropdownProductText, style: textStyle),
                     onChanged: (Product? newValue) {
                       if (newValue != null) {
                         model.setSelectedProduct(newValue);
@@ -48,34 +47,18 @@ class WarehouseDetailsView extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                    onPressed: () {
-                      model.selectProductNull();
-                    },
-                    color: kcPrimaryColorDark,
-                    icon: Icon(Icons.restart_alt_outlined))
+                  onPressed: () {
+                    model.selectProductNull();
+                  },
+                  color: kcPrimaryColorDark,
+                  icon: const Icon(Icons.restart_alt_outlined),
+                  tooltip: resetFilters,
+                )
               ],
             ): const SizedBox.shrink(),
-            SizedBox(height: 10),
-            FutureBuilder<int>(
-              future: !defective ? model.getTotalPalletsNotOut(
-                  productId: model.selectedProduct?.id,
-                  warehouseId: model.warehouse.id!)
-                  : model.getTotalPalletsNotOutDefective(
-                  productId: model.selectedProduct?.id,
-                  warehouseId: model.warehouse.id!),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator(); // Mostrar un indicador de carga mientras se espera el resultado.
-                }
-                return Text(
-                  "Total de palés: ${snapshot.data}",
-                  style: TextStyle(fontSize: 20, color: Colors.black),
-                );
-              },
-            ),
             Expanded(
               child: model.isBusy
-                  ? Center(
+                  ? const Center(
                       child:
                           CircularProgressIndicator(color: kcPrimaryColorDark))
                   : ListView.builder(
@@ -85,7 +68,7 @@ class WarehouseDetailsView extends StatelessWidget {
                         return Container(
                           margin: const EdgeInsets.all(8.0),
                           child: Card(
-                            color: kcMediumGrey, // Gris claro para tarjetas
+                            color: kcMediumGrey,
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
@@ -97,66 +80,79 @@ class WarehouseDetailsView extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        // Iconos reintegrados con su respectivo texto
                                         if (model.selectedProduct == null)
                                           Row(
                                             children: [
-                                              Icon(Icons.inventory_2_outlined,
-                                                  color: kcPrimaryColorDark),
-                                              SizedBox(width: 8),
+                                              Tooltip(
+                                                message: product,
+                                                child: Icon(
+                                                  Icons.inventory_2_outlined,
+                                                  color: defective ? kcDefectiveColor : kcPrimaryColorDark
+                                                ),
+                                              ),
+                                              horizontalSpaceSmall,
                                               Text(
-                                                  lot.product?.name ??
-                                                      "Sin nombre",
+                                                  lot.product?.name ?? withOutName,
                                                   style: textStyle),
                                             ],
                                           ),
-                                        SizedBox(height: 8),
+                                        verticalSpaceSmall,
                                         Row(
                                           children: [
-                                            Icon(Icons.ballot,
-                                                color: kcPrimaryColorDark),
-                                            SizedBox(width: 8),
-                                            Text(lot.name ?? "Sin producto",
+                                            Tooltip(
+                                              message: batch,
+                                              child: Icon(Icons.ballot,
+                                                  color: defective ? kcDefectiveColor : kcPrimaryColorDark),
+                                            ),
+                                            horizontalSpaceSmall,
+                                            Text(lot.name ?? withOutProduct,
                                                 style: textStyle),
                                           ],
                                         ),
-                                        SizedBox(height: 8),
+                                        verticalSpaceSmall,
                                         Row(
                                           children: [
-                                            Icon(Icons.pallet,
-                                                color: kcPrimaryColorDark),
-                                            SizedBox(width: 8),
+                                            Tooltip(
+                                              message: pallets,
+                                              child: Icon(Icons.pallet,
+                                                  color: defective ? kcDefectiveColor : kcPrimaryColorDark),
+                                            ),
+                                            horizontalSpaceSmall,
                                             !defective ?
                                             Text(
-                                                "${model.getPalletsNotOut(index)} palés",
+                                                "${model.getPalletsNotOut(index)} $pallets",
                                                 style: textStyle) 
                                               : Text(
-                                                "${model.getPalletsNotOutDefective(index)} palés",
+                                                "${model.getPalletsNotOutDefective(index)} $pallets",
                                                 style: textStyle)  ,
                                             !defective ? Row(
                                               children: [
-                                                SizedBox(width: 8),
-                                                Icon(Icons.local_shipping,
-                                                    color:
-                                                        kcPrimaryColorDark), // Icono de camión
-                                                SizedBox(width: 8),
+                                                horizontalSpaceSmall,
+                                                Tooltip(
+                                                  message: tooltipTruckLoads,
+                                                  child: Icon(Icons.local_shipping,
+                                                      color: defective ? kcDefectiveColor : kcPrimaryColorDark),
+                                                ),
+                                                horizontalSpaceSmall,
                                                 Text(
-                                                    "${model.getTruckLoads(index)}",
-                                                    style:
-                                                        textStyle), // Cantidad de viajes de camión
+                                                    model.getTruckLoads(index),
+                                                    style: textStyle),
                                               ],
-                                            ): SizedBox.shrink(),
+                                            ): const SizedBox.shrink(),
                                           ],
                                         ),
                                         !defective ?
                                         Column(
                                           children: [
-                                            SizedBox(height: 8),
+                                            verticalSpaceSmall,
                                             Row(
                                               children: [
-                                                Icon(Icons.date_range,
-                                                    color: kcPrimaryColorDark),
-                                                SizedBox(width: 8),
+                                                Tooltip(
+                                                  message: tooltipDateCreationBatch,
+                                                  child: Icon(Icons.date_range,
+                                                      color: defective ? kcDefectiveColor: kcPrimaryColorDark),
+                                                ),
+                                                horizontalSpaceSmall,
                                                 Text(
                                                     DateFormatter.format(
                                                         lot.createDate!),
@@ -164,7 +160,7 @@ class WarehouseDetailsView extends StatelessWidget {
                                               ],
                                             ),
                                           ],
-                                        ) : SizedBox.shrink(),
+                                        ) : const SizedBox.shrink(),
                                       ],
                                     ),
                                   ),
@@ -173,17 +169,19 @@ class WarehouseDetailsView extends StatelessWidget {
                                       !defective ?
                                       IconButton(
                                         icon: Icon(Icons.add_outlined,
-                                            color: kcPrimaryColorDark),
+                                            color: defective ? kcDefectiveColor : kcPrimaryColorDark),
+                                        tooltip: tooltipAddPallets,
                                         onPressed: () async {
                                           await model.showPalletInSheet(
                                             lot,
                                           );
                                         },
                                       )
-                                      : SizedBox.shrink(),
+                                      : const SizedBox.shrink(),
                                       IconButton(
                                         icon: Icon(Icons.arrow_forward,
-                                            color: kcPrimaryColorDark),
+                                            color: defective ? kcDefectiveColor : kcPrimaryColorDark),
+                                        tooltip: tooltipSubstractPallets,
                                         onPressed: () async {
                                           if(defective){
                                             await model.showPalletSheet(lot, model.getPalletsNotOutDefective(index));
@@ -195,13 +193,14 @@ class WarehouseDetailsView extends StatelessWidget {
                                       !defective ?
                                       IconButton(
                                         icon: Icon(Icons.warning,
-                                            color: kcPrimaryColorDark),
+                                            color: defective ? kcDefectiveColor : kcPrimaryColorDark),
+                                        tooltip: tooltipDefectivePallets,
                                         onPressed: () async {
                                           await model.showPalletDefectiveSheet(lot,
                                               model.getPalletsNotOut(index));
                                         },
                                       ) 
-                                      : SizedBox.shrink(),
+                                      : const SizedBox.shrink(),
                                     ],
                                   ),
                                 ],

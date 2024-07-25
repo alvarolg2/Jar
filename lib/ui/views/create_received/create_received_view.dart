@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jar/ui/common/app_colors.dart';
-import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/common/app_strings.dart';
+import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/create_received/create_received_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 
@@ -16,11 +17,12 @@ class CreateReceivedView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CreateReceivedViewModel>.reactive(
       viewModelBuilder: () => CreateReceivedViewModel(),
-      onModelReady: (viewModel) => viewModel.init(warehouse),
+      onViewModelReady: (viewModel) => viewModel.init(warehouse),
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
-          title: const Text('Añadir recepción',
-              style: TextStyle(color: kcTextColor)),
+          title: const Text(
+            addReception,
+            style: TextStyle(color: kcTextColor)),
           backgroundColor: kcPrimaryColor,
         ),
         backgroundColor: kcBackgroundColor,
@@ -31,7 +33,7 @@ class CreateReceivedView extends StatelessWidget {
               TextFormField(
                 controller: viewModel.productController,
                 decoration: const InputDecoration(
-                  labelText: 'Producto',
+                  labelText: product,
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: kcPrimaryColor),
@@ -42,16 +44,16 @@ class CreateReceivedView extends StatelessWidget {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un producto';
+                    return validateProduct;
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              verticalSpaceMedium,
               TextFormField(
                 controller: viewModel.lotController,
                 decoration: const InputDecoration(
-                  labelText: 'Lote',
+                  labelText: batch,
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: kcPrimaryColor),
@@ -62,12 +64,12 @@ class CreateReceivedView extends StatelessWidget {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un lote';
+                    return validateBatch;
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              verticalSpaceMedium,
               TextFormField(
                 controller: viewModel.numPalletController,
                 keyboardType: TextInputType.number,
@@ -75,7 +77,7 @@ class CreateReceivedView extends StatelessWidget {
                   FilteringTextInputFormatter.digitsOnly
                 ],
                 decoration: const InputDecoration(
-                  labelText: 'Número de palés',
+                  labelText: numberOfPallets,
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: kcPrimaryColor),
@@ -86,17 +88,17 @@ class CreateReceivedView extends StatelessWidget {
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un número de palés';
+                    return validatePallets;
                   }
                   return null;
                 },
               ),
-              SizedBox(height: 20),
+              verticalSpaceMedium,
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Escanear documento',
+                    scanDocument,
                     style: TextStyle(fontSize: 16, color: kcTextColor),
                   ),
                   IconButton(
@@ -120,7 +122,7 @@ class CreateReceivedView extends StatelessWidget {
                         viewModel.navigateToHome();
                       },
                       icon: const Icon(Icons.save),
-                      label: const Text('Guardar'),
+                      label: const Text(save),
                     ),
             ],
           ),

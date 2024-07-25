@@ -1,6 +1,6 @@
 import 'dart:math';
-
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:jar/app/app.locator.dart';
@@ -16,7 +16,6 @@ import 'package:stacked_services/stacked_services.dart';
 
 class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
-  final _snackbarService = SnackbarService();
 
   final _dateController = TextEditingController();
   final _productController = TextEditingController();
@@ -43,17 +42,12 @@ class CreateReceivedViewModel extends BaseViewModel {
         // Configuración opcional para el escáner
         // Iniciar el escáner de documentos con la configuración deseada
         pictures = await CunningDocumentScanner.getPictures(crop: true) ?? [];
-
-        if (pictures != null) {
-          print("Ruta del documento escaneado: $pictures");
-
-          scannedDocumentPath = pictures[0];
-          notifyListeners();
-        }
-      } catch (e) {
-        print("Error al escanear el documento: $e");
-      }
+        scannedDocumentPath = pictures[0];
+        notifyListeners();
+    } catch (e) {
+        Exception("Error al escanear el documento: $e");
     }
+  }
 
     // Función adaptada para usar image_picker
     Future<void> captureAndRecognizeText() async {
@@ -62,7 +56,7 @@ class CreateReceivedViewModel extends BaseViewModel {
       await scanDocument();
 
       if (scannedDocumentPath == null) {
-        print('No se tomó ninguna foto.');
+        Exception("No se tomó ninguna foto");
         return;
       }
 
@@ -84,33 +78,34 @@ class CreateReceivedViewModel extends BaseViewModel {
         final matches = patternCheck.allMatches(block.text);
           for (final match in matches) {
               String numero = match.group(1)!;
-              if (numero != null) {
-                  // Eliminar los espacios en blanco del número capturado
-                  numero = numero.replaceAll(' ', '');
+                // Eliminar los espacios en blanco del número capturado
+                numero = numero.replaceAll(' ', '');
 
-                  // Decide a qué controlador asignar el valor basado en el contexto
-                  if (block.text.contains('Batch')) {
-                      lotController.text = numero;
-                  } else if (block.text.contains('Material Code')) {
-                      productController.text = numero;
-                  }
-                  print("Dato extraído: $numero");
-              }
-          }
+                // Decide a qué controlador asignar el valor basado en el contexto
+                if (block.text.contains('Batch')) {
+                    lotController.text = numero;
+                } else if (block.text.contains('Material Code')) {
+                    productController.text = numero;
+                }
+                      }
 
         if (block.text.contains('PAL')) {
           numPalletController.text = block.text.split('/')[0].trim();
         }
-        text += block.text + '\n'; // Añade un salto de línea entre bloques de texto
+        text += '${block.text}\n'; // Añade un salto de línea entre bloques de texto
       }
 
       // Imprimir el texto completo
-      print(text); // Aquí puedes hacer algo con el texto completo
+      if (kDebugMode) {
+        print(text);
+      } // Aquí puedes hacer algo con el texto completo
 
       // Cerrar el textDetector cuando termines
       textDetector.close();
     } catch (e) {
-      print(e.toString());
+      if (kDebugMode) {
+        print(e.toString());
+      }
     }
   }
 
@@ -133,11 +128,9 @@ class CreateReceivedViewModel extends BaseViewModel {
     setBusy(true);
     try {
       int currentProductID;
-      print("Product Name: ${productController.text}");
       Product? currentProduct = await DatabaseHelper.instance
           .findProductByName(productController.text);
       if (currentProduct == null) {
-        print("Product Name: ${productController.text}");
         currentProductID = await DatabaseHelper.instance
             .insertProduct(Product(name: productController.text));
       } else {
