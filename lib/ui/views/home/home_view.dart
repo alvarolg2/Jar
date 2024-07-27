@@ -32,48 +32,15 @@ class HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         }
         return Scaffold(
           appBar: AppBar(
-            title: FutureBuilder<int>(
-              future: model.isActivated ? model.getTotalPalletsNotOutDefectiveAll() : model.getTotalPalletsNotOutAll(),
-              builder: (BuildContext context, AsyncSnapshot<int> snapshot) { 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // TODO: hacer banner para poner el numero por encima
-                  return Image.asset('assets/images/background.png', scale: 6);
-                } else {
-                  return Container(
+            flexibleSpace: Container(
                     decoration:const  BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage('assets/images/background.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 30,
-                          height: 30,
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: model.isActivated ? kcDefectiveColor : kcPrimaryColorDark,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(1),
-                            child: FittedBox(
-                              child: Text(
-                                "${snapshot.data}",
-                                style: const TextStyle(color: Colors.white),
-                              ),           
-                            ),
-                          )
-                        ),
-                      ],
-                    ),
-                  );
-                }
-              }
-            ),
+                  ),
+            
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48.0),
               child: Row(
@@ -92,19 +59,29 @@ class HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           onTap: () => _tabController!.animateTo(index),
                         );
                       }).toList(),
+                    )
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                    ),
+                    child: IconButton(
+                      icon: Icon(Icons.warning, 
+                        color: model.isActivated ? kcDefectiveColor : Colors.white
+                      ),
+                      onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
+                      tooltip: tooltipDefectiveButton,
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.warning, 
-                      color: model.isActivated ? kcDefectiveColor : Colors.grey
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
                     ),
-                    onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
-                    tooltip: tooltipDefectiveButton,
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.add),
-                    onPressed: () => _showWarehouseOptions(context, model),
-                    tooltip: tooltipAddWarehouseButton,
+                    child: IconButton(
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      onPressed: () => _showWarehouseOptions(context, model),
+                      tooltip: tooltipAddWarehouseButton,
+                    ),
                   ),
                 ],
               ),
@@ -188,29 +165,39 @@ class _BuildCustomTab extends StackedHookView<HomeViewModel> {
       onLongPress: onLongPress,
       onTap: onTap,
       child: Tab(
-        child: Row(
-          children: [
-            Text(warehouse?.name ?? ""),
-            horizontalSpaceTiny,
-            Container(
-              width: 30,
-              height: 30,
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: model.isActivated ? kcDefectiveColor : kcPrimaryColorDark,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5), // Fondo semi-transparente
+            borderRadius: BorderRadius.vertical(top: Radius.circular(8)), // Bordes redondeados para un aspecto moderno
+          ),
+          child: Row(
+            children: [
+              Text(
+                warehouse?.name ?? "",
+                style: const TextStyle(color: Colors.white), // Texto en blanco para un buen contraste
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(1),
-                child: FittedBox(
-                  child: 
-                    FutureBuilder<int>(
-                      future: model.isActivated ? model.getTotalPalletsNotOutDefective(warehouseId: warehouse!.id!) : model.getTotalPalletsNotOut(warehouseId: warehouse!.id!), 
-                      builder: (BuildContext context, AsyncSnapshot<int> snapshot) { 
+              horizontalSpaceTiny,
+              Container(
+                width: 30,
+                height: 30,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: model.isActivated ? kcDefectiveColor : kcPrimaryColorDark,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(1),
+                  child: FittedBox(
+                    child: FutureBuilder<int>(
+                      future: model.isActivated
+                          ? model.getTotalPalletsNotOutDefective(warehouseId: warehouse!.id!)
+                          : model.getTotalPalletsNotOut(warehouseId: warehouse!.id!),
+                      builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Text(
                             "0",
-                            style: TextStyle(color: Colors.white) ,
+                            style: TextStyle(color: Colors.white),
                           );
                         }
                         return Text(
@@ -218,13 +205,15 @@ class _BuildCustomTab extends StackedHookView<HomeViewModel> {
                           style: const TextStyle(color: Colors.white),
                         );
                       },
-                    )
-                  ,
+                    ),
+                  ),
                 ),
-              )
-            ),
-          ],
-        ),),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
+

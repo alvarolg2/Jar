@@ -35,6 +35,9 @@ flutter:
   assets:
     - assets/images/logo.png
     - assets/images/background.png
+    - assets/images/background_top.png
+    - assets/images/background_bottom.png
+    - assets/images/body.png
 
 flutter_icons:
   android: true
