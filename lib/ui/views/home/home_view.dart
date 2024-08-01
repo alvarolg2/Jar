@@ -29,6 +29,10 @@ class HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         if (_tabController!.length != model.warehouseCount) {
           _tabController!.dispose();
           _tabController = TabController(length: model.warehouseCount, vsync: this);
+          _tabController!.addListener(() {
+              if (!_tabController!.indexIsChanging) {
+                model.notify();
+          } });
         }
         return Scaffold(
           appBar: AppBar(
@@ -47,6 +51,7 @@ class HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 children: [
                   Expanded(
                     child: TabBar(
+                      tabAlignment: TabAlignment.start,
                       labelColor: model.isActivated ? kcDefectiveShadeColor : null,
                       indicatorColor: model.isActivated ? kcDefectiveShadeColor : null,
                       controller: _tabController,
@@ -54,6 +59,8 @@ class HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       tabs: List.generate(model.warehouses.length, (index) {
                         final warehouse = model.warehouses[index];
                         return _BuildCustomTab(
+                          defective: model.isActivated,
+                          isSelected: _tabController!.index == index,
                           warehouse: warehouse,
                           onLongPress: () => _showWarehouseOptions(context, model, warehouse: warehouse),
                           onTap: () => _tabController!.animateTo(index),
@@ -157,7 +164,10 @@ class _BuildCustomTab extends StackedHookView<HomeViewModel> {
   final Warehouse? warehouse;
   final VoidCallback? onLongPress;
   final VoidCallback? onTap;
-  const _BuildCustomTab({this.warehouse, this.onLongPress, this.onTap});
+  final bool defective;
+  final bool isSelected;
+
+  const _BuildCustomTab({this.warehouse, this.onLongPress, this.onTap, required this.isSelected, required this.defective});
 
   @override
   Widget builder(BuildContext context, HomeViewModel model) {
@@ -166,16 +176,17 @@ class _BuildCustomTab extends StackedHookView<HomeViewModel> {
       onTap: onTap,
       child: Tab(
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5), // Fondo semi-transparente
-            borderRadius: BorderRadius.vertical(top: Radius.circular(8)), // Bordes redondeados para un aspecto moderno
+            color: isSelected ? Colors.blue.withOpacity(0.7) : Colors.black.withOpacity(0.5), // Fondo diferente para la pestaña seleccionada
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)), // Bordes redondeados para un aspecto moderno
+            border: isSelected ? Border.all(color: Colors.blue, width: 2.0) : null, // Borde adicional para la pestaña seleccionada
           ),
           child: Row(
             children: [
               Text(
                 warehouse?.name ?? "",
-                style: const TextStyle(color: Colors.white), // Texto en blanco para un buen contraste
+                style: TextStyle(color: isSelected ? Colors.white : Colors.white70), // Texto más destacado para la pestaña seleccionada
               ),
               horizontalSpaceTiny,
               Container(

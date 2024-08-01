@@ -27,6 +27,9 @@ class HomeViewModel extends FutureViewModel {
     notifyListeners();
   }
 
+  void notify() {
+    notifyListeners();
+  }
   // Añade esta función para seleccionar el almacén por índice
   void selectWarehouseByIndex(int index) {
     if (index < warehouses.length) {
