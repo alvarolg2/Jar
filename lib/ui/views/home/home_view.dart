@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
-import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_view.dart';
 import 'package:stacked/stacked.dart';
 import 'home_viewmodel.dart';
 
-enum _MenuOptions { import, export }
+enum _MenuOptions { import, export, generateReport }
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -97,11 +96,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       icon: const Icon(Icons.more_vert, color: Colors.white),
                       tooltip: "Más opciones",
                       onSelected: (value) {
-                        // Llama a la función correspondiente según la opción seleccionada.
                         if (value == _MenuOptions.import) {
                           model.importDatabase();
                         } else if (value == _MenuOptions.export) {
                           model.exportDatabase();
+                        } else if (value == _MenuOptions.generateReport) { 
+                          model.generateAndShareWarehouseReport();
                         }
                       },
                       itemBuilder: (BuildContext context) => <PopupMenuEntry<_MenuOptions>>[
@@ -117,6 +117,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           child: ListTile(
                             leading: Icon(Icons.upload_file),
                             title: Text('Exportar BD'),
+                          ),
+                        ),
+                        const PopupMenuItem<_MenuOptions>(
+                          value: _MenuOptions.generateReport, // ✅ NUEVO ITEM
+                          child: ListTile(
+                            leading: Icon(Icons.picture_as_pdf),
+                            title: Text('Generar Informe PDF'),
                           ),
                         ),
                       ],

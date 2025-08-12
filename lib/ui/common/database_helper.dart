@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
+import 'package:jar/models/report_item.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -67,6 +68,39 @@ class DatabaseHelper {
   }
   
   // --- MÉTODOS REFACTORIZADOS Y CENTRALIZADOS ---
+
+  Future<List<WarehouseReportItem>> getWarehouseReportItems({required bool isDefective}) async {
+    final db = await database;
+    
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT
+          w.name AS warehouseName,
+          p.name AS productName,
+          l.name AS lotName,
+          COUNT(pal.id) AS palletCount
+      FROM pallet pal
+      JOIN warehouse w ON pal.warehouse = w.id
+      JOIN pallet_lot pl ON pal.id = pl.id_pallet
+      JOIN lot l ON pl.id_lot = l.id
+      JOIN product p ON l.product = p.id
+      WHERE pal.is_out = 0 AND pal.defective = ? -- <-- Cambio aquí
+      GROUP BY w.id, p.id, l.id
+      ORDER BY w.name, p.name, l.name;
+    ''', [isDefective ? 1 : 0]); // <-- Y aquí
+
+    if (maps.isEmpty) {
+      return [];
+    }
+
+    return maps.map((map) {
+      return WarehouseReportItem(
+        warehouseName: map['warehouseName'] as String,
+        productName: map['productName'] as String,
+        lotName: map['lotName'] as String,
+        palletCount: map['palletCount'] as int,
+      );
+    }).toList();
+  }
 
   Future<List<Lot>> getLotsWithPallets({
     required int warehouseId,
