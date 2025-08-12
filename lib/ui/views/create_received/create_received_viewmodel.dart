@@ -1,165 +1,150 @@
 import 'dart:math';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
-import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/ui/common/database_helper.dart';
 import 'package:stacked/stacked.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
+  final _dialogService = locator<DialogService>();
 
-  final _dateController = TextEditingController();
   final _productController = TextEditingController();
   final _lotController = TextEditingController();
   final _numPalletController = TextEditingController();
 
-  TextEditingController get dateController => _dateController;
   TextEditingController get productController => _productController;
   TextEditingController get lotController => _lotController;
   TextEditingController get numPalletController => _numPalletController;
 
-  String? scannedDocumentPath;
+  late Warehouse _warehouse;
 
-  int? currentLot;
-
-  // Método para inicializar cualquier dato si es necesario
   void init(Warehouse warehouse) {
-    // Inicializa tus controladores o realiza alguna lógica inicial aquí
+    _warehouse = warehouse;
   }
 
-  Future<void> scanDocument() async {
+  Future<void> captureAndRecognizeText() async {
+    setBusy(true);
     try {
-      List<String> pictures;
-      // Configuración opcional para el escáner
-      // Iniciar el escáner de documentos con la configuración deseada
-      pictures = await CunningDocumentScanner.getPictures() ?? [];
-      scannedDocumentPath = pictures[0];
-      notifyListeners();
+      final List<String> pictures = await CunningDocumentScanner.getPictures() ?? [];
+      if (pictures.isEmpty) {
+        setBusy(false);
+        return;
+      }
+      
+      final imagePath = pictures.first;
+      final inputImage = InputImage.fromFilePath(imagePath);
+      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      textRecognizer.close();
+
+      _parseRecognizedText(recognizedText);
+
     } catch (e) {
-      Exception("Error al escanear el documento: $e");
+      await _dialogService.showDialog(
+        title: 'Error de Escaneo',
+        description: 'No se pudo procesar el documento. Error: ${e.toString()}',
+      );
+    } finally {
+      setBusy(false);
     }
   }
 
-  // Función adaptada para usar image_picker
-  Future<void> captureAndRecognizeText() async {
-    try {
-      // Abrir la cámara y capturar una foto
-      await scanDocument();
+  void _parseRecognizedText(RecognizedText recognizedText) {
+    String? foundLot;
+    String? foundProduct;
+    String? foundPallets;
 
-      if (scannedDocumentPath == null) {
-        Exception("No se tomó ninguna foto");
-        return;
-      }
+    for (TextBlock block in recognizedText.blocks) {
+      for (TextLine line in block.lines) {
+        final lineText = line.text;
+        final lowerCaseLineText = lineText.toLowerCase();
 
-      // Reconocer texto en la foto capturada
-      final inputImage = InputImage.fromFilePath(scannedDocumentPath!);
-      final textRecognizer = TextRecognizer();
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-      // Inicializar un String vacío para concatenar todo el texto
-      String text = '';
-
-      // Procesar el texto reconocido y concatenarlo
-      for (TextBlock block in recognizedText.blocks) {
-        // Expresión regular para capturar el número completo
-        RegExp patternCheck = RegExp(r'(?<!\w)(\d+\s*\w+\s*\d*\w*)(?!\w)');
-
-        // Intentar hacer coincidir el patrón con el texto del bloque
-        final matches = patternCheck.allMatches(block.text);
-        for (final match in matches) {
-          String numero = match.group(1)!;
-          // Eliminar los espacios en blanco del número capturado
-          numero = numero.replaceAll(' ', '');
-
-          // Decide a qué controlador asignar el valor basado en el contexto
-          if (block.text.contains('Batch')) {
-            lotController.text = numero;
-          } else if (block.text.contains('Material Code')) {
-            productController.text = numero;
+        // --- Búsqueda del Producto (Prioridad: "Material Code") ---
+        if (foundProduct == null && lowerCaseLineText.contains('material code')) {
+          // Busca "Material Code:", luego captura el código que le sigue.
+          // El código puede contener letras y números.
+          final RegExp productPattern = RegExp(r'Material Code:\s*([\w\d]+)', caseSensitive: false);
+          final match = productPattern.firstMatch(lineText);
+          if (match != null && match.group(1) != null) {
+            foundProduct = match.group(1)!.toUpperCase();
           }
         }
 
-        if (block.text.contains('PAL')) {
-          numPalletController.text = block.text.split('/')[0].trim();
+        // --- Búsqueda del Lote (Prioridad: "Batch") ---
+        if (foundLot == null && lowerCaseLineText.contains('batch')) {
+          // Busca "Batch:", luego captura el código numérico.
+          final RegExp lotPattern = RegExp(r'Batch:\s*(\d+)', caseSensitive: false);
+          final match = lotPattern.firstMatch(lineText);
+          if (match != null && match.group(1) != null) {
+            foundLot = match.group(1);
+          }
         }
-        text += '${block.text}\n'; // Añade un salto de línea entre bloques de texto
-      }
-
-      // Imprimir el texto completo
-      if (kDebugMode) {
-        print(text);
-      } // Aquí puedes hacer algo con el texto completo
-
-      // Cerrar el textDetector cuando termines
-      textRecognizer.close();
-    } catch (e) {
-      if (kDebugMode) {
-        print(e.toString());
+        
+        if (foundPallets == null && lowerCaseLineText.contains('pal')) {
+          // Busca un número, una barra opcional y "PAL"
+          final RegExp palletPattern = RegExp(r'(\d+)\s*\/?\s*pal', caseSensitive: false);
+          final match = palletPattern.firstMatch(lowerCaseLineText);
+          if (match != null && match.group(1) != null) {
+            foundPallets = match.group(1);
+          }
+        }
       }
     }
-  }
 
-  Future<String> recognizeText(XFile imageFile) async {
-    final inputImage = InputImage.fromFilePath(imageFile.path);
-    final textRecognizer = TextRecognizer();
-    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-    String text = '';
-    for (TextBlock block in recognizedText.blocks) {
-      for (TextLine line in block.lines) {
-        text += line.text + '\n';
-      }
-    }
-    textRecognizer.close();
-    return text;
+    if (foundProduct != null) _productController.text = foundProduct;
+    if (foundLot != null) _lotController.text = foundLot;
+    if (foundPallets != null) _numPalletController.text = foundPallets;
   }
-
-  Future<void> createLot(Warehouse warehouse) async {
+  
+  
+  Future<bool> createLot() async {
     setBusy(true);
     try {
-      int currentProductID;
-      Product? currentProduct = await DatabaseHelper.instance.findProductByName(productController.text);
-      if (currentProduct == null) {
-        currentProductID = await DatabaseHelper.instance.insertProduct(Product(name: productController.text));
-      } else {
-        currentProductID = currentProduct.id!;
-      }
-      Lot? repeatLot = await DatabaseHelper.instance.findLotByName(lotController.text);
-      if (repeatLot == null) {
-        currentLot = await DatabaseHelper.instance.insertLot(Lot(name: lotController.text, product: currentProduct ?? Product(id: currentProductID)));
-        await generatePallets(int.tryParse(_numPalletController.text)!, currentLot!, warehouse);
-        setBusy(false);
-      } else {
-        await generatePallets(int.tryParse(_numPalletController.text)!, repeatLot.id!, warehouse);
-      }
+      Product product = await _findOrCreateProduct(productController.text);
+      Lot lot = await _findOrCreateLot(lotController.text, product);
+      int numPallets = int.tryParse(numPalletController.text) ?? 0;
+      if (numPallets <= 0) throw Exception("El número de palets debe ser mayor que cero.");
+      await _generatePallets(numPallets, lot.id!, _warehouse);
+      return true;
     } catch (e) {
+      await _dialogService.showDialog(title: 'Error al Guardar', description: 'Ocurrió un problema al guardar los datos. Error: ${e.toString()}');
+      return false;
+    } finally {
       setBusy(false);
-      // Maneja cualquier error que ocurra
     }
   }
 
-  Future<List<Pallet>> generatePallets(int numberOfPallets, int lotId, Warehouse warehouse) async {
-    List<Pallet> pallets = [];
+  Future<Product> _findOrCreateProduct(String name) async {
+    if (name.trim().isEmpty) throw Exception("El nombre del producto no puede estar vacío.");
+    Product? existingProduct = await DatabaseHelper.instance.findProductByName(name);
+    if (existingProduct != null) return existingProduct;
+    int newProductId = await DatabaseHelper.instance.insertProduct(Product(name: name));
+    return Product(id: newProductId, name: name);
+  }
+
+  Future<Lot> _findOrCreateLot(String name, Product product) async {
+    if (name.trim().isEmpty) throw Exception("El nombre del lote no puede estar vacío.");
+    Lot? existingLot = await DatabaseHelper.instance.findLotByName(name);
+    if (existingLot != null) return existingLot;
+    int newLotId = await DatabaseHelper.instance.insertLot(Lot(name: name, product: product));
+    return Lot(id: newLotId, name: name, product: product);
+  }
+
+  Future<void> _generatePallets(int numberOfPallets, int lotId, Warehouse warehouse) async {
     Random random = Random();
-
     for (int i = 0; i < numberOfPallets; i++) {
-      String palletReference = 'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
-
+      String palletReference = 'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}';
       Pallet pallet = Pallet(name: palletReference, date: null, warehouse: warehouse);
-
       await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }
-
-    return pallets;
   }
 
   void navigateToHome() {
@@ -168,9 +153,9 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   @override
   void dispose() {
-    _dateController.dispose();
     _productController.dispose();
     _lotController.dispose();
+    _numPalletController.dispose();
     super.dispose();
   }
 }
