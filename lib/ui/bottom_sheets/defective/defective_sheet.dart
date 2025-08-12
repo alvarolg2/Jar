@@ -61,7 +61,7 @@ class DefectiveSheet extends StatelessWidget {
                 color: Colors.white,
                 shadows: [
                   Shadow(
-                    offset: const  Offset(1.0, 1.0),
+                    offset: const Offset(1.0, 1.0),
                     blurRadius: 3.0,
                     color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.5),
                   ),
@@ -107,12 +107,10 @@ class DefectiveSheet extends StatelessWidget {
             verticalSpaceMedium,
             ElevatedButton(
               onPressed: () {
-                int numPalletsAvailable = request.data[
-                    'num_pallets'];
+                int numPalletsAvailable = request.data['num_pallets'];
                 model.confirmPallets(numPalletsAvailable);
                 if (model.validationPassed) {
-                  completer?.call(SheetResponse(
-                      confirmed: true, data: {"count": model.currentCount}));
+                  completer?.call(SheetResponse(confirmed: true, data: {"count": model.currentCount}));
                 }
               },
               style: ElevatedButton.styleFrom(

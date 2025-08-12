@@ -10,16 +10,7 @@ class Pallet {
   final bool? isOut;
   final bool? defective;
 
-  Pallet({
-    this.id,
-    this.name,
-    this.warehouse,
-    this.createDate,
-    this.outDate,
-    this.date,
-    this.isOut,
-    this.defective
-  });
+  Pallet({this.id, this.name, this.warehouse, this.createDate, this.outDate, this.date, this.isOut, this.defective});
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -36,11 +27,8 @@ class Pallet {
         id: json['id'],
         name: json['name'], // Añadido lotId a partir del JSON
         warehouse: Warehouse(id: json['warehouse']),
-        createDate: json['create_date'] != null
-            ? DateTime.parse(json['create_date'])
-            : null,
-        outDate:
-            json['out_date'] != null ? DateTime.parse(json['out_date']) : null,
+        createDate: json['create_date'] != null ? DateTime.parse(json['create_date']) : null,
+        outDate: json['out_date'] != null ? DateTime.parse(json['out_date']) : null,
         date: json['date'] != null ? DateTime.parse(json['date']) : null,
         isOut: json['is_out'] == 1 ? true : false,
         defective: json['defective'] == 1 ? true : false,

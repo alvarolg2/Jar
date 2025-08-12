@@ -2,6 +2,7 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:jar/services/warehouse_data_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -15,6 +16,7 @@ void registerServices() {
   getAndRegisterNavigationService();
   getAndRegisterBottomSheetService();
   getAndRegisterDialogService();
+  getAndRegisterWarehouseDataServiceService();
 // @stacked-mock-register
 }
 
@@ -54,8 +56,7 @@ MockBottomSheetService getAndRegisterBottomSheetService<T>({
     customData: anyNamed('customData'),
     data: anyNamed('data'),
     description: anyNamed('description'),
-  )).thenAnswer((realInvocation) =>
-      Future.value(showCustomSheetResponse ?? SheetResponse<T>()));
+  )).thenAnswer((realInvocation) => Future.value(showCustomSheetResponse ?? SheetResponse<T>()));
 
   locator.registerSingleton<BottomSheetService>(service);
   return service;
@@ -65,6 +66,13 @@ MockDialogService getAndRegisterDialogService() {
   _removeRegistrationIfExists<DialogService>();
   final service = MockDialogService();
   locator.registerSingleton<DialogService>(service);
+  return service;
+}
+
+MockWarehouseDataService getAndRegisterWarehouseDataServiceService() {
+  _removeRegistrationIfExists<WarehouseDataService>();
+  final service = MockWarehouseDataService();
+  locator.registerSingleton<WarehouseDataService>(service);
   return service;
 }
 // @stacked-mock-create

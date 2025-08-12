@@ -107,12 +107,9 @@ class PalletsInSheet extends StatelessWidget {
             verticalSpace(20),
             ElevatedButton(
               onPressed: () async {
-                if (model.palletsController.text.isNotEmpty &&
-                    model.palletsController.text.runes.every((r) =>
-                        String.fromCharCode(r).contains(RegExp(r'[0-9]')))) {
+                if (model.palletsController.text.isNotEmpty && model.palletsController.text.runes.every((r) => String.fromCharCode(r).contains(RegExp(r'[0-9]')))) {
                   int numPallets = int.parse(model.palletsController.text);
-                  await model.generatePallets(numPallets, request.data['lotId'],
-                      request.data['warehouseId']);
+                  await model.generatePallets(numPallets, request.data['lotId'], request.data['warehouseId']);
                   completer?.call(SheetResponse(confirmed: true));
                 } else {
                   model.showInvalidInputError();

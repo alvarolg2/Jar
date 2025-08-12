@@ -15,7 +15,8 @@ Future<void> main() async {
   DatabaseHelper databaseHelper = DatabaseHelper.instance;
   await databaseHelper.database;
   WidgetsFlutterBinding.ensureInitialized(); // Asegura la inicialización de los widgets
-  SystemChrome.setPreferredOrientations([ // Establece las orientaciones permitidas
+  SystemChrome.setPreferredOrientations([
+    // Establece las orientaciones permitidas
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) {

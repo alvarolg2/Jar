@@ -76,4 +76,3 @@ class DateFormatter {
 
 const Duration durationSnackbar = Duration(seconds: 3);
 const Duration waitInitial = Duration(seconds: 3);
-

@@ -42,27 +42,21 @@ class PalletsInSheetModel extends BaseViewModel {
       _validationPassed = false;
       _snackbarService.showSnackbar(
         title: error,
-        message:
-            snackbarDefective,
+        message: snackbarDefective,
         duration: durationSnackbar,
       );
     }
     notifyListeners(); // Asegúrate de notificar a los listeners sobre el cambio de estado.
   }
 
-  Future<List<Pallet>> generatePallets(
-      int numberOfPallets, int lotId, int warehouseId) async {
+  Future<List<Pallet>> generatePallets(int numberOfPallets, int lotId, int warehouseId) async {
     List<Pallet> pallets = [];
     Random random = Random();
 
     for (int i = 0; i < numberOfPallets; i++) {
-      String palletReference =
-          'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
+      String palletReference = 'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
 
-      Pallet pallet = Pallet(
-          name: palletReference,
-          date: null,
-          warehouse: Warehouse(id: warehouseId));
+      Pallet pallet = Pallet(name: palletReference, date: null, warehouse: Warehouse(id: warehouseId));
 
       await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }

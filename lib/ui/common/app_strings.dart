@@ -2,16 +2,16 @@ const String appName = "HOZON - JAR";
 const String loading = "Cargando...";
 const String tooltipDefectiveButton = "Mostrar palés defectuosos";
 const String tooltipAddWarehouseButton = "Añadir almacén";
-const String dropdownProductText = "Selecciona un producto"; 
-const String pallets = "palés"; 
-const String withOutName = "Sin nombre"; 
-const String withOutProduct = "Sin producto"; 
+const String dropdownProductText = "Selecciona un producto";
+const String pallets = "palés";
+const String withOutName = "Sin nombre";
+const String withOutProduct = "Sin producto";
 
-const String addWarehouse = "Añadir almacén"; 
-const String editWarehouse = "Editar almacén"; 
-const String nameWarehouse = "Nombre almacén"; 
+const String addWarehouse = "Añadir almacén";
+const String editWarehouse = "Editar almacén";
+const String nameWarehouse = "Nombre almacén";
 
-const String cancel = "Cancelar"; 
+const String cancel = "Cancelar";
 const String delete = "Borrar";
 const String add = "Añadir";
 const String save = "Guardar";

@@ -107,12 +107,10 @@ class PalletsSheet extends StatelessWidget {
             verticalSpace(20),
             ElevatedButton(
               onPressed: () {
-                int numPalletsAvailable = request.data[
-                    'num_pallets'];
+                int numPalletsAvailable = request.data['num_pallets'];
                 model.confirmPallets(numPalletsAvailable);
                 if (model.validationPassed) {
-                  completer?.call(SheetResponse(
-                      confirmed: true, data: {"count": model.currentCount}));
+                  completer?.call(SheetResponse(confirmed: true, data: {"count": model.currentCount}));
                 }
               },
               style: ElevatedButton.styleFrom(

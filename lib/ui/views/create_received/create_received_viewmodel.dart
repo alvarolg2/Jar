@@ -2,7 +2,8 @@ import 'dart:math';
 import 'package:cunning_document_scanner/cunning_document_scanner.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
 import 'package:jar/ui/common/database_helper.dart';
@@ -38,19 +39,19 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   Future<void> scanDocument() async {
     try {
-        List<String> pictures;
-        // Configuración opcional para el escáner
-        // Iniciar el escáner de documentos con la configuración deseada
-        pictures = await CunningDocumentScanner.getPictures(crop: true) ?? [];
-        scannedDocumentPath = pictures[0];
-        notifyListeners();
+      List<String> pictures;
+      // Configuración opcional para el escáner
+      // Iniciar el escáner de documentos con la configuración deseada
+      pictures = await CunningDocumentScanner.getPictures() ?? [];
+      scannedDocumentPath = pictures[0];
+      notifyListeners();
     } catch (e) {
-        Exception("Error al escanear el documento: $e");
+      Exception("Error al escanear el documento: $e");
     }
   }
 
-    // Función adaptada para usar image_picker
-    Future<void> captureAndRecognizeText() async {
+  // Función adaptada para usar image_picker
+  Future<void> captureAndRecognizeText() async {
     try {
       // Abrir la cámara y capturar una foto
       await scanDocument();
@@ -62,9 +63,8 @@ class CreateReceivedViewModel extends BaseViewModel {
 
       // Reconocer texto en la foto capturada
       final inputImage = InputImage.fromFilePath(scannedDocumentPath!);
-      final textDetector = GoogleMlKit.vision.textRecognizer();
-      final RecognizedText recognizedText =
-          await textDetector.processImage(inputImage);
+      final textRecognizer = TextRecognizer();
+      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
 
       // Inicializar un String vacío para concatenar todo el texto
       String text = '';
@@ -76,18 +76,18 @@ class CreateReceivedViewModel extends BaseViewModel {
 
         // Intentar hacer coincidir el patrón con el texto del bloque
         final matches = patternCheck.allMatches(block.text);
-          for (final match in matches) {
-              String numero = match.group(1)!;
-                // Eliminar los espacios en blanco del número capturado
-                numero = numero.replaceAll(' ', '');
+        for (final match in matches) {
+          String numero = match.group(1)!;
+          // Eliminar los espacios en blanco del número capturado
+          numero = numero.replaceAll(' ', '');
 
-                // Decide a qué controlador asignar el valor basado en el contexto
-                if (block.text.contains('Batch')) {
-                    lotController.text = numero;
-                } else if (block.text.contains('Material Code')) {
-                    productController.text = numero;
-                }
-                      }
+          // Decide a qué controlador asignar el valor basado en el contexto
+          if (block.text.contains('Batch')) {
+            lotController.text = numero;
+          } else if (block.text.contains('Material Code')) {
+            productController.text = numero;
+          }
+        }
 
         if (block.text.contains('PAL')) {
           numPalletController.text = block.text.split('/')[0].trim();
@@ -101,7 +101,7 @@ class CreateReceivedViewModel extends BaseViewModel {
       } // Aquí puedes hacer algo con el texto completo
 
       // Cerrar el textDetector cuando termines
-      textDetector.close();
+      textRecognizer.close();
     } catch (e) {
       if (kDebugMode) {
         print(e.toString());
@@ -111,16 +111,15 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   Future<String> recognizeText(XFile imageFile) async {
     final inputImage = InputImage.fromFilePath(imageFile.path);
-    final textDetector = GoogleMlKit.vision.textRecognizer();
-    final RecognizedText recognizedText =
-        await textDetector.processImage(inputImage);
+    final textRecognizer = TextRecognizer();
+    final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
     String text = '';
     for (TextBlock block in recognizedText.blocks) {
       for (TextLine line in block.lines) {
         text += line.text + '\n';
       }
     }
-    textDetector.close();
+    textRecognizer.close();
     return text;
   }
 
@@ -128,26 +127,19 @@ class CreateReceivedViewModel extends BaseViewModel {
     setBusy(true);
     try {
       int currentProductID;
-      Product? currentProduct = await DatabaseHelper.instance
-          .findProductByName(productController.text);
+      Product? currentProduct = await DatabaseHelper.instance.findProductByName(productController.text);
       if (currentProduct == null) {
-        currentProductID = await DatabaseHelper.instance
-            .insertProduct(Product(name: productController.text));
+        currentProductID = await DatabaseHelper.instance.insertProduct(Product(name: productController.text));
       } else {
         currentProductID = currentProduct.id!;
       }
-      Lot? repeatLot =
-          await DatabaseHelper.instance.findLotByName(lotController.text);
+      Lot? repeatLot = await DatabaseHelper.instance.findLotByName(lotController.text);
       if (repeatLot == null) {
-        currentLot = await DatabaseHelper.instance.insertLot(Lot(
-            name: lotController.text,
-            product: currentProduct ?? Product(id: currentProductID)));
-        await generatePallets(
-            int.tryParse(_numPalletController.text)!, currentLot!, warehouse);
+        currentLot = await DatabaseHelper.instance.insertLot(Lot(name: lotController.text, product: currentProduct ?? Product(id: currentProductID)));
+        await generatePallets(int.tryParse(_numPalletController.text)!, currentLot!, warehouse);
         setBusy(false);
       } else {
-        await generatePallets(
-            int.tryParse(_numPalletController.text)!, repeatLot.id!, warehouse);
+        await generatePallets(int.tryParse(_numPalletController.text)!, repeatLot.id!, warehouse);
       }
     } catch (e) {
       setBusy(false);
@@ -155,17 +147,14 @@ class CreateReceivedViewModel extends BaseViewModel {
     }
   }
 
-  Future<List<Pallet>> generatePallets(
-      int numberOfPallets, int lotId, Warehouse warehouse) async {
+  Future<List<Pallet>> generatePallets(int numberOfPallets, int lotId, Warehouse warehouse) async {
     List<Pallet> pallets = [];
     Random random = Random();
 
     for (int i = 0; i < numberOfPallets; i++) {
-      String palletReference =
-          'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
+      String palletReference = 'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}-Date-${DateTime.now().toIso8601String()}';
 
-      Pallet pallet =
-          Pallet(name: palletReference, date: null, warehouse: warehouse);
+      Pallet pallet = Pallet(name: palletReference, date: null, warehouse: warehouse);
 
       await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }

@@ -10,8 +10,7 @@ import 'package:stacked/stacked.dart';
 class CreateReceivedView extends StatelessWidget {
   final Warehouse warehouse;
 
-  const CreateReceivedView({Key? key, required this.warehouse})
-      : super(key: key);
+  const CreateReceivedView({Key? key, required this.warehouse}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +19,7 @@ class CreateReceivedView extends StatelessWidget {
       onViewModelReady: (viewModel) => viewModel.init(warehouse),
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
-          title: const Text(
-            addReception,
-            style: TextStyle(color: kcTextColor)),
+          title: const Text(addReception, style: TextStyle(color: kcTextColor)),
           backgroundColor: kcPrimaryColor,
         ),
         backgroundColor: kcBackgroundColor,
@@ -73,9 +70,7 @@ class CreateReceivedView extends StatelessWidget {
               TextFormField(
                 controller: viewModel.numPalletController,
                 keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ],
+                inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
                   labelText: numberOfPallets,
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
@@ -103,8 +98,7 @@ class CreateReceivedView extends StatelessWidget {
                   ),
                   IconButton(
                     onPressed: viewModel.captureAndRecognizeText,
-                    icon:
-                        const Icon(Icons.camera_alt, color: kcPrimaryColorDark),
+                    icon: const Icon(Icons.camera_alt, color: kcPrimaryColorDark),
                   ),
                 ],
               ),
@@ -114,8 +108,7 @@ class CreateReceivedView extends StatelessWidget {
                   : ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
-                        backgroundColor:
-                            kcPrimaryColor, // foreground (text) color
+                        backgroundColor: kcPrimaryColor, // foreground (text) color
                       ),
                       onPressed: () async {
                         await viewModel.createLot(warehouse);
