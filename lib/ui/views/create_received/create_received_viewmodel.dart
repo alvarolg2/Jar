@@ -12,6 +12,8 @@ import 'package:jar/ui/common/database_helper.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+enum SearchDirection { after, before }
+
 class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
@@ -58,40 +60,34 @@ class CreateReceivedViewModel extends BaseViewModel {
   }
 
   void _parseRecognizedText(RecognizedText recognizedText) {
-    String? foundLot;
     String? foundProduct;
+    String? foundLot;
     String? foundPallets;
+
+    final productPattern = RegExp(r'Material Code:\s*([\w\d]+)', caseSensitive: false);
+    final lotPattern = RegExp(r'Batch:\s*(\d+)', caseSensitive: false);
+    final palletPattern = RegExp(r'(\d+)\s*\/?\s*pal', caseSensitive: false);
 
     for (TextBlock block in recognizedText.blocks) {
       for (TextLine line in block.lines) {
         final lineText = line.text;
-        final lowerCaseLineText = lineText.toLowerCase();
 
-        // --- Búsqueda del Producto (Prioridad: "Material Code") ---
-        if (foundProduct == null && lowerCaseLineText.contains('material code')) {
-          // Busca "Material Code:", luego captura el código que le sigue.
-          // El código puede contener letras y números.
-          final RegExp productPattern = RegExp(r'Material Code:\s*([\w\d]+)', caseSensitive: false);
+        if (foundProduct == null) {
           final match = productPattern.firstMatch(lineText);
           if (match != null && match.group(1) != null) {
             foundProduct = match.group(1)!.toUpperCase();
           }
         }
-
-        // --- Búsqueda del Lote (Prioridad: "Batch") ---
-        if (foundLot == null && lowerCaseLineText.contains('batch')) {
-          // Busca "Batch:", luego captura el código numérico.
-          final RegExp lotPattern = RegExp(r'Batch:\s*(\d+)', caseSensitive: false);
+        
+        if (foundLot == null) {
           final match = lotPattern.firstMatch(lineText);
           if (match != null && match.group(1) != null) {
             foundLot = match.group(1);
           }
         }
-        
-        if (foundPallets == null && lowerCaseLineText.contains('pal')) {
-          // Busca un número, una barra opcional y "PAL"
-          final RegExp palletPattern = RegExp(r'(\d+)\s*\/?\s*pal', caseSensitive: false);
-          final match = palletPattern.firstMatch(lowerCaseLineText);
+
+        if (foundPallets == null) {
+          final match = palletPattern.firstMatch(lineText.toLowerCase());
           if (match != null && match.group(1) != null) {
             foundPallets = match.group(1);
           }
