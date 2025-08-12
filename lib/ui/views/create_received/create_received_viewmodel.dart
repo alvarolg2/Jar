@@ -64,8 +64,10 @@ class CreateReceivedViewModel extends BaseViewModel {
     String? foundLot;
     String? foundPallets;
 
-    final productPattern = RegExp(r'Material Code:\s*([\w\d]+)', caseSensitive: false);
-    final lotPattern = RegExp(r'Batch:\s*(\d+)', caseSensitive: false);
+    final productPattern = RegExp(r'Materia[l]?\s*Code[:\s]*([\w\d]+)', caseSensitive: false);
+    
+    final lotPattern = RegExp(r'B?atch[:\s]*(\d+)', caseSensitive: false);
+    
     final palletPattern = RegExp(r'(\d+)\s*\/?\s*pal', caseSensitive: false);
 
     for (TextBlock block in recognizedText.blocks) {
