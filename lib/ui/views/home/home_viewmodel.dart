@@ -10,6 +10,7 @@ import 'package:jar/models/warehouse.dart';
 import 'package:jar/services/warehouse_data_service.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/ui/views/create_received/create_received_view.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:stacked/stacked.dart';
@@ -26,6 +27,9 @@ class HomeViewModel extends ReactiveViewModel {
   int currentIndex = 0;
   TabController? tabController;
 
+  String? _appVersion;
+  String? get appVersion => _appVersion;
+
   Map<int, int> get palletCounts => _warehouseDataService.palletCounts.value;
   List<Warehouse> get warehouses => _warehouseDataService.warehouses.value;
   int get warehouseCount => warehouses.length;
@@ -41,7 +45,19 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   Future<void> initialise() async {
+    await _getAppVersion();
     await runBusyFuture(_loadInitialData());
+  }
+
+  Future<void> _getAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      _appVersion = 'Versión ${packageInfo.version}';
+      notifyListeners();
+    } catch (e) {
+      _appVersion = 'Versión desconocida';
+      notifyListeners();
+    }
   }
 
   Future<void> _loadInitialData() async {

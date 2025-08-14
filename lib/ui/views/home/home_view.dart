@@ -65,6 +65,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           const PopupMenuItem(value: _MenuOptions.import, child: ListTile(leading: Icon(Icons.download_for_offline), title: Text('Importar BD'))),
                           const PopupMenuItem(value: _MenuOptions.export, child: ListTile(leading: Icon(Icons.upload_file), title: Text('Exportar BD'))),
                           const PopupMenuItem(value: _MenuOptions.generateReport, child: ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('Generar Informe PDF'))),
+                          const PopupMenuDivider(),
+                          if (model.appVersion != null)
+                            PopupMenuItem(
+                              enabled: false, 
+                              child: Center(
+                                child: Text(
+                                  model.appVersion!,
+                                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ],
