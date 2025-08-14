@@ -56,19 +56,14 @@ class DatabaseHelper {
     return join(dbPath.path, dbName);
   }
 
-  // ✅ MÉTODO CORREGIDO Y MÁS SEGURO
   Future<void> close() async {
-    // No usamos el getter 'database' aquí para evitar una posible recreación.
-    // Operamos directamente sobre la instancia estática.
     if (_database == null) {
-      return; // Ya está cerrada, no hacemos nada.
+      return;
     }
     await _database!.close();
     _database = null;
   }
   
-  // --- MÉTODOS REFACTORIZADOS Y CENTRALIZADOS ---
-
   Future<List<WarehouseReportItem>> getWarehouseReportItems({required bool isDefective}) async {
     final db = await database;
     
@@ -83,10 +78,10 @@ class DatabaseHelper {
       JOIN pallet_lot pl ON pal.id = pl.id_pallet
       JOIN lot l ON pl.id_lot = l.id
       JOIN product p ON l.product = p.id
-      WHERE pal.is_out = 0 AND pal.defective = ? -- <-- Cambio aquí
+      WHERE pal.is_out = 0 AND pal.defective = ?
       GROUP BY w.id, p.id, l.id
       ORDER BY w.name, p.name, l.name;
-    ''', [isDefective ? 1 : 0]); // <-- Y aquí
+    ''', [isDefective ? 1 : 0]);
 
     if (maps.isEmpty) {
       return [];
@@ -223,7 +218,7 @@ class DatabaseHelper {
       JOIN lot l ON p.id = l.product
       JOIN pallet_lot pl ON l.id = pl.id_lot
       JOIN pallet pal ON pl.id_pallet = pal.id
-      WHERE pal.is_out = 0 AND pal.warehouse = ?
+      WHERE pal.is_out = 0 AND pal.defective = 0 AND pal.warehouse = ? -- Añadido "pal.defective = 0"
       GROUP BY p.id
       ORDER BY p.name ASC
     ''', [warehouseId]);
