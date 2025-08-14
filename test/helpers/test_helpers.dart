@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:jar/services/warehouse_data_service.dart';
+import 'package:jar/services/update_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -17,6 +18,7 @@ void registerServices() {
   getAndRegisterBottomSheetService();
   getAndRegisterDialogService();
   getAndRegisterWarehouseDataServiceService();
+  getAndRegisterUpdateService();
 // @stacked-mock-register
 }
 
@@ -73,6 +75,13 @@ MockWarehouseDataService getAndRegisterWarehouseDataServiceService() {
   _removeRegistrationIfExists<WarehouseDataService>();
   final service = MockWarehouseDataService();
   locator.registerSingleton<WarehouseDataService>(service);
+  return service;
+}
+
+MockUpdateService getAndRegisterUpdateService() {
+  _removeRegistrationIfExists<UpdateService>();
+  final service = MockUpdateService();
+  locator.registerSingleton<UpdateService>(service);
   return service;
 }
 // @stacked-mock-create
