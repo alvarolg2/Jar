@@ -23,18 +23,27 @@ class DatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getApplicationDocumentsDirectory();
     final path = join(dbPath.path, filePath);
-    return await openDatabase(path, version: 2, onCreate: _createDB, onUpgrade: _upgradeDB);
+    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('ALTER TABLE pallet ADD COLUMN defective INTEGER DEFAULT 0');
     }
+    if (oldVersion < 3) {
+      await db.execute('ALTER TABLE product ADD COLUMN description TEXT');
+    }
   }
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE "product" ( "id" INTEGER NOT NULL UNIQUE, "name" TEXT, "create_date" DATETIME DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY("id" AUTOINCREMENT) );
+      CREATE TABLE "product" (
+        "id" INTEGER NOT NULL UNIQUE,
+        "name" TEXT,
+        "description" TEXT,
+        "create_date" DATETIME DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY("id" AUTOINCREMENT)
+      );
     ''');
     await db.execute('''
       CREATE TABLE "lot" ( "id" INTEGER NOT NULL UNIQUE, "name" TEXT, "create_date" DATETIME DEFAULT CURRENT_TIMESTAMP, "product" INTEGER, PRIMARY KEY("id" AUTOINCREMENT), FOREIGN KEY("product") REFERENCES "product"("id") );
