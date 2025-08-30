@@ -126,7 +126,7 @@ class DatabaseHelper {
     }
 
     String mainQuery = '''
-      SELECT l.*, p.*, p.id AS productId, p.name AS productName, p.create_date AS productCreateDate
+      SELECT l.*, p.id AS productId, p.name AS productName, p.create_date AS productCreateDate
       FROM lot l
       JOIN product p ON l.product = p.id
       WHERE l.id IN ($subQuery)
@@ -136,7 +136,11 @@ class DatabaseHelper {
 
     List<Lot> lots = [];
     for (var map in maps) {
-      final product = Product.fromJson(map);
+      final product = Product.fromJson({
+        'id': map['productId'],
+        'name': map['productName'],
+        'create_date': map['productCreateDate'],
+      });
       var lot = Lot(
         id: map['id'],
         name: map['name'],
@@ -223,7 +227,7 @@ class DatabaseHelper {
       JOIN lot l ON p.id = l.product
       JOIN pallet_lot pl ON l.id = pl.id_lot
       JOIN pallet pal ON pl.id_pallet = pal.id
-      WHERE pal.is_out = 0 AND pal.defective = 0 AND pal.warehouse = ?
+      WHERE pal.is_out = 0 AND pal.defective = 0 AND pal.warehouse = ? -- Añadido "pal.defective = 0"
       GROUP BY p.id
       ORDER BY p.name ASC
     ''', [warehouseId]);
