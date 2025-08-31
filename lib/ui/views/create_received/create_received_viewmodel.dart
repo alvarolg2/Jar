@@ -18,11 +18,13 @@ class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
 
-  final _productController = TextEditingController();
+  final _productNameController = TextEditingController();
+  final _productDescriptionController = TextEditingController();
   final _lotController = TextEditingController();
   final _numPalletController = TextEditingController();
 
-  TextEditingController get productController => _productController;
+  TextEditingController get productNameController => _productNameController;
+  TextEditingController get productDescriptionController => _productDescriptionController;
   TextEditingController get lotController => _lotController;
   TextEditingController get numPalletController => _numPalletController;
 
@@ -61,13 +63,14 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   void _parseRecognizedText(RecognizedText recognizedText) {
     String? foundProduct;
+    String? foundDescription;
     String? foundLot;
     String? foundPallets;
 
+    Rect? productLineRect;
+
     final productPattern = RegExp(r'Materia[l]?\s*Code[:\s]*([\w\d]+)', caseSensitive: false);
-    
     final lotPattern = RegExp(r'B?atch[:\s]*(\d+)', caseSensitive: false);
-    
     final palletPattern = RegExp(r'(\d+)\s*\/?\s*pal', caseSensitive: false);
 
     for (TextBlock block in recognizedText.blocks) {
@@ -78,6 +81,7 @@ class CreateReceivedViewModel extends BaseViewModel {
           final match = productPattern.firstMatch(lineText);
           if (match != null && match.group(1) != null) {
             foundProduct = match.group(1)!.toUpperCase();
+            productLineRect = line.boundingBox; // Guardamos su posición
           }
         }
         
@@ -97,7 +101,24 @@ class CreateReceivedViewModel extends BaseViewModel {
       }
     }
 
-    if (foundProduct != null) _productController.text = foundProduct;
+    if (productLineRect != null) {
+      for (TextBlock block in recognizedText.blocks) {
+        for (TextLine line in block.lines) {
+          bool isNotProductLine = !line.text.toLowerCase().contains('material');
+          
+          bool isVerticallyAligned = (line.boundingBox.center.dy - productLineRect!.center.dy).abs() < (productLineRect!.height / 2);
+
+          if (isNotProductLine && isVerticallyAligned) {
+            foundDescription = line.text.trim();
+            break; 
+          }
+        }
+        if (foundDescription != null) break;
+      }
+    }
+
+    if (foundProduct != null) _productNameController.text = foundProduct;
+    if (foundDescription != null) _productDescriptionController.text = foundDescription;
     if (foundLot != null) _lotController.text = foundLot;
     if (foundPallets != null) _numPalletController.text = foundPallets;
   }
@@ -106,7 +127,8 @@ class CreateReceivedViewModel extends BaseViewModel {
   Future<bool> createLot() async {
     setBusy(true);
     try {
-      Product product = await _findOrCreateProduct(productController.text);
+      Product product = await _findOrCreateProduct(
+          productNameController.text, productDescriptionController.text);
       Lot lot = await _findOrCreateLot(lotController.text, product);
       int numPallets = int.tryParse(numPalletController.text) ?? 0;
       if (numPallets <= 0) throw Exception("El número de palets debe ser mayor que cero.");
@@ -120,12 +142,30 @@ class CreateReceivedViewModel extends BaseViewModel {
     }
   }
 
-  Future<Product> _findOrCreateProduct(String name) async {
+  Future<Product> _findOrCreateProduct(String name, String description) async {
     if (name.trim().isEmpty) throw Exception("El nombre del producto no puede estar vacío.");
+
     Product? existingProduct = await DatabaseHelper.instance.findProductByName(name);
-    if (existingProduct != null) return existingProduct;
-    int newProductId = await DatabaseHelper.instance.insertProduct(Product(name: name));
-    return Product(id: newProductId, name: name);
+
+    if (existingProduct != null) {
+      final bool needsUpdate = description.trim().isNotEmpty && existingProduct.description != description;
+
+      if (needsUpdate) {
+        final productToUpdate = Product(
+          id: existingProduct.id!,
+          name: existingProduct.name,
+          description: description,
+        );
+        await DatabaseHelper.instance.updateProduct(productToUpdate);
+        return productToUpdate; 
+      } else {
+        return existingProduct;
+      }
+    } else {
+      final newProduct = Product(name: name, description: description);
+      int newProductId = await DatabaseHelper.instance.insertProduct(newProduct);
+      return Product(id: newProductId, name: name, description: description);
+    }
   }
 
   Future<Lot> _findOrCreateLot(String name, Product product) async {
@@ -151,7 +191,8 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   @override
   void dispose() {
-    _productController.dispose();
+    _productNameController.dispose();
+    _productDescriptionController.dispose();
     _lotController.dispose();
     _numPalletController.dispose();
     super.dispose();

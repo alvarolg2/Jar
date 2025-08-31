@@ -7,7 +7,6 @@ import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/create_received/create_received_viewmodel.dart';
 import 'package:stacked/stacked.dart';
 
-// Se convierte a StatefulWidget para poder manejar la FormKey.
 class CreateReceivedView extends StatefulWidget {
   final Warehouse warehouse;
 
@@ -37,9 +36,11 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
             padding: const EdgeInsets.all(16.0),
             children: <Widget>[
               TextFormField(
-                controller: viewModel.productController,
+                controller: viewModel.productNameController,
                 decoration: const InputDecoration(
-                  labelText: product,
+                  labelText: "Nombre del producto",
+                  helperText: '* Requerido', 
+                  helperStyle: TextStyle(color: kcPrimaryColorDark, fontStyle: FontStyle.italic),
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColor)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColorDark)),
@@ -53,9 +54,21 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
               ),
               verticalSpaceMedium,
               TextFormField(
+                controller: viewModel.productDescriptionController,
+                decoration: const InputDecoration(
+                  labelText: "Descripción del producto",
+                  labelStyle: TextStyle(color: kcPrimaryColorDark),
+                  enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColor)),
+                  focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColorDark)),
+                ),
+              ),
+              verticalSpaceMedium,
+              TextFormField(
                 controller: viewModel.lotController,
                 decoration: const InputDecoration(
-                  labelText: batch,
+                  labelText: "Lote",
+                  helperText: '* Requerido',
+                  helperStyle: TextStyle(color: kcPrimaryColorDark, fontStyle: FontStyle.italic),
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColor)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColorDark)),
@@ -73,7 +86,9 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
                 keyboardType: TextInputType.number,
                 inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
-                  labelText: numberOfPallets,
+                  labelText: "Número de palets",
+                  helperText: '* Requerido',
+                  helperStyle: TextStyle(color: kcPrimaryColorDark, fontStyle: FontStyle.italic),
                   labelStyle: TextStyle(color: kcPrimaryColorDark),
                   enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColor)),
                   focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: kcPrimaryColorDark)),
