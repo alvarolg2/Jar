@@ -18,11 +18,13 @@ class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
 
-  final _productController = TextEditingController();
+  final _productNameController = TextEditingController();
+  final _productDescriptionController = TextEditingController();
   final _lotController = TextEditingController();
   final _numPalletController = TextEditingController();
 
-  TextEditingController get productController => _productController;
+  TextEditingController get productNameController => _productNameController;
+  TextEditingController get productDescriptionController => _productDescriptionController;
   TextEditingController get lotController => _lotController;
   TextEditingController get numPalletController => _numPalletController;
 
@@ -97,7 +99,7 @@ class CreateReceivedViewModel extends BaseViewModel {
       }
     }
 
-    if (foundProduct != null) _productController.text = foundProduct;
+    if (foundProduct != null) _productNameController.text = foundProduct;
     if (foundLot != null) _lotController.text = foundLot;
     if (foundPallets != null) _numPalletController.text = foundPallets;
   }
@@ -106,7 +108,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   Future<bool> createLot() async {
     setBusy(true);
     try {
-      Product product = await _findOrCreateProduct(productController.text);
+      Product product = await _findOrCreateProduct(productNameController.text);
       Lot lot = await _findOrCreateLot(lotController.text, product);
       int numPallets = int.tryParse(numPalletController.text) ?? 0;
       if (numPallets <= 0) throw Exception("El número de palets debe ser mayor que cero.");
@@ -151,7 +153,8 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   @override
   void dispose() {
-    _productController.dispose();
+    _productNameController.dispose();
+    _productDescriptionController.dispose();
     _lotController.dispose();
     _numPalletController.dispose();
     super.dispose();
