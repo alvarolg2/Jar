@@ -144,11 +144,28 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   Future<Product> _findOrCreateProduct(String name, String description) async {
     if (name.trim().isEmpty) throw Exception("El nombre del producto no puede estar vacío.");
+
     Product? existingProduct = await DatabaseHelper.instance.findProductByName(name);
-    if (existingProduct != null) return existingProduct;
-    final newProduct = Product(name: name, description: description);
-    int newProductId = await DatabaseHelper.instance.insertProduct(newProduct);
-    return Product(id: newProductId, name: name, description: description);
+
+    if (existingProduct != null) {
+      final bool needsUpdate = description.trim().isNotEmpty && existingProduct.description != description;
+
+      if (needsUpdate) {
+        final productToUpdate = Product(
+          id: existingProduct.id!,
+          name: existingProduct.name,
+          description: description,
+        );
+        await DatabaseHelper.instance.updateProduct(productToUpdate);
+        return productToUpdate; 
+      } else {
+        return existingProduct;
+      }
+    } else {
+      final newProduct = Product(name: name, description: description);
+      int newProductId = await DatabaseHelper.instance.insertProduct(newProduct);
+      return Product(id: newProductId, name: name, description: description);
+    }
   }
 
   Future<Lot> _findOrCreateLot(String name, Product product) async {

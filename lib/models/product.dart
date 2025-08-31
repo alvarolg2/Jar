@@ -12,6 +12,14 @@ class Product {
         'description': description,
       };
 
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+    };
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) => Product(
         id: json['id'],
         name: json['name'],
