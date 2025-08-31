@@ -5,6 +5,7 @@ import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_viewmodel.dart';
+import 'package:jar/ui/views/warehouse_detailed/widgets/lot_card.dart';
 import 'package:stacked/stacked.dart';
 
 class WarehouseDetailsView extends StatelessWidget {
@@ -43,85 +44,15 @@ class WarehouseDetailsView extends StatelessWidget {
                             itemBuilder: (context, index) {
                               final lot = model.lots[index];
                               final palletsCount = model.isDefective ? model.getPalletsNotOutDefective(index) : model.getPalletsNotOut(index);
-                              
-                              return Card(
-                                color: kcMediumGrey,
-                                elevation: 2.0,
-                                shadowColor: Colors.black.withOpacity(0.2),
-                                margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                child: Padding(
-                                  // ✅ PADDING REDUCIDO
-                                  padding: const EdgeInsets.all(16),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            if (model.selectedProduct == null) ...[
-                                              _buildInfoRow(
-                                                icon: Icons.inventory_2_outlined,
-                                                text: lot.product?.name ?? withOutName,
-                                              ),
-                                              verticalSpaceSmall,
-                                            ],
-                                            _buildInfoRow(
-                                              icon: Icons.ballot_outlined,
-                                              text: lot.name ?? withOutProduct,
-                                              isHeader: true,
-                                            ),
-                                            verticalSpaceSmall,
-                                            _buildInfoRow(
-                                              icon: Icons.pallet,
-                                              text: "$palletsCount $pallets",
-                                            ),
-                                            if (!model.isDefective) ...[
-                                              verticalSpaceSmall,
-                                              _buildInfoRow(
-                                                icon: Icons.local_shipping,
-                                                text: "Cargas: ${model.getTruckLoads(index)}",
-                                              ),
-                                              verticalSpaceSmall,
-                                              _buildInfoRow(
-                                                icon: Icons.date_range_outlined,
-                                                text: DateFormatter.format(lot.createDate!),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                      horizontalSpaceSmall,
-                                      Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          if (!model.isDefective)
-                                            IconButton(
-                                              icon: Icon(Icons.add_circle_outline, color: Colors.green.shade600),
-                                              iconSize: 28,
-                                              tooltip: tooltipAddPallets,
-                                              onPressed: () => model.showPalletInSheet(lot),
-                                            ),
-                                          IconButton(
-                                            icon: Icon(Icons.arrow_circle_right_outlined, color: defective ? kcDefectiveColor : kcPrimaryColorDark),
-                                            iconSize: 28,
-                                            tooltip: tooltipSubstractPallets,
-                                            onPressed: () => model.showPalletSheet(lot, palletsCount),
-                                          ),
-                                          if (!model.isDefective)
-                                            IconButton(
-                                              icon: Icon(Icons.warning_amber_rounded, color: Colors.orange.shade800),
-                                              iconSize: 28,
-                                              tooltip: tooltipDefectivePallets,
-                                              onPressed: () => model.showPalletDefectiveSheet(lot, palletsCount),
-                                            ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              final truckLoads = model.isDefective ? 0 : model.getTruckLoads(index);
+                              return LotCard(
+                                lot: lot,
+                                palletsCount: palletsCount,
+                                truckLoads: truckLoads.toString(),
+                                isDefective: model.isDefective,
+                                onAddPallets: () => model.showPalletInSheet(lot),
+                                onSubtractPallets: () => model.showPalletSheet(lot, palletsCount),
+                                onMarkDefective: () => model.showPalletDefectiveSheet(lot, palletsCount),
                               );
                             },
                           ),

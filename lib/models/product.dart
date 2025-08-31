@@ -9,7 +9,7 @@ class Product {
 
   Map<String, dynamic> toJson() => {
         'name': name,
-        /*  'create_date' : createDate */
+        'description': description,
       };
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
