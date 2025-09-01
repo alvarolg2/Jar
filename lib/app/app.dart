@@ -6,6 +6,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:jar/services/warehouse_data_service.dart';
 import 'package:jar/services/update_service.dart';
+import 'package:jar/services/filter_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -20,6 +21,7 @@ import 'package:jar/services/update_service.dart';
     LazySingleton(classType: NavigationService),
     LazySingleton(classType: WarehouseDataService),
     LazySingleton(classType: UpdateService),
+    LazySingleton(classType: FilterService),
 // @stacked-service
   ],
   bottomsheets: [
