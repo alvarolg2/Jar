@@ -3,6 +3,7 @@ import 'package:jar/app/app.locator.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/services/filter_service.dart';
 import 'package:jar/services/warehouse_data_service.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:stacked/stacked.dart';
@@ -11,6 +12,7 @@ import 'package:stacked_services/stacked_services.dart';
 class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
   final _sheetService = locator<BottomSheetService>();
   final _warehouseDataService = locator<WarehouseDataService>();
+  final _filterService = locator<FilterService>();
 
   final Warehouse warehouse;
   final bool isDefective;
@@ -21,8 +23,14 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
   });
 
   List<Product> allProducts = [];
-  Product? selectedProduct;
   List<Lot> lots = [];
+
+  bool get showDropdown => _filterService.showDropdown.value;
+  bool get filtersApply => _filterService.filtersApply.value;
+  Product? get selectedProduct => _filterService.selectedProduct.value;
+
+  @override
+  List<ListenableServiceMixin> get listenableServices => [_filterService];
 
   @override
   Future<List<Lot>> futureToRun() => _fetchData();
@@ -55,7 +63,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
 
 
   Future<void> selectProduct(Product? product) async {
-    selectedProduct = product;
+    _filterService.setSelectedProduct(product);
     await initialise();
   }
 

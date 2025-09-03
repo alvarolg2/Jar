@@ -31,7 +31,7 @@ class WarehouseDetailsView extends StatelessWidget {
           backgroundColor: kcBackgroundColor,
           body: Column(
             children: [
-              if (!model.isDefective)
+              if (!model.isDefective && model.showDropdown)
                 _buildStyledDropdown(context, model),
               Expanded(
                 child: model.isBusy

@@ -116,6 +116,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           )
                         : const SizedBox.shrink(),
                   ),
+                  model.isActivated ? const SizedBox.shrink() :
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Container(
@@ -127,6 +128,21 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         icon: const Icon(Icons.add, color: Colors.white),
                         onPressed: () => _showWarehouseOptions(context, model),
                         tooltip: "Añadir almacén",
+                      ),
+                    ),
+                  ),
+                  model.isActivated ? const SizedBox.shrink() :
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Container(
+                       decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                      child: IconButton(
+                        icon: Icon(Icons.tune_outlined, color: model.filterActive()),
+                        onPressed: () => model.setShowDropdown(!model.showDropdown),
+                        tooltip: "Filtrar por producto",
                       ),
                     ),
                   ),
