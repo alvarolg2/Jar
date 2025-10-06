@@ -126,8 +126,7 @@ class DatabaseHelper {
     }
 
     String mainQuery = '''
-      SELECT l.*, p.id AS productId, p.name AS productName, p.create_date AS productCreateDate
-      FROM lot l
+      SELECT l.*, p.id AS productId, p.name AS productName, p.description AS productDescription, p.create_date AS productCreateDate      FROM lot l
       JOIN product p ON l.product = p.id
       WHERE l.id IN ($subQuery)
       ORDER BY l.create_date DESC
@@ -139,6 +138,7 @@ class DatabaseHelper {
       final product = Product.fromJson({
         'id': map['productId'],
         'name': map['productName'],
+        'description': map['productDescription'],
         'create_date': map['productCreateDate'],
       });
       var lot = Lot(
@@ -210,6 +210,16 @@ class DatabaseHelper {
   Future<int> insertProduct(Product product) async {
     final db = await database;
     return await db.insert('product', product.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<int> updateProduct(Product product) async {
+    final db = await instance.database;
+    return await db.update(
+      'product',
+      product.toMap(),
+      where: 'id = ?',
+      whereArgs: [product.id],
+    );
   }
 
   Future<Product?> findProductByName(String productName) async {

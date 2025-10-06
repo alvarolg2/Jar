@@ -5,9 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
+import 'package:jar/models/product.dart';
 import 'package:jar/models/report_item.dart';
 import 'package:jar/models/warehouse.dart';
+import 'package:jar/services/filter_service.dart';
 import 'package:jar/services/warehouse_data_service.dart';
+import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/ui/views/create_received/create_received_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -20,6 +23,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 class HomeViewModel extends ReactiveViewModel {
   final _warehouseDataService = locator<WarehouseDataService>();
+  final _filterService = locator<FilterService>();
   final _dialogService = locator<DialogService>();
   final _navigationService = locator<NavigationService>();
 
@@ -33,9 +37,17 @@ class HomeViewModel extends ReactiveViewModel {
   Map<int, int> get palletCounts => _warehouseDataService.palletCounts.value;
   List<Warehouse> get warehouses => _warehouseDataService.warehouses.value;
   int get warehouseCount => warehouses.length;
+  Product? get selectedProduct => _filterService.selectedProduct.value;
+  late bool isFilterActive;
+
+  void setShowDropdown(bool value) {
+    _filterService.setShowDropdown(value);
+  }
 
   @override
-  List<ListenableServiceMixin> get listenableServices => [_warehouseDataService];
+  List<ListenableServiceMixin> get listenableServices => [_warehouseDataService, _filterService];
+
+  bool get showDropdown => _filterService.showDropdown.value;
 
   @override
   void dispose() {
@@ -47,6 +59,7 @@ class HomeViewModel extends ReactiveViewModel {
   Future<void> initialise() async {
     await _getAppVersion();
     await runBusyFuture(_loadInitialData());
+    isFilterActive = _filterService.selectedProduct.value != null;
   }
 
   Future<void> _getAppVersion() async {
@@ -118,7 +131,9 @@ class HomeViewModel extends ReactiveViewModel {
 
   void toggleActivation() {
     isActivated = !isActivated;
+    _filterService.setSelectedProduct(null);
     fetchPalletCounts();
+    notifyListeners();  
   }
 
   void navigateToCreateReceived(BuildContext context) {
@@ -298,5 +313,9 @@ Future<void> generateAndShareWarehouseReport() async {
       cellAlignments: {0: pw.Alignment.centerLeft, 1: pw.Alignment.centerLeft, 2: pw.Alignment.centerRight},
       cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     );
+  }
+
+  Color filterActive () {
+    return selectedProduct == null ? Colors.white : kcDefectiveColor;
   }
 }
