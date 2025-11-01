@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
@@ -20,6 +21,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return ViewModelBuilder<HomeViewModel>.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -40,7 +42,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              "Mis Almacenes",
+              l10n.myWarehouses,
               style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
             ),
             actions: [
@@ -60,8 +62,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           color: model.isActivated ? kcDefectiveColor : Colors.white,
                         ),
                         onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
-                        tooltip: "Ver palets defectuosos",
+                        tooltip: l10n.tooltipDefectiveButton,
                       ),
+                      _buildLanguageSelector(context, model, l10n),
                       PopupMenuButton<_MenuOptions>(
                         icon: const Icon(Icons.more_vert, color: Colors.white),
                         tooltip: "Más opciones",
@@ -328,3 +331,50 @@ void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse
     },
   );
 }
+
+Widget _buildLanguageSelector(BuildContext context, HomeViewModel model, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    
+    final localeNames = {
+      'es': 'Español',
+      'en': 'English',
+    };
+
+    return PopupMenuButton<Locale>(
+      onSelected: (locale) {
+        model.setLocale(locale);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.language, color: Colors.white, size: 20),
+            horizontalSpaceTiny,
+            Text(
+              model.currentLocale.languageCode.toUpperCase(),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.white70, size: 20),
+          ],
+        ),
+      ),
+      itemBuilder: (context) {
+        return AppLocalizations.supportedLocales.map((locale) {
+          final isSelected = locale.languageCode == model.currentLocale.languageCode;
+          return PopupMenuItem<Locale>(
+            value: locale,
+            child: ListTile(
+              title: Text(localeNames[locale.languageCode] ?? locale.languageCode),
+              trailing: isSelected
+                  ? Icon(Icons.check, color: theme.colorScheme.secondary) 
+                  : null,
+            ),
+          );
+        }).toList();
+      },
+    );
+  }

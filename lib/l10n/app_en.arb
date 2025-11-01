@@ -1,0 +1,169 @@
+{
+    "@@locale": "en",
+    "appName": "HOZON - JAR",
+    "loading": "Loading...",
+    "pallets": "pallets",
+    "withOutName": "No Name",
+    "withOutProduct": "No Product",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "add": "Add",
+    "save": "Save",
+    "saving": "Saving...",
+    "error": "Error",
+    "gotIt": "Got it",
+    "all": "All",
+    "product": "Product",
+    "batch": "Batch",
+    "requiredField": "* Required",
+
+    "tooltipDefectiveButton": "Show defective pallets",
+    "tooltipAddWarehouseButton": "Add warehouse",
+    "tooltipAddPallets": "Add pallets",
+    "tooltipSubstractPallets": "Remove pallets",
+    "tooltipDefectivePallets": "Mark pallets as defective",
+    "tooltipDateCreationBatch": "Lot creation date",
+    "tooltipTruckLoads": "(Number of full trucks, loose pallets)",
+    "moreOptions": "More options",
+    "filterByProduct": "Filter by product",
+
+    "addWarehouse": "Add Warehouse",
+    "editWarehouse": "Edit Warehouse",
+    "nameWarehouse": "Warehouse Name",
+    "myWarehouses": "My Warehouses",
+    "noWarehouses": "No warehouses",
+    "noWarehousesMessage": "Add your first warehouse using the '+' button above.",
+
+    "addReception": "Add Reception",
+    "productName": "Product Name",
+    "productDescription": "Product Description",
+    "scanDocument": "Scan Document",
+    "resetFilters": "Reset filters",
+    "defaultNumberPallets": "26",
+    
+    "palletsTitle": "PALLETS",
+    "palletsDefective": "Defective Pallets",
+    "defectiveLot": "DEFECTIVE LOT",
+    "numberOfPallets": "Number of pallets",
+    "confirmPallets": "Confirm Pallets",
+    "inPallets": "Pallet Entry",
+    "palletExit": "Pallet Exit",
+    "discountPallets": "Discount pallets",
+    "lotLabel": "Batch: {lotName}",
+    "@lotLabel": {
+        "description": "Label to display the name of a lot/batch",
+        "placeholders": {
+            "lotName": {
+                "type": "String",
+                "example": "LOT-123"
+            }
+        }
+    },
+
+    "noPalletsForProduct": "No pallets found for product \"{productName}\"",
+    "@noPalletsForProduct": {
+        "description": "Message when no pallets are found for a filtered product",
+        "placeholders": {
+            "productName": {
+                "type": "String",
+                "example": "Product A"
+            }
+        }
+    },
+    "noPalletsToShow": "No pallets to show.",
+
+    "validateProduct": "Please enter a product",
+    "validateBatch": "Please enter a batch",
+    "validatePallets": "Please enter a number of pallets",
+    "validatePalletsNumber": "The number must be greater than zero",
+    "palletsGreaterThanZero": "The number of pallets must be greater than zero.",
+    "productNameRequired": "Product name cannot be empty.",
+    "lotNameRequired": "Batch name cannot be empty.",
+    "snackbarDefective": "The entered number is greater than the number of available pallets.",
+
+    "scanError": "Scan Error",
+    "scanErrorDescription": "Could not process the document. Error: {error}",
+    "@scanErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "saveError": "Save Error",
+    "saveErrorDescription": "An error occurred while saving the data. Error: {error}",
+    "@saveErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+
+    "importDB": "Import DB",
+    "exportDB": "Export DB",
+    "generatePDFReport": "Generate PDF Report",
+    "version": "Version",
+    "versionUnknown": "Unknown version",
+
+    "dbBackupSubject": "Database Backup - JAR App - {date}",
+    "@dbBackupSubject": {
+        "placeholders": { "date": { "type": "String" } }
+    },
+    "dbBackupBody": "Attached is the \"warehouse_transport.db\" database.",
+    "exportError": "Export Error",
+    "exportErrorDescription": "Could not export the database. Detail: {error}",
+    "@exportErrorDescription": {
+        "placeholders": { "error": { "type": "String" } }
+    },
+
+    "importConfirm": "Confirm Import",
+    "importConfirmMessage": "Are you sure you want to import this file? All current data will be erased and replaced by the data in the selected file. This action cannot be undone.",
+    "importConfirmYes": "Yes, Import",
+    "importComplete": "Import Complete",
+    "importCompleteMessage": "The database has been imported successfully. The application will restart to load the new data.",
+    "importError": "Import Error",
+    "importErrorDescription": "Could not import the database. Make sure it is a valid file. Detail: {error}",
+    "@importErrorDescription": {
+        "placeholders": { "error": { "type": "String" } }
+    },
+
+    "reportSubject": "Warehouse Report - {date}",
+    "@reportSubject": {
+        "placeholders": { "date": { "type": "String" } }
+    },
+    "reportBody": "Attached is the report of the current status of the warehouses.",
+    "reportEmptyTitle": "Empty Report",
+    "reportEmptyMessage": "There are no pallets in the warehouses to generate a report.",
+    "pdfError": "PDF Generation Error",
+    "pdfErrorDescription": "An error occurred while creating the report. Detail: {error}",
+    "@pdfErrorDescription": {
+        "placeholders": { "error": { "type": "String" } }
+    },
+    "reportStandardInventory": "Standard Inventory",
+    "reportTotalStandard": "Total Standard Pallets: {count}",
+    "@reportTotalStandard": {
+        "placeholders": { "count": { "type": "int" } }
+    },
+    "reportNoStandardPallets": "No standard pallets in this warehouse.",
+    "reportDefectiveInventory": "Defective Inventory",
+    "reportTotalDefective": "Total Defective Pallets: {count}",
+    "@reportTotalDefective": {
+        "placeholders": { "count": { "type": "int" } }
+    },
+    "reportNoDefectivePallets": "No defective pallets in this warehouse.",
+    "reportTitle": "Inventory Report",
+    "reportGenerated": "Generated: {date}",
+    "@reportGenerated": {
+        "placeholders": { "date": { "type": "String" } }
+    },
+    "reportPage": "Page {pageNumber} of {totalPages}",
+    "@reportPage": {
+        "placeholders": {
+            "pageNumber": { "type": "int" },
+            "totalPages": { "type": "int" }
+        }
+    },
+    "reportPalletCount": "Pallet Count",
+    "dropdownProductText": "Select a product"
+}

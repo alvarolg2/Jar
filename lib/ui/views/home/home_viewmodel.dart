@@ -10,6 +10,7 @@ import 'package:jar/models/product.dart';
 import 'package:jar/models/report_item.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/services/filter_service.dart';
+import 'package:jar/services/locale_service.dart';
 import 'package:jar/services/warehouse_data_service.dart';
 import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/database_helper.dart';
@@ -27,6 +28,7 @@ class HomeViewModel extends ReactiveViewModel {
   final _filterService = locator<FilterService>();
   final _dialogService = locator<DialogService>();
   final _navigationService = locator<NavigationService>();
+  final _localeService = locator<LocaleService>();
 
   bool isActivated = false;
   int currentIndex = 0;
@@ -46,9 +48,15 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   @override
-  List<ListenableServiceMixin> get listenableServices => [_warehouseDataService, _filterService];
+  List<ListenableServiceMixin> get listenableServices => [_warehouseDataService, _filterService,];
 
   bool get showDropdown => _filterService.showDropdown.value;
+
+  Locale get currentLocale => _localeService.currentLocale;
+
+  void setLocale(Locale locale) {
+    _localeService.setLocale(locale);
+  }
 
   @override
   void dispose() {
