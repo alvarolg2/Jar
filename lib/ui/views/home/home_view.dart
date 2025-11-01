@@ -1,4 +1,4 @@
-import 'package:flag/flag_widget.dart';
+import 'package:flag/flag.dart'; // <-- 1. CORRECCIÓN DE IMPORTACIÓN
 import 'package:flutter/material.dart';
 import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/warehouse.dart';
@@ -7,9 +7,12 @@ import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_view.dart';
 import 'package:stacked/stacked.dart';
 
+// 2. IMPORTA TU NUEVO ARCHIVO DE CONSTANTES
+import 'package:jar/ui/common/app_locales.dart'; 
+
 import 'home_viewmodel.dart';
 
-enum _MenuOptions { import, export, generateReport }
+enum _MenuOptions { import, export, generateReport, langEs, langEn, langFr }
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -65,7 +68,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
                         tooltip: l10n.tooltipDefectiveButton,
                       ),
-                      _buildLanguageSelector(context, model, l10n),
                       PopupMenuButton<_MenuOptions>(
                         icon: const Icon(Icons.more_vert, color: Colors.white),
                         tooltip: l10n.moreOptions,
@@ -73,18 +75,44 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           if (value == _MenuOptions.import) model.importDatabase();
                           else if (value == _MenuOptions.export) model.exportDatabase();
                           else if (value == _MenuOptions.generateReport) model.generateAndShareWarehouseReport();
+                          else if (value == _MenuOptions.langEs) model.setLocale(const Locale('es'));
+                          else if (value == _MenuOptions.langEn) model.setLocale(const Locale('en'));
+                          else if (value == _MenuOptions.langFr) model.setLocale(const Locale('fr'));
                         },
+                        // 3. TU ITEMBUILDER CORREGIDO
                         itemBuilder: (BuildContext context) => <PopupMenuEntry<_MenuOptions>>[
                           PopupMenuItem(value: _MenuOptions.import, child: ListTile(leading: const Icon(Icons.download_for_offline), title: Text(l10n.importDB))),
                           PopupMenuItem(value: _MenuOptions.export, child: ListTile(leading: const Icon(Icons.upload_file), title: Text(l10n.exportDB))),
                           PopupMenuItem(value: _MenuOptions.generateReport, child: ListTile(leading: const Icon(Icons.picture_as_pdf), title: Text(l10n.generatePDFReport))),
+                          const PopupMenuDivider(),
+                          PopupMenuItem(
+                              enabled: false,
+                              child: ListTile(
+                                leading: Icon(Icons.language, color: theme.colorScheme.secondary),
+                                title: const Text("Idioma / Language"),
+                              ),
+                            ),
+                          // Usamos los enums y el helper
+                          PopupMenuItem(
+                            value: _MenuOptions.langEs,
+                            child: _buildLanguageMenuItem(context, model, 'es'),
+                          ),
+                          PopupMenuItem(
+                            value: _MenuOptions.langEn,
+                            child: _buildLanguageMenuItem(context, model, 'en'),
+                          ),
+                          PopupMenuItem(
+                            value: _MenuOptions.langFr,
+                            child: _buildLanguageMenuItem(context, model, 'fr'),
+                          ),
                           const PopupMenuDivider(),
                           if (model.appVersion != null)
                             PopupMenuItem(
                               enabled: false,
                               child: Center(
                                 child: Text(
-                                  model.appVersion!,
+                                  // Modificado para usar l10n.version
+                                  "${l10n.version} ${model.appVersion!.split(' ').last}",
                                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                                 ),
                               ),
@@ -115,6 +143,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 warehouse: warehouse,
                                 model: model,
                                 onTap: () => model.setCurrentIndex(index),
+                                // 4. CORRECCIÓN DE LA LLAMADA
                                 onLongPress: () => _showWarehouseOptions(context, model, warehouse: warehouse),
                               );
                             }).toList(),
@@ -126,6 +155,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: IconButton(
                         icon: const Icon(Icons.add_box_outlined, color: Colors.white),
+                        // 4. CORRECCIÓN DE LA LLAMADA
                         onPressed: () => _showWarehouseOptions(context, model),
                         tooltip: l10n.tooltipAddWarehouseButton,
                       ),
@@ -210,9 +240,33 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       },
     );
   }
+
+  // 5. WIDGET HELPER PARA CONSTRUIR LOS ITEMS DEL MENÚ
+  Widget _buildLanguageMenuItem(BuildContext context, HomeViewModel model, String langCode) {
+    final theme = Theme.of(context);
+    final isSelected = langCode == model.currentLocale.languageCode;
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero, // Ajusta el padding si es necesario
+      leading: ClipRRect(
+        borderRadius: BorderRadius.circular(3.0),
+        child: Flag.fromString(
+          kCountryCodes[langCode]!, // Usa el mapa global
+          height: 20,
+          width: 28,
+          fit: BoxFit.cover,
+        ),
+      ),
+      title: Text(kLocaleNames[langCode]!), // Usa el mapa global
+      trailing: isSelected
+          ? Icon(Icons.check, color: theme.colorScheme.secondary)
+          : null,
+    );
+  }
 }
 
 class _BuildCustomTab extends StatelessWidget {
+  // ... (Tu widget _BuildCustomTab no necesita cambios)
   final Warehouse warehouse;
   final HomeViewModel model;
   final VoidCallback? onLongPress;
@@ -290,6 +344,7 @@ class _BuildCustomTab extends StatelessWidget {
 
 void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse? warehouse}) {
   
+  // 6. TU FUNCIÓN _showWarehouseOptions ESTÁ CORRECTA
   final l10n = AppLocalizations.of(context)!;
   final TextEditingController controller = TextEditingController(text: warehouse?.name);
   
@@ -335,86 +390,3 @@ void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse
     },
   );
 }
-
-Widget _buildLanguageSelector(BuildContext context, HomeViewModel model, AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    
-    final localeNames = {
-      'es': 'Español',
-      'en': 'English',
-      'fr': 'Français',
-    };
-
-    // Mapeo de idioma (en) a código de país (gb)
-    String countryCode = model.currentLocale.languageCode;
-    if (countryCode == 'en') {
-      countryCode = 'gb'; // Mapea 'en' (inglés) a 'gb' (Reino Unido)
-    }
-
-    return PopupMenuButton<Locale>(
-      onSelected: (locale) {
-        model.setLocale(locale);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 3. USA EL WIDGET DEL PAQUETE 'flag'
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4.0),
-              // El nombre del constructor es Flag.fromString
-              child: Flag.fromString(
-                countryCode.toUpperCase(),
-                height: 20,
-                width: 28, 
-                fit: BoxFit.cover,
-                replacement: Container( // Fallback por si acaso
-                  width: 28, height: 20, color: Colors.white.withOpacity(0.2),
-                  child: Icon(Icons.question_mark, size: 12, color: Colors.white)
-                ),
-              ),
-            ),
-            horizontalSpaceSmall, 
-            Text(
-              model.currentLocale.languageCode.toUpperCase(),
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Icon(Icons.arrow_drop_down, color: Colors.white70, size: 20),
-          ],
-        ),
-      ),
-      // Los items del menú
-      itemBuilder: (context) {
-        return AppLocalizations.supportedLocales.map((locale) {
-          final isSelected = locale.languageCode == model.currentLocale.languageCode;
-          
-          String itemCountryCode = locale.languageCode;
-          if (itemCountryCode == 'en') itemCountryCode = 'gb';
-
-          return PopupMenuItem<Locale>(
-            value: locale,
-            child: ListTile(
-              // 4. AÑADE TAMBIÉN LA BANDERA AL MENÚ
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(3.0),
-                child: Flag.fromString(
-                  itemCountryCode.toUpperCase(),
-                  height: 20,
-                  width: 28,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              title: Text(localeNames[locale.languageCode] ?? locale.languageCode),
-              trailing: isSelected
-                  ? Icon(Icons.check, color: theme.colorScheme.secondary) 
-                  : null,
-            ),
-          );
-        }).toList();
-      },
-    );
-  }
