@@ -39,7 +39,7 @@ class WarehouseDetailsView extends StatelessWidget {
                     : model.lots.isEmpty
                         ? const Center(child: Text("No hay palets que mostrar.", style: TextStyle(color: kcTextColor)))
                         : ListView.builder(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.only(top: 8, bottom: 100),
                             itemCount: model.lots.length,
                             itemBuilder: (context, index) {
                               final lot = model.lots[index];
