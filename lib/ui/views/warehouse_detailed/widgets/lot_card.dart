@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/ui/common/app_colors.dart';
-import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 
 class LotCard extends StatelessWidget {
@@ -37,6 +37,7 @@ class LotCard extends StatelessWidget {
   Widget _buildStandardCard(BuildContext context) {
     final theme = Theme.of(context);
     final statusColor = theme.colorScheme.secondary;
+    final l10n = AppLocalizations.of(context)!;
 
     return Row(
       children: [
@@ -49,7 +50,7 @@ class LotCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'PALÉS',
+                l10n.palletsTitle(palletsCount),
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: Colors.white.withOpacity(0.8),
                   fontWeight: FontWeight.bold,
@@ -84,7 +85,7 @@ class LotCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            lot.product?.name ?? withOutProduct,
+                            lot.product?.name ?? l10n.withOutProduct,
                             style: theme.textTheme.titleLarge,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -109,11 +110,11 @@ class LotCard extends StatelessWidget {
                         if (value == 'mark_defective') onMarkDefective();
                       },
                       itemBuilder: (context) => [
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'mark_defective',
                           child: ListTile(
-                            leading: Icon(Icons.warning_amber_rounded),
-                            title: Text(tooltipDefectivePallets),
+                            leading: const Icon(Icons.warning_amber_rounded),
+                            title: Text(l10n.tooltipDefectivePallets),
                           ),
                         ),
                       ],
@@ -123,7 +124,7 @@ class LotCard extends StatelessWidget {
                 verticalSpaceSmall,
                 _buildLotNameWithHighlight(
                   context,
-                  lotName: lot.name ?? withOutName,
+                  lotName: lot.name ?? l10n.withOutName,
                   highlightColor: statusColor,
                 ),
                 verticalSpaceSmall,
@@ -177,6 +178,7 @@ class LotCard extends StatelessWidget {
   Widget _buildDefectiveCard(BuildContext context) {
     final theme = Theme.of(context);
     final statusColor = theme.colorScheme.error;
+    final l10n = AppLocalizations.of(context)!;
 
     return Row(
       children: [
@@ -191,7 +193,7 @@ class LotCard extends StatelessWidget {
               const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 28),
               verticalSpaceSmall,
               Text(
-                'PALÉS',
+                l10n.palletsTitle(palletsCount),
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: Colors.white.withOpacity(0.8),
                   fontWeight: FontWeight.bold,
@@ -218,12 +220,12 @@ class LotCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'LOTE DEFECTUOSO',
+                  l10n.defectiveLot,
                   style: theme.textTheme.titleMedium
                       ?.copyWith(color: statusColor, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  lot.product?.name ?? withOutProduct,
+                  lot.product?.name ?? l10n.withOutProduct,
                   style: theme.textTheme.titleLarge,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -231,7 +233,7 @@ class LotCard extends StatelessWidget {
                 verticalSpaceSmall,
                 _buildLotNameWithHighlight(
                   context,
-                  lotName: lot.name ?? withOutName,
+                  lotName: lot.name ?? l10n.withOutName,
                   highlightColor: statusColor,
                 ),
                 verticalSpaceSmall,
@@ -251,7 +253,7 @@ class LotCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onSubtractPallets,
                     icon: const Icon(Icons.arrow_circle_right_outlined),
-                    label: const Text('Descontar palés'),
+                    label: Text(l10n.discountPallets),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: statusColor,
                       side: BorderSide(color: statusColor.withOpacity(0.5)),

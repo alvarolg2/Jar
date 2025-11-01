@@ -1,4 +1,6 @@
+import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
@@ -20,6 +22,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return ViewModelBuilder<HomeViewModel>.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -40,7 +43,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              "Mis Almacenes",
+              l10n.myWarehouses,
               style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
             ),
             actions: [
@@ -60,20 +63,21 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           color: model.isActivated ? kcDefectiveColor : Colors.white,
                         ),
                         onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
-                        tooltip: "Ver palets defectuosos",
+                        tooltip: l10n.tooltipDefectiveButton,
                       ),
+                      _buildLanguageSelector(context, model, l10n),
                       PopupMenuButton<_MenuOptions>(
                         icon: const Icon(Icons.more_vert, color: Colors.white),
-                        tooltip: "Más opciones",
+                        tooltip: l10n.moreOptions,
                         onSelected: (value) {
                           if (value == _MenuOptions.import) model.importDatabase();
                           else if (value == _MenuOptions.export) model.exportDatabase();
                           else if (value == _MenuOptions.generateReport) model.generateAndShareWarehouseReport();
                         },
                         itemBuilder: (BuildContext context) => <PopupMenuEntry<_MenuOptions>>[
-                          const PopupMenuItem(value: _MenuOptions.import, child: ListTile(leading: Icon(Icons.download_for_offline), title: Text('Importar BD'))),
-                          const PopupMenuItem(value: _MenuOptions.export, child: ListTile(leading: Icon(Icons.upload_file), title: Text('Exportar BD'))),
-                          const PopupMenuItem(value: _MenuOptions.generateReport, child: ListTile(leading: Icon(Icons.picture_as_pdf), title: Text('Generar Informe PDF'))),
+                          PopupMenuItem(value: _MenuOptions.import, child: ListTile(leading: const Icon(Icons.download_for_offline), title: Text(l10n.importDB))),
+                          PopupMenuItem(value: _MenuOptions.export, child: ListTile(leading: const Icon(Icons.upload_file), title: Text(l10n.exportDB))),
+                          PopupMenuItem(value: _MenuOptions.generateReport, child: ListTile(leading: const Icon(Icons.picture_as_pdf), title: Text(l10n.generatePDFReport))),
                           const PopupMenuDivider(),
                           if (model.appVersion != null)
                             PopupMenuItem(
@@ -123,7 +127,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       child: IconButton(
                         icon: const Icon(Icons.add_box_outlined, color: Colors.white),
                         onPressed: () => _showWarehouseOptions(context, model),
-                        tooltip: "Añadir almacén",
+                        tooltip: l10n.tooltipAddWarehouseButton,
                       ),
                     ),
                     Padding(
@@ -134,7 +138,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           color: model.filterActive(),
                         ),
                         onPressed: () => model.setShowDropdown(!model.showDropdown),
-                        tooltip: "Filtrar por producto",
+                        tooltip: l10n.filterByProduct,
                       ),
                     ),
                   ],
@@ -178,13 +182,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         verticalSpaceMedium,
                         Text(
-                          "No hay almacenes",
+                          l10n.noWarehouses,
                           style: theme.textTheme.titleLarge,
                           textAlign: TextAlign.center,
                         ),
                         verticalSpaceSmall,
                         Text(
-                          "Añade tu primer almacén usando el botón '+' de arriba.",
+                          l10n.noWarehousesMessage,
                           style: theme.textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
@@ -195,10 +199,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           floatingActionButton: (model.isActivated != true && model.warehouses.isNotEmpty)
               ? FloatingActionButton.extended(
                   onPressed: () => model.navigateToCreateReceived(context),
-                  tooltip: "Añadir recepción",
+                  tooltip: l10n.addReception,
                   icon: const Icon(Icons.add),
-                  label: const Text(
-                    "Añadir Recepción",
+                  label: Text(
+                    l10n.addReception,
                   ),
                 )
               : null,
@@ -285,32 +289,35 @@ class _BuildCustomTab extends StatelessWidget {
 }
 
 void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse? warehouse}) {
+  
+  final l10n = AppLocalizations.of(context)!;
   final TextEditingController controller = TextEditingController(text: warehouse?.name);
+  
   showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: Text(warehouse == null ? "Añadir Almacén" : "Editar Almacén"),
+        title: Text(warehouse == null ? l10n.addWarehouse : l10n.editWarehouse),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: "Nombre del almacén"),
+          decoration: InputDecoration(hintText: l10n.nameWarehouse),
           autofocus: true,
         ),
         actions: <Widget>[
           TextButton(
-            child: const Text("Cancelar"),
+            child: Text(l10n.cancel),
             onPressed: () => Navigator.of(context).pop(),
           ),
           if (warehouse != null)
             TextButton(
-              child: Text("Eliminar", style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(l10n.delete, style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () {
                 model.deleteWarehouse(warehouse);
                 Navigator.of(context).pop();
               },
             ),
           TextButton(
-            child: Text(warehouse == null ? "Añadir" : "Guardar"),
+            child: Text(warehouse == null ? l10n.add : l10n.save),
             onPressed: () {
               final name = controller.text;
               if (name.isNotEmpty) {
@@ -328,3 +335,86 @@ void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse
     },
   );
 }
+
+Widget _buildLanguageSelector(BuildContext context, HomeViewModel model, AppLocalizations l10n) {
+    final theme = Theme.of(context);
+    
+    final localeNames = {
+      'es': 'Español',
+      'en': 'English',
+      'fr': 'Français',
+    };
+
+    // Mapeo de idioma (en) a código de país (gb)
+    String countryCode = model.currentLocale.languageCode;
+    if (countryCode == 'en') {
+      countryCode = 'gb'; // Mapea 'en' (inglés) a 'gb' (Reino Unido)
+    }
+
+    return PopupMenuButton<Locale>(
+      onSelected: (locale) {
+        model.setLocale(locale);
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 3. USA EL WIDGET DEL PAQUETE 'flag'
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4.0),
+              // El nombre del constructor es Flag.fromString
+              child: Flag.fromString(
+                countryCode.toUpperCase(),
+                height: 20,
+                width: 28, 
+                fit: BoxFit.cover,
+                replacement: Container( // Fallback por si acaso
+                  width: 28, height: 20, color: Colors.white.withOpacity(0.2),
+                  child: Icon(Icons.question_mark, size: 12, color: Colors.white)
+                ),
+              ),
+            ),
+            horizontalSpaceSmall, 
+            Text(
+              model.currentLocale.languageCode.toUpperCase(),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.white70, size: 20),
+          ],
+        ),
+      ),
+      // Los items del menú
+      itemBuilder: (context) {
+        return AppLocalizations.supportedLocales.map((locale) {
+          final isSelected = locale.languageCode == model.currentLocale.languageCode;
+          
+          String itemCountryCode = locale.languageCode;
+          if (itemCountryCode == 'en') itemCountryCode = 'gb';
+
+          return PopupMenuItem<Locale>(
+            value: locale,
+            child: ListTile(
+              // 4. AÑADE TAMBIÉN LA BANDERA AL MENÚ
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(3.0),
+                child: Flag.fromString(
+                  itemCountryCode.toUpperCase(),
+                  height: 20,
+                  width: 28,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              title: Text(localeNames[locale.languageCode] ?? locale.languageCode),
+              trailing: isSelected
+                  ? Icon(Icons.check, color: theme.colorScheme.secondary) 
+                  : null,
+            ),
+          );
+        }).toList();
+      },
+    );
+  }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:jar/ui/common/app_strings.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PalletsSheetModel extends BaseViewModel {
   final _snackbarService = SnackbarService();
+
+  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
   final TextEditingController palletsController = TextEditingController();
   bool _validationPassed = false;
@@ -36,8 +38,8 @@ class PalletsSheetModel extends BaseViewModel {
     } else {
       _validationPassed = false;
       _snackbarService.showSnackbar(
-        title: error,
-        message: snackbarDefective,
+        title: l10n.error,
+        message: l10n.snackbarDefective,
         duration: durationSnackbar,
       );
     }

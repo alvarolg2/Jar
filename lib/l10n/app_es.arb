@@ -1,0 +1,177 @@
+{
+    "@@locale": "es",
+    "appName": "HOZON - JAR",
+    "loading": "Cargando...",
+    "pallets": "palés",
+    "withOutName": "Sin nombre",
+    "withOutProduct": "Sin producto",
+    "cancel": "Cancelar",
+    "delete": "Borrar",
+    "add": "Añadir",
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "error": "Error",
+    "gotIt": "Entendido",
+    "all": "Todos",
+    "product": "Producto",
+    "batch": "Lote",
+    "requiredField": "* Requerido",
+
+    "tooltipDefectiveButton": "Mostrar palés defectuosos",
+    "tooltipAddWarehouseButton": "Añadir almacén",
+    "tooltipAddPallets": "Añadir palés",
+    "tooltipSubstractPallets": "Sacar palés",
+    "tooltipDefectivePallets": "Marcar palés como defectuosos",
+    "tooltipDateCreationBatch": "Fecha de creación del lote",
+    "tooltipTruckLoads": "(Número de camiones completos, palés sueltos)",
+    "moreOptions": "Más opciones",
+    "filterByProduct": "Filtrar por producto",
+
+    "addWarehouse": "Añadir almacén",
+    "editWarehouse": "Editar almacén",
+    "nameWarehouse": "Nombre almacén",
+    "myWarehouses": "Mis Almacenes",
+    "noWarehouses": "No hay almacenes",
+    "noWarehousesMessage": "Añade tu primer almacén usando el botón '+' de arriba.",
+
+    "addReception": "Añadir recepción",
+    "productName": "Nombre del producto",
+    "productDescription": "Descripción del producto",
+    "scanDocument": "Escanear documento",
+    "resetFilters": "Reiniciar filtros",
+    "defaultNumberPallets": "26",
+    
+    "palletsTitle": "{count, plural, =1{PALÉ} other{PALÉS}}",
+    "@palletsTitle": {
+        "description": "El título para la sección de palés, en singular o plural",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "palletsDefective": "Palés defectuosos",
+    "defectiveLot": "LOTE DEFECTUOSO",
+    "numberOfPallets": "Número de palés",
+    "confirmPallets": "Confirmar Palés",
+    "inPallets": "Entrada de Palés",
+    "palletExit": "Salida de Palés",
+    "discountPallets": "Descontar palés",
+    "lotLabel": "Lote: {lotName}",
+    "@lotLabel": {
+        "description": "Etiqueta para mostrar el nombre de un lote",
+        "placeholders": {
+            "lotName": {
+                "type": "String",
+                "example": "LOTE-123"
+            }
+        }
+    },
+
+    "noPalletsForProduct": "No hay palets para el producto \"{productName}\"",
+    "@noPalletsForProduct": {
+        "description": "Mensaje cuando no hay palets para un producto filtrado",
+        "placeholders": {
+            "productName": {
+                "type": "String",
+                "example": "Producto A"
+            }
+        }
+    },
+    "noPalletsToShow": "No hay palets que mostrar.",
+
+    "validateProduct": "Por favor ingrese un producto",
+    "validateBatch": "Por favor ingrese un lote",
+    "validatePallets": "Por favor ingrese un número de palés",
+    "validatePalletsNumber": "El número debe ser mayor que cero",
+    "palletsGreaterThanZero": "El número de palets debe ser mayor que cero.",
+    "productNameRequired": "El nombre del producto no puede estar vacío.",
+    "lotNameRequired": "El nombre del lote no puede estar vacío.",
+    "snackbarDefective": "El número introducido es mayor que el número de palés disponibles.",
+
+    "scanError": "Error de Escaneo",
+    "scanErrorDescription": "No se pudo procesar el documento. Error: {error}",
+    "@scanErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "saveError": "Error al Guardar",
+    "saveErrorDescription": "Ocurrió un problema al guardar los datos. Error: {error}",
+    "@saveErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+
+    "importDB": "Importar BD",
+    "exportDB": "Exportar BD",
+    "generatePDFReport": "Generar Informe PDF",
+    "version": "Versión",
+    "versionUnknown": "Versión desconocida",
+
+    "dbBackupSubject": "Backup Base de Datos - JAR App - {date}",
+    "@dbBackupSubject": {
+        "placeholders": { "date": { "type": "String" } }
+    },
+    "dbBackupBody": "Adjunto se encuentra la base de datos \"warehouse_transport.db\".",
+    "exportError": "Error al Exportar",
+    "exportErrorDescription": "No se pudo exportar la base de datos. Detalle: {error}",
+    "@exportErrorDescription": {
+        "placeholders": { "error": { "type": "String" } }
+    },
+
+    "importConfirm": "Confirmar Importación",
+    "importConfirmMessage": "¿Estás seguro de que quieres importar este archivo? Todos los datos actuales se borrarán y serán reemplazados por los del archivo seleccionado. Esta acción no se puede deshacer.",
+    "importConfirmYes": "Sí, Importar",
+    "importComplete": "Importación Completa",
+    "importCompleteMessage": "La base de datos se ha importado correctamente. La aplicación se reiniciará para cargar los nuevos datos.",
+    "importError": "Error al Importar",
+    "importErrorDescription": "No se pudo importar la base de datos. Asegúrate de que es un archivo válido. Detalle: {error}",
+    "@importErrorDescription": {
+        "placeholders": { "error": { "type": "String" } }
+    },
+
+    "reportSubject": "Reporte de Almacenes - {date}",
+    "@reportSubject": {
+        "placeholders": { "date": { "type": "String" } }
+    },
+    "reportBody": "Adjunto se encuentra el reporte del estado actual de los almacenes.",
+    "reportEmptyTitle": "Informe Vacío",
+    "reportEmptyMessage": "No hay palets en los almacenes para generar un informe.",
+    "pdfError": "Error al Generar PDF",
+    "pdfErrorDescription": "Ocurrió un problema al crear el informe. Detalle: {error}",
+    "@pdfErrorDescription": {
+        "placeholders": { "error": { "type": "String" } }
+    },
+    "reportStandardInventory": "Inventario Estándar",
+    "reportTotalStandard": "Total Palets Estándar: {count}",
+    "@reportTotalStandard": {
+        "placeholders": { "count": { "type": "int" } }
+    },
+    "reportNoStandardPallets": "No hay palets estándar en este almacén.",
+    "reportDefectiveInventory": "Inventario Defectuoso",
+    "reportTotalDefective": "Total Palets Defectuosos: {count}",
+    "@reportTotalDefective": {
+        "placeholders": { "count": { "type": "int" } }
+    },
+    "reportNoDefectivePallets": "No hay palets defectuosos en este almacén.",
+    "reportTitle": "Reporte de Inventario",
+    "reportGenerated": "Generado: {date}",
+    "@reportGenerated": {
+        "placeholders": { "date": { "type": "String" } }
+    },
+    "reportPage": "Página {pageNumber} de {totalPages}",
+    "@reportPage": {
+        "placeholders": {
+            "pageNumber": { "type": "int" },
+            "totalPages": { "type": "int" }
+        }
+    },
+    "reportPalletCount": "Nº Palets",
+    "dropdownProductText": "Selecciona un producto"
+}

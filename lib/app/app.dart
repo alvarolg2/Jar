@@ -1,3 +1,4 @@
+import 'package:jar/services/locale_service.dart';
 import 'package:jar/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:jar/ui/dialogs/info_alert/info_alert_dialog.dart';
 import 'package:jar/ui/views/home/home_view.dart';
@@ -22,6 +23,7 @@ import 'package:jar/services/filter_service.dart';
     LazySingleton(classType: WarehouseDataService),
     LazySingleton(classType: UpdateService),
     LazySingleton(classType: FilterService),
+    LazySingleton(classType: LocaleService)
 // @stacked-service
   ],
   bottomsheets: [
