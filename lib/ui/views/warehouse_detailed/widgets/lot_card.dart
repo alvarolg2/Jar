@@ -26,18 +26,19 @@ class LotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: isDefective
-          ? _buildDefectiveCard(context)
-          : _buildStandardCard(context),
+          ? _buildDefectiveCard(context, l10n)
+          : _buildStandardCard(context, l10n),
     );
   }
 
-  Widget _buildStandardCard(BuildContext context) {
+  Widget _buildStandardCard(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final statusColor = theme.colorScheme.secondary;
-    final l10n = AppLocalizations.of(context)!;
 
     return Row(
       children: [
@@ -69,56 +70,32 @@ class LotCard extends StatelessWidget {
             ],
           ),
         ),
-
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            lot.product?.name ?? l10n.withOutProduct,
-                            style: theme.textTheme.titleLarge,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (lot.product?.description != null &&
-                              lot.product!.description!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2.0),
-                              child: Text(
-                                lot.product!.description!,
-                                style: theme.textTheme.bodyMedium,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                        ],
-                      ),
+                    Text(
+                      lot.product?.name ?? l10n.withOutProduct,
+                      style: theme.textTheme.titleLarge,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    PopupMenuButton<String>(
-                      icon: Icon(Icons.more_vert, color: Colors.grey.shade600),
-                      onSelected: (value) {
-                        if (value == 'mark_defective') onMarkDefective();
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'mark_defective',
-                          child: ListTile(
-                            leading: const Icon(Icons.warning_amber_rounded),
-                            title: Text(l10n.tooltipDefectivePallets),
-                          ),
+                    if (lot.product?.description != null &&
+                        lot.product!.description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          lot.product!.description!,
+                          style: theme.textTheme.bodyMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    )
+                      ),
                   ],
                 ),
                 verticalSpaceSmall,
@@ -134,36 +111,50 @@ class LotCard extends StatelessWidget {
                       context,
                       icon: Icons.local_shipping_outlined,
                       label: truckLoads,
+                      tooltip: l10n.tooltipTruckLoads,
                     ),
                     horizontalSpaceMedium,
                     _buildMetric(
                       context,
                       icon: Icons.date_range_outlined,
                       label: DateFormatter.format(lot.createDate!),
+                      tooltip: l10n.tooltipDateCreationBatch,
                     ),
                   ],
                 ),
-                
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 12.0),
                   child: Divider(height: 1),
                 ),
-
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                   children: [
                     _buildActionButton(
                       context,
-                      icon: Icons.remove,
-                      onPressed: onSubtractPallets,
-                      color: statusColor,
+                      icon: Icons.warning_amber_rounded,
+                      onPressed: onMarkDefective,
+                      color: theme.colorScheme.error,
+                      tooltip: l10n.tooltipDefectivePallets,
                     ),
-                    horizontalSpaceSmall,
-                    _buildActionButton(
-                      context,
-                      icon: Icons.add,
-                      onPressed: onAddPallets,
-                      color: statusColor,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildActionButton(
+                          context,
+                          icon: Icons.remove,
+                          onPressed: onSubtractPallets,
+                          color: statusColor,
+                          tooltip: l10n.tooltipSubstractPallets,
+                        ),
+                        horizontalSpaceSmall,
+                        _buildActionButton(
+                          context,
+                          icon: Icons.add,
+                          onPressed: onAddPallets,
+                          color: statusColor,
+                          tooltip: l10n.tooltipAddPallets,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -175,10 +166,9 @@ class LotCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDefectiveCard(BuildContext context) {
+  Widget _buildDefectiveCard(BuildContext context, AppLocalizations l10n) {
     final theme = Theme.of(context);
     final statusColor = theme.colorScheme.error;
-    final l10n = AppLocalizations.of(context)!;
 
     return Row(
       children: [
@@ -241,6 +231,7 @@ class LotCard extends StatelessWidget {
                   context,
                   icon: Icons.date_range_outlined,
                   label: DateFormatter.format(lot.createDate!),
+                  tooltip: l10n.tooltipDateCreationBatch,
                 ),
                 
                 const Padding(
@@ -316,9 +307,10 @@ class LotCard extends StatelessWidget {
     BuildContext context, {
     required IconData icon,
     required String label,
+    String? tooltip,
   }) {
     final theme = Theme.of(context);
-    return Row(children: [
+    Widget content = Row(children: [
       Icon(icon, color: kcTextSecondary, size: 16),
       horizontalSpaceTiny,
       Text(
@@ -329,6 +321,14 @@ class LotCard extends StatelessWidget {
         ),
       ),
     ]);
+
+    if (tooltip != null) {
+      return Tooltip(
+        message: tooltip,
+        child: content,
+      );
+    }
+    return content;
   }
 
   Widget _buildActionButton(
@@ -336,8 +336,10 @@ class LotCard extends StatelessWidget {
     required IconData icon,
     required VoidCallback onPressed,
     required Color color,
+    String? tooltip,
   }) {
     return IconButton.filled(
+      tooltip: tooltip,
       style: IconButton.styleFrom(
         backgroundColor: color.withOpacity(0.15),
         foregroundColor: color,

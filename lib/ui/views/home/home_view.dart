@@ -6,8 +6,6 @@ import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_view.dart';
 import 'package:stacked/stacked.dart';
-
-// 2. IMPORTA TU NUEVO ARCHIVO DE CONSTANTES
 import 'package:jar/ui/common/app_locales.dart'; 
 
 import 'home_viewmodel.dart';
@@ -79,7 +77,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           else if (value == _MenuOptions.langEn) model.setLocale(const Locale('en'));
                           else if (value == _MenuOptions.langFr) model.setLocale(const Locale('fr'));
                         },
-                        // 3. TU ITEMBUILDER CORREGIDO
                         itemBuilder: (BuildContext context) => <PopupMenuEntry<_MenuOptions>>[
                           PopupMenuItem(value: _MenuOptions.import, child: ListTile(leading: const Icon(Icons.download_for_offline), title: Text(l10n.importDB))),
                           PopupMenuItem(value: _MenuOptions.export, child: ListTile(leading: const Icon(Icons.upload_file), title: Text(l10n.exportDB))),
@@ -92,7 +89,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 title: const Text("Idioma / Language"),
                               ),
                             ),
-                          // Usamos los enums y el helper
                           PopupMenuItem(
                             value: _MenuOptions.langEs,
                             child: _buildLanguageMenuItem(context, model, 'es'),
@@ -111,7 +107,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               enabled: false,
                               child: Center(
                                 child: Text(
-                                  // Modificado para usar l10n.version
                                   "${l10n.version} ${model.appVersion!.split(' ').last}",
                                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                                 ),
@@ -143,7 +138,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 warehouse: warehouse,
                                 model: model,
                                 onTap: () => model.setCurrentIndex(index),
-                                // 4. CORRECCIÓN DE LA LLAMADA
                                 onLongPress: () => _showWarehouseOptions(context, model, warehouse: warehouse),
                               );
                             }).toList(),
@@ -155,7 +149,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: IconButton(
                         icon: const Icon(Icons.add_box_outlined, color: Colors.white),
-                        // 4. CORRECCIÓN DE LA LLAMADA
                         onPressed: () => _showWarehouseOptions(context, model),
                         tooltip: l10n.tooltipAddWarehouseButton,
                       ),
@@ -241,23 +234,22 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  // 5. WIDGET HELPER PARA CONSTRUIR LOS ITEMS DEL MENÚ
   Widget _buildLanguageMenuItem(BuildContext context, HomeViewModel model, String langCode) {
     final theme = Theme.of(context);
     final isSelected = langCode == model.currentLocale.languageCode;
 
     return ListTile(
-      contentPadding: EdgeInsets.zero, // Ajusta el padding si es necesario
+      contentPadding: EdgeInsets.zero,
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(3.0),
         child: Flag.fromString(
-          kCountryCodes[langCode]!, // Usa el mapa global
+          kCountryCodes[langCode]!,
           height: 20,
           width: 28,
           fit: BoxFit.cover,
         ),
       ),
-      title: Text(kLocaleNames[langCode]!), // Usa el mapa global
+      title: Text(kLocaleNames[langCode]!),
       trailing: isSelected
           ? Icon(Icons.check, color: theme.colorScheme.secondary)
           : null,
@@ -266,7 +258,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 }
 
 class _BuildCustomTab extends StatelessWidget {
-  // ... (Tu widget _BuildCustomTab no necesita cambios)
   final Warehouse warehouse;
   final HomeViewModel model;
   final VoidCallback? onLongPress;
@@ -344,7 +335,6 @@ class _BuildCustomTab extends StatelessWidget {
 
 void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse? warehouse}) {
   
-  // 6. TU FUNCIÓN _showWarehouseOptions ESTÁ CORRECTA
   final l10n = AppLocalizations.of(context)!;
   final TextEditingController controller = TextEditingController(text: warehouse?.name);
   
