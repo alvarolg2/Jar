@@ -19,18 +19,29 @@ class StartupView extends StackedView<StartupViewModel> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/images/logo.png'),
-            const Row(
+            // USA EL ICONO DE LA APP
+            Image.asset(
+              'assets/icon/icon.png',
+              width: 150,
+              height: 150,
+            ),
+            verticalSpaceMedium,
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(loading, style: TextStyle(fontSize: 16)),
+                Text(
+                  loading,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                ),
                 horizontalSpaceSmall,
                 SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
-                    color: Colors.black,
-                    strokeWidth: 6,
+                    color: Theme.of(context).colorScheme.secondary,
+                    strokeWidth: 2,
                   ),
                 )
               ],

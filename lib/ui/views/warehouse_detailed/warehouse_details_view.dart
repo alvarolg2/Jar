@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
-import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_viewmodel.dart';
 import 'package:jar/ui/views/warehouse_detailed/widgets/lot_card.dart';
@@ -28,31 +26,54 @@ class WarehouseDetailsView extends StatelessWidget {
       ),
       builder: (context, model, child) {
         return Scaffold(
-          backgroundColor: kcBackgroundColor,
           body: Column(
             children: [
               if (!model.isDefective && model.showDropdown)
-                _buildStyledDropdown(context, model),
+                _buildFilterBar(context, model),
+                
               Expanded(
                 child: model.isBusy
-                    ? const Center(child: CircularProgressIndicator(color: kcPrimaryColorDark))
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      )
                     : model.lots.isEmpty
-                        ? const Center(child: Text("No hay palets que mostrar.", style: TextStyle(color: kcTextColor)))
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 40.0),
+                              child: Text(
+                                model.selectedProduct != null
+                                    ? "No hay palets para el producto \"${model.selectedProduct!.name}\""
+                                    : "No hay palets que mostrar.",
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: kcTextSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          )
                         : ListView.builder(
                             padding: const EdgeInsets.only(top: 8, bottom: 100),
                             itemCount: model.lots.length,
                             itemBuilder: (context, index) {
                               final lot = model.lots[index];
-                              final palletsCount = model.isDefective ? model.getPalletsNotOutDefective(index) : model.getPalletsNotOut(index);
-                              final truckLoads = model.isDefective ? 0 : model.getTruckLoads(index);
+                              final palletsCount = model.isDefective
+                                  ? model.getPalletsNotOutDefective(index)
+                                  : model.getPalletsNotOut(index);
+                              final truckLoads = model.isDefective
+                                  ? 0
+                                  : model.getTruckLoads(index);
                               return LotCard(
                                 lot: lot,
                                 palletsCount: palletsCount,
                                 truckLoads: truckLoads.toString(),
                                 isDefective: model.isDefective,
                                 onAddPallets: () => model.showPalletInSheet(lot),
-                                onSubtractPallets: () => model.showPalletSheet(lot, palletsCount),
-                                onMarkDefective: () => model.showPalletDefectiveSheet(lot, palletsCount),
+                                onSubtractPallets: () =>
+                                    model.showPalletSheet(lot, palletsCount),
+                                onMarkDefective: () => model
+                                    .showPalletDefectiveSheet(lot, palletsCount),
                               );
                             },
                           ),
@@ -64,93 +85,119 @@ class WarehouseDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow({required IconData icon, required String text, bool isHeader = false}) {
-    return Row(
-      children: [
-        Icon(icon, color: Colors.grey.shade600, size: 20),
-        horizontalSpaceSmall,
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              color: kcTextColor,
-              fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-              fontSize: isHeader ? 16 : 14,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+  Widget _buildFilterBar(BuildContext context, WarehouseDetailsViewModel model) {
+    final theme = Theme.of(context);
+
+    return Container(
+      height: 60,
+      alignment: Alignment.centerLeft,
+      color: theme.scaffoldBackgroundColor, 
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // Padding
+        scrollDirection: Axis.horizontal,
+        itemCount: model.allProducts.length + 1,
+        itemBuilder: (context, index) {
+          
+          if (index == 0) {
+            final bool isSelected = model.selectedProduct == null;
+            return _buildFilterChip(
+              context: context,
+              label: "Todos",
+              isSelected: isSelected,
+              onTap: () => model.selectProduct(null),
+            );
+          }
+
+          final product = model.allProducts[index - 1];
+          final bool isSelected = model.selectedProduct == product;
+          return _buildFilterChip(
+            context: context,
+            label: product.name ?? 'Sin Nombre',
+            count: product.numPallets,
+            isSelected: isSelected,
+            onTap: () => model.selectProduct(product),
+          );
+        },
+      ),
     );
   }
-  
-  Widget _buildStyledDropdown(BuildContext context, WarehouseDetailsViewModel model) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      margin: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+
+  Widget _buildFilterChip({
+    required BuildContext context,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    int? count,
+  }) {
+    final theme = Theme.of(context);
+    
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? theme.colorScheme.secondary
+                : theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+            border: isSelected 
+                ? null 
+                : Border.all(color: Colors.grey.shade300, width: 1.5),
+            boxShadow: [
+              if (isSelected)
+                BoxShadow(
+                  color: theme.colorScheme.secondary.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                )
+              else
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                )
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: DropdownButton<Product>(
-              value: model.selectedProduct,
-              hint: const Text(
-                dropdownProductText,
-                style: TextStyle(color: kcTextColor, fontSize: 16),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isSelected 
+                      ? Colors.white 
+                      : theme.colorScheme.primary.withOpacity(0.8),
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                ),
               ),
-              onChanged: (Product? newValue) => model.selectProduct(newValue),
-              isExpanded: true,
-              underline: const SizedBox.shrink(),
-              icon: const Icon(Icons.filter_list_rounded, color: kcPrimaryColorDark),
-              items: model.allProducts.map<DropdownMenuItem<Product>>((Product product) {
-                return DropdownMenuItem<Product>(
-                  value: product,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          product.name!,
-                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Chip(
-                        avatar: Icon(Icons.pallet, size: 16, color: Colors.grey.shade700),
-                        label: Text(
-                          product.numPallets.toString(),
-                          style: TextStyle(color: Colors.grey.shade900, fontWeight: FontWeight.bold),
-                        ),
-                        backgroundColor: Colors.grey.shade300,
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      )
-                    ],
+              
+              if (count != null) ...[
+                horizontalSpaceSmall,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: isSelected 
+                        ? Colors.white.withOpacity(0.2) 
+                        : kcBackground,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                );
-              }).toList(),
-            ),
+                  child: Text(
+                    count.toString(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: isSelected ? Colors.white : kcTextSecondary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ]
+            ],
           ),
-          if (model.selectedProduct != null) ...[
-            horizontalSpaceSmall,
-            IconButton(
-              onPressed: () => model.selectProduct(null),
-              icon: Icon(Icons.clear, color: Colors.grey.shade700),
-              tooltip: resetFilters,
-            )
-          ]
-        ],
+        ),
       ),
     );
   }

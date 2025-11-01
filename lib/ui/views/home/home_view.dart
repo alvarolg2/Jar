@@ -19,6 +19,8 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ViewModelBuilder<HomeViewModel>.reactive(
       viewModelBuilder: () => HomeViewModel(),
       onViewModelReady: (model) => model.initialise(),
@@ -28,28 +30,35 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         }
 
         if (model.isBusy && model.warehouses.isEmpty) {
-          return const Scaffold(
+          return Scaffold(
             body: Center(
-              child: CircularProgressIndicator(color: kcPrimaryColorDark),
+              child: CircularProgressIndicator(color: theme.colorScheme.secondary),
             ),
           );
         }
 
         return Scaffold(
           appBar: AppBar(
+            title: Text(
+              "Mis Almacenes",
+              style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
+            ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 8.0, top: 6.0),
+                padding: const EdgeInsets.only(right: 8.0, top: 4.0, bottom: 4.0),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: Icon(Icons.warning, color: model.isActivated ? kcDefectiveColor : Colors.white),
+                        icon: Icon(
+                          model.isActivated ? Icons.warning : Icons.warning_amber_outlined,
+                          color: model.isActivated ? kcDefectiveColor : Colors.white,
+                        ),
                         onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
                         tooltip: "Ver palets defectuosos",
                       ),
@@ -68,7 +77,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           const PopupMenuDivider(),
                           if (model.appVersion != null)
                             PopupMenuItem(
-                              enabled: false, 
+                              enabled: false,
                               child: Center(
                                 child: Text(
                                   model.appVersion!,
@@ -83,14 +92,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ),
               ),
             ],
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage('assets/images/background.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: Row(
@@ -103,7 +104,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             isScrollable: true,
                             dividerColor: Colors.transparent,
                             indicator: const BoxDecoration(),
-                            padding: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.only(left: 12),
                             tabs: model.warehouses.map((warehouse) {
                               final index = model.warehouses.indexOf(warehouse);
                               return _BuildCustomTab(
@@ -116,113 +117,95 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           )
                         : const SizedBox.shrink(),
                   ),
-                  model.isActivated ? const SizedBox.shrink() :
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Container(
-                       decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
+                  if (!model.isActivated) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: IconButton(
-                        icon: const Icon(Icons.add, color: Colors.white),
+                        icon: const Icon(Icons.add_box_outlined, color: Colors.white),
                         onPressed: () => _showWarehouseOptions(context, model),
                         tooltip: "Añadir almacén",
                       ),
                     ),
-                  ),
-                  model.isActivated ? const SizedBox.shrink() :
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Container(
-                       decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
                       child: IconButton(
-                        icon: Icon(Icons.tune_outlined, color: model.filterActive()),
+                        icon: Icon(
+                          model.filterActive() == Colors.white ? Icons.filter_list_off_outlined : Icons.filter_list_alt,
+                          color: model.filterActive(),
+                        ),
                         onPressed: () => model.setShowDropdown(!model.showDropdown),
                         tooltip: "Filtrar por producto",
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
-            backgroundColor: Colors.transparent,
-            elevation: 0,
+            elevation: 4,
           ),
           body: model.warehouseCount > 0
               ? TabBarView(
                   controller: model.tabController,
                   children: model.warehouses.map((w) {
-                    return Column(
-                      children: [
-                        Expanded(
-                          child: WarehouseDetailsView(warehouse: w, defective: model.isActivated),
-                        ),
-                      ],
+                    return WarehouseDetailsView(
+                      warehouse: w,
+                      defective: model.isActivated,
                     );
                   }).toList(),
                 )
               : Center(
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
-      margin: const EdgeInsets.symmetric(horizontal: 24.0),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(16.0),
-      ),
-      child: const Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.warehouse_rounded,
-            size: 50,
-            color: Colors.white70,
-          ),
-          verticalSpaceMedium,
-          Text(
-            "No hay almacenes",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          verticalSpaceSmall,
-          Text(
-            "Añade tu primer almacén usando el botón '+' de arriba.",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    ),
-  ),
-          floatingActionButton: (model.isActivated != true && model.warehouses.isNotEmpty)
-            ? FloatingActionButton.extended(
-                onPressed: () => model.navigateToCreateReceived(context),
-                tooltip: "Añadir recepción",
-                backgroundColor: kcPrimaryColorDark, 
-                foregroundColor: Colors.white,
-                icon: const Icon(Icons.add),
-                label: const Text(
-                  "Añadir Recepción",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 32.0),
+                    margin: const EdgeInsets.symmetric(horizontal: 24.0),
+                    decoration: BoxDecoration(
+                      color: kcSurface,
+                      borderRadius: BorderRadius.circular(16.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.warehouse_rounded,
+                          size: 50,
+                          color: theme.colorScheme.secondary,
+                        ),
+                        verticalSpaceMedium,
+                        Text(
+                          "No hay almacenes",
+                          style: theme.textTheme.titleLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        verticalSpaceSmall,
+                        Text(
+                          "Añade tu primer almacén usando el botón '+' de arriba.",
+                          style: theme.textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                shape: const StadiumBorder(),
-              )
-            : null,
+          floatingActionButton: (model.isActivated != true && model.warehouses.isNotEmpty)
+              ? FloatingActionButton.extended(
+                  onPressed: () => model.navigateToCreateReceived(context),
+                  tooltip: "Añadir recepción",
+                  icon: const Icon(Icons.add),
+                  label: const Text(
+                    "Añadir Recepción",
+                  ),
+                )
+              : null,
         );
       },
     );
   }
-
 }
 
 class _BuildCustomTab extends StatelessWidget {
@@ -240,21 +223,23 @@ class _BuildCustomTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final count = model.palletCounts[warehouse.id] ?? 0;
     final isSelected = model.currentIndex == model.warehouses.indexOf(warehouse);
-    
-    const selectedColor = Color(0xFF388E3C);
+
+    final Color selectedColor = theme.colorScheme.secondary;
+    final Color defaultColor = theme.colorScheme.primary;
 
     return Tab(
       child: GestureDetector(
         onTap: onTap,
         onLongPress: onLongPress,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: isSelected ? selectedColor : Colors.black.withOpacity(0.6),
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.15),
             borderRadius: BorderRadius.circular(25.0),
-            border: isSelected ? Border.all(color: Colors.white, width: 1.5) : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -262,31 +247,31 @@ class _BuildCustomTab extends StatelessWidget {
               Flexible(
                 child: Text(
                   warehouse.name ?? "",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isSelected ? selectedColor : Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               horizontalSpaceSmall,
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                constraints: const BoxConstraints(
-                  minWidth: 24,
-                ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                constraints: const BoxConstraints(minWidth: 26),
                 decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
                   borderRadius: BorderRadius.circular(12),
-                  color: isSelected ? Colors.white : (model.isActivated ? kcDefectiveColor : kcPrimaryColorDark),
+                  color: isSelected
+                      ? (model.isActivated ? kcDefectiveColor : selectedColor)
+                      : Colors.white.withOpacity(0.8),
                 ),
                 child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      count.toString(),
-                      style: TextStyle(
-                        color: isSelected ? selectedColor : Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                  child: Text(
+                    count.toString(),
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : defaultColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
                 ),
@@ -318,7 +303,7 @@ void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse
           ),
           if (warehouse != null)
             TextButton(
-              child: const Text("Eliminar", style: TextStyle(color: Colors.red)),
+              child: Text("Eliminar", style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () {
                 model.deleteWarehouse(warehouse);
                 Navigator.of(context).pop();

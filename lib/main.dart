@@ -3,9 +3,10 @@ import 'package:jar/app/app.bottomsheets.dart';
 import 'package:jar/app/app.dialogs.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
+import 'package:jar/ui/common/app_theme.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'ui/common/database_helper.dart';
-import 'package:flutter/services.dart'; // Importa el paquete services
+import 'package:flutter/services.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MainApp extends StatelessWidget {
       navigatorObservers: [
         StackedService.routeObserver,
       ],
+      theme: getAppThemeData()
     );
   }
 }
