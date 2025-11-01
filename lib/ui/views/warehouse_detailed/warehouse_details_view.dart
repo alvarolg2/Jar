@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
@@ -18,6 +19,9 @@ class WarehouseDetailsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final l10n = AppLocalizations.of(context)!;
+    
     return ViewModelBuilder<WarehouseDetailsViewModel>.reactive(
       key: ValueKey('${warehouse.id}_$defective'),
       viewModelBuilder: () => WarehouseDetailsViewModel(
@@ -44,8 +48,8 @@ class WarehouseDetailsView extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 40.0),
                               child: Text(
                                 model.selectedProduct != null
-                                    ? "No hay palets para el producto \"${model.selectedProduct!.name}\""
-                                    : "No hay palets que mostrar.",
+                                    ? l10n.noPalletsForProduct(model.selectedProduct!.name ?? '')
+                                    : l10n.noPalletsToShow,
                                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   color: kcTextSecondary,
                                 ),
@@ -87,6 +91,7 @@ class WarehouseDetailsView extends StatelessWidget {
 
   Widget _buildFilterBar(BuildContext context, WarehouseDetailsViewModel model) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       height: 60,
@@ -102,7 +107,7 @@ class WarehouseDetailsView extends StatelessWidget {
             final bool isSelected = model.selectedProduct == null;
             return _buildFilterChip(
               context: context,
-              label: "Todos",
+              label: l10n.all,
               isSelected: isSelected,
               onTap: () => model.selectProduct(null),
             );
@@ -112,7 +117,7 @@ class WarehouseDetailsView extends StatelessWidget {
           final bool isSelected = model.selectedProduct == product;
           return _buildFilterChip(
             context: context,
-            label: product.name ?? 'Sin Nombre',
+            label: product.name ?? l10n.withOutName,
             count: product.numPallets,
             isSelected: isSelected,
             onTap: () => model.selectProduct(product),

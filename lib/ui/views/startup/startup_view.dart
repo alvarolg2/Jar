@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:jar/ui/common/app_strings.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:stacked/stacked.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'startup_viewmodel.dart';
@@ -14,6 +14,7 @@ class StartupView extends StackedView<StartupViewModel> {
     StartupViewModel viewModel,
     Widget? child,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       body: Center(
         child: Column(
@@ -30,7 +31,7 @@ class StartupView extends StackedView<StartupViewModel> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  loading,
+                  l10n.loading,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                       ),

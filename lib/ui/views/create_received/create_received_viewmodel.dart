@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
@@ -34,6 +35,8 @@ class CreateReceivedViewModel extends BaseViewModel {
     _warehouse = warehouse;
   }
 
+  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+
   Future<void> captureAndRecognizeText() async {
     setBusy(true);
     try {
@@ -53,8 +56,8 @@ class CreateReceivedViewModel extends BaseViewModel {
 
     } catch (e) {
       await _dialogService.showDialog(
-        title: 'Error de Escaneo',
-        description: 'No se pudo procesar el documento. Error: ${e.toString()}',
+        title: l10n.scanError,
+        description: l10n.scanErrorDescription(e.toString()),
       );
     } finally {
       setBusy(false);
@@ -131,11 +134,11 @@ class CreateReceivedViewModel extends BaseViewModel {
           productNameController.text, productDescriptionController.text);
       Lot lot = await _findOrCreateLot(lotController.text, product);
       int numPallets = int.tryParse(numPalletController.text) ?? 0;
-      if (numPallets <= 0) throw Exception("El número de palets debe ser mayor que cero.");
+      if (numPallets <= 0) throw Exception(l10n.palletsGreaterThanZero);
       await _generatePallets(numPallets, lot.id!, _warehouse);
       return true;
     } catch (e) {
-      await _dialogService.showDialog(title: 'Error al Guardar', description: 'Ocurrió un problema al guardar los datos. Error: ${e.toString()}');
+      await _dialogService.showDialog(title: l10n.saveError, description: l10n.saveErrorDescription(e.toString()));
       return false;
     } finally {
       setBusy(false);
@@ -143,7 +146,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   }
 
   Future<Product> _findOrCreateProduct(String name, String description) async {
-    if (name.trim().isEmpty) throw Exception("El nombre del producto no puede estar vacío.");
+    if (name.trim().isEmpty) throw Exception(l10n.productNameRequired);
 
     Product? existingProduct = await DatabaseHelper.instance.findProductByName(name);
 
@@ -169,7 +172,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   }
 
   Future<Lot> _findOrCreateLot(String name, Product product) async {
-    if (name.trim().isEmpty) throw Exception("El nombre del lote no puede estar vacío.");
+    if (name.trim().isEmpty) throw Exception(l10n.lotNameRequired);
     Lot? existingLot = await DatabaseHelper.instance.findLotByName(name);
     if (existingLot != null) return existingLot;
     int newLotId = await DatabaseHelper.instance.insertLot(Lot(name: name, product: product));

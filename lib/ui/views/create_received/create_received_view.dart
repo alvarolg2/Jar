@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/app_colors.dart';
-import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/create_received/create_received_viewmodel.dart';
 import 'package:stacked/stacked.dart';
@@ -22,12 +22,13 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ViewModelBuilder<CreateReceivedViewModel>.reactive(
       viewModelBuilder: () => CreateReceivedViewModel(),
       onViewModelReady: (viewModel) => viewModel.init(widget.warehouse),
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
-          title: const Text(addReception),
+          title: Text(l10n.addReception),
         ),
         body: Form(
           key: _formKey,
@@ -36,13 +37,13 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
             children: <Widget>[
               TextFormField(
                 controller: viewModel.productNameController,
-                decoration: const InputDecoration(
-                  labelText: "Nombre del producto",
-                  helperText: '* Requerido',
+                decoration:  InputDecoration(
+                  labelText: l10n.productName,
+                  helperText: l10n.requiredField,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return validateProduct;
+                    return l10n.validateProduct;
                   }
                   return null;
                 },
@@ -50,20 +51,20 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
               verticalSpaceMedium,
               TextFormField(
                 controller: viewModel.productDescriptionController,
-                decoration: const InputDecoration(
-                  labelText: "Descripción del producto",
+                decoration: InputDecoration(
+                  labelText: l10n.productDescription,
                 ),
               ),
               verticalSpaceMedium,
               TextFormField(
                 controller: viewModel.lotController,
-                decoration: const InputDecoration(
-                  labelText: "Lote",
-                  helperText: '* Requerido',
+                decoration: InputDecoration(
+                  labelText: l10n.batch,
+                  helperText: l10n.requiredField,
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return validateBatch;
+                    return l10n.validateBatch;
                   }
                   return null;
                 },
@@ -75,16 +76,16 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.digitsOnly
                 ],
-                decoration: const InputDecoration(
-                  labelText: "Número de palets",
-                  helperText: '* Requerido',
+                decoration: InputDecoration(
+                  labelText: l10n.numberOfPallets,
+                  helperText: l10n.requiredField,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return validatePallets;
+                    return l10n.validatePallets;
                   }
                   if ((int.tryParse(value) ?? 0) <= 0) {
-                    return 'El número debe ser mayor que cero';
+                    return l10n.validatePalletsNumber;
                   }
                   return null;
                 },
@@ -102,9 +103,9 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   leading: Icon(Icons.camera_alt, color: Theme.of(context).colorScheme.secondary),
-                  title: const Text(
-                    scanDocument,
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  title: Text(
+                    l10n.scanDocument,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   onTap: viewModel.isBusy ? null : viewModel.captureAndRecognizeText,
                   trailing: viewModel.isBusy
@@ -153,7 +154,7 @@ class _CreateReceivedViewState extends State<CreateReceivedView> {
                       )
                     : const Icon(Icons.save),
                 label: Text(
-                  viewModel.isBusy ? "Guardando..." : save,
+                  viewModel.isBusy ? l10n.saving : l10n.save,
                 ),
               ),
             ],

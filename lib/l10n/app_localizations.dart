@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
 
 // ignore_for_file: type=lint
 
@@ -95,7 +96,8 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('es')
+    Locale('es'),
+    Locale('fr')
   ];
 
   /// No description provided for @appName.
@@ -320,11 +322,11 @@ abstract class AppLocalizations {
   /// **'26'**
   String get defaultNumberPallets;
 
-  /// No description provided for @palletsTitle.
+  /// El título para la sección de palés, en singular o plural
   ///
   /// In es, this message translates to:
-  /// **'PALÉS'**
-  String get palletsTitle;
+  /// **'{count, plural, =1{PALÉ} other{PALÉS}}'**
+  String palletsTitle(int count);
 
   /// No description provided for @palletsDefective.
   ///
@@ -668,7 +670,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en', 'es'].contains(locale.languageCode);
+      <String>['en', 'es', 'fr'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -681,6 +683,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsEn();
     case 'es':
       return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
   }
 
   throw FlutterError(

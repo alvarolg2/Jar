@@ -41,7 +41,15 @@
     "resetFilters": "Reiniciar filtros",
     "defaultNumberPallets": "26",
     
-    "palletsTitle": "PALÉS",
+    "palletsTitle": "{count, plural, =1{PALÉ} other{PALÉS}}",
+    "@palletsTitle": {
+        "description": "El título para la sección de palés, en singular o plural",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "palletsDefective": "Palés defectuosos",
     "defectiveLot": "LOTE DEFECTUOSO",
     "numberOfPallets": "Número de palés",

@@ -1,0 +1,202 @@
+{
+    "@@locale": "fr",
+    "appName": "HOZON - JAR",
+    "loading": "Chargement...",
+    "pallets": "palettes",
+    "withOutName": "Sans nom",
+    "withOutProduct": "Sans produit",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "add": "Ajouter",
+    "save": "Enregistrer",
+    "saving": "Enregistrement...",
+    "error": "Erreur",
+    "gotIt": "Compris",
+    "all": "Tous",
+    "product": "Produit",
+    "batch": "Lot",
+    "requiredField": "* Requis",
+    "tooltipDefectiveButton": "Afficher les palettes défectueuses",
+    "tooltipAddWarehouseButton": "Ajouter un entrepôt",
+    "tooltipAddPallets": "Ajouter des palettes",
+    "tooltipSubstractPallets": "Sortir des palettes",
+    "tooltipDefectivePallets": "Marquer comme défectueux",
+    "tooltipDateCreationBatch": "Date de création du lot",
+    "tooltipTruckLoads": "(Nombre de camions complets, palettes restantes)",
+    "moreOptions": "Plus d'options",
+    "filterByProduct": "Filtrer par produit",
+    "addWarehouse": "Ajouter un entrepôt",
+    "editWarehouse": "Modifier l'entrepôt",
+    "nameWarehouse": "Nom de l'entrepôt",
+    "myWarehouses": "Mes Entrepôts",
+    "noWarehouses": "Aucun entrepôt",
+    "noWarehousesMessage": "Ajoutez votre premier entrepôt en utilisant le bouton '+' ci-dessus.",
+    "addReception": "Ajouter une réception",
+    "productName": "Nom du produit",
+    "productDescription": "Description du produit",
+    "scanDocument": "Scanner un document",
+    "resetFilters": "Réinitialiser les filtres",
+    "defaultNumberPallets": "26",
+    "palletsTitle": "{count, plural, =1{PALETTE} other{PALETTES}}",
+    "@palletsTitle": {
+        "description": "Le titre pour la section des palettes, au singulier ou au pluriel",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "palletsDefective": "Palettes défectueuses",
+    "defectiveLot": "LOT DÉFECTUEUX",
+    "numberOfPallets": "Nombre de palettes",
+    "confirmPallets": "Confirmer les palettes",
+    "inPallets": "Entrée de palettes",
+    "palletExit": "Sortie de palettes",
+    "discountPallets": "Décompter les palettes",
+    "lotLabel": "Lot : {lotName}",
+    "@lotLabel": {
+        "description": "Étiquette pour afficher le nom d'un lot",
+        "placeholders": {
+            "lotName": {
+                "type": "String",
+                "example": "LOTE-123"
+            }
+        }
+    },
+    "noPalletsForProduct": "Aucune palette trouvée pour le produit \"{productName}\"",
+    "@noPalletsForProduct": {
+        "description": "Message quand aucune palette n'est trouvée pour un produit filtré",
+        "placeholders": {
+            "productName": {
+                "type": "String",
+                "example": "Produit A"
+            }
+        }
+    },
+    "noPalletsToShow": "Aucune palette à afficher.",
+    "validateProduct": "Veuillez saisir un produit",
+    "validateBatch": "Veuillez saisir un lot",
+    "validatePallets": "Veuillez saisir un nombre de palettes",
+    "validatePalletsNumber": "Le nombre doit être supérieur à zéro",
+    "palletsGreaterThanZero": "Le nombre de palettes doit être supérieur à zéro.",
+    "productNameRequired": "Le nom du produit ne peut pas être vide.",
+    "lotNameRequired": "Le nom du lot ne peut pas être vide.",
+    "snackbarDefective": "Le nombre saisi est supérieur au nombre de palettes disponibles.",
+    "scanError": "Erreur de numérisation",
+    "scanErrorDescription": "Impossible de traiter le document. Erreur : {error}",
+    "@scanErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "saveError": "Erreur d'enregistrement",
+    "saveErrorDescription": "Une erreur est survenue lors de l'enregistrement des données. Erreur : {error}",
+    "@saveErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "importDB": "Importer BDD",
+    "exportDB": "Exporter BDD",
+    "generatePDFReport": "Générer Rapport PDF",
+    "version": "Version",
+    "versionUnknown": "Version inconnue",
+    "dbBackupSubject": "Sauvegarde BDD - JAR App - {date}",
+    "@dbBackupSubject": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "dbBackupBody": "Ci-joint la base de données \"warehouse_transport.db\".",
+    "exportError": "Erreur d'exportation",
+    "exportErrorDescription": "Impossible d'exporter la base de données. Détail : {error}",
+    "@exportErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "importConfirm": "Confirmer l'importation",
+    "importConfirmMessage": "Êtes-vous sûr de vouloir importer ce fichier ? Toutes les données actuelles seront effacées et remplacées par les données du fichier sélectionné. Cette action est irréversible.",
+    "importConfirmYes": "Oui, importer",
+    "importComplete": "Importation terminée",
+    "importCompleteMessage": "La base de données a été importée avec succès. L'application va redémarrer pour charger les nouvelles données.",
+    "importError": "Erreur d'importation",
+    "importErrorDescription": "Impossible d'importer la base de données. Assurez-vous qu'il s'agit d'un fichier valide. Détail : {error}",
+    "@importErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "reportSubject": "Rapport d'entrepôt - {date}",
+    "@reportSubject": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportBody": "Ci-joint le rapport sur l'état actuel des entrepôts.",
+    "reportEmptyTitle": "Rapport vide",
+    "reportEmptyMessage": "Il n'y a aucune palette dans les entrepôts pour générer un rapport.",
+    "pdfError": "Erreur PDF",
+    "pdfErrorDescription": "Une erreur est survenue lors de la création du rapport. Détail : {error}",
+    "@pdfErrorDescription": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "reportStandardInventory": "Inventaire Standard",
+    "reportTotalStandard": "Total Palettes Standard : {count}",
+    "@reportTotalStandard": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "reportNoStandardPallets": "Aucune palette standard dans cet entrepôt.",
+    "reportDefectiveInventory": "Inventaire Défectueux",
+    "reportTotalDefective": "Total Palettes Défectueuses : {count}",
+    "@reportTotalDefective": {
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "reportNoDefectivePallets": "Aucune palette défectueuse dans cet entrepôt.",
+    "reportTitle": "Rapport d'inventaire",
+    "reportGenerated": "Généré le : {date}",
+    "@reportGenerated": {
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPage": "Page {pageNumber} sur {totalPages}",
+    "@reportPage": {
+        "placeholders": {
+            "pageNumber": {
+                "type": "int"
+            },
+            "totalPages": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPalletCount": "Nb Palettes",
+    "dropdownProductText": "Sélectionner un produit"
+}

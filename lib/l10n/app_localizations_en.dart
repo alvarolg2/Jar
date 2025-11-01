@@ -121,7 +121,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get defaultNumberPallets => '26';
 
   @override
-  String get palletsTitle => 'PALLETS';
+  String palletsTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'PALLETS',
+      one: 'PALLET',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get palletsDefective => 'Defective Pallets';

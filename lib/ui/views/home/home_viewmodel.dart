@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jar/app/app.locator.dart';
 import 'package:jar/app/app.router.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/report_item.dart';
 import 'package:jar/models/warehouse.dart';
@@ -43,6 +44,8 @@ class HomeViewModel extends ReactiveViewModel {
   Product? get selectedProduct => _filterService.selectedProduct.value;
   late bool isFilterActive;
 
+  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+
   void setShowDropdown(bool value) {
     _filterService.setShowDropdown(value);
   }
@@ -74,10 +77,10 @@ class HomeViewModel extends ReactiveViewModel {
   Future<void> _getAppVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      _appVersion = 'Versión ${packageInfo.version}';
+      _appVersion = '${l10n.version} ${packageInfo.version}';
       notifyListeners();
     } catch (e) {
-      _appVersion = 'Versión desconocida';
+      _appVersion = l10n.versionUnknown;
       notifyListeners();
     }
   }
@@ -167,11 +170,11 @@ class HomeViewModel extends ReactiveViewModel {
       final path = await DatabaseHelper.getDatabasePath();
       await Share.shareXFiles(
         [XFile(path)],
-        subject: 'Backup Base de Datos - JAR App - ${DateTime.now().toIso8601String()}',
-        text: 'Adjunto se encuentra la base de datos "warehouse_transport.db".'
+        subject: l10n.dbBackupSubject(DateTime.now().toLocal().toString().split(' ')[0]),
+        text: l10n.dbBackupBody
       );
     } catch (e) {
-      await _dialogService.showDialog(title: 'Error al Exportar', description: 'No se pudo exportar la base de datos. Detalle: ${e.toString()}');
+      await _dialogService.showDialog(title: l10n.exportError, description: l10n.exportErrorDescription(e.toString()));
     } finally {
       setBusy(false);
     }
@@ -183,10 +186,10 @@ class HomeViewModel extends ReactiveViewModel {
       if (result == null) return;
 
       final response = await _dialogService.showConfirmationDialog(
-        title: 'Confirmar Importación',
-        description: '¿Estás seguro de que quieres importar este archivo? Todos los datos actuales se borrarán y serán reemplazados por los del archivo seleccionado. Esta acción no se puede deshacer.',
-        confirmationTitle: 'Sí, Importar',
-        cancelTitle: 'Cancelar',
+        title: l10n.importConfirm,
+        description: l10n.importConfirmMessage,
+        confirmationTitle: l10n.importConfirmYes,
+        cancelTitle: l10n.cancel,
       );
       if (response?.confirmed != true) return;
 
@@ -200,13 +203,13 @@ class HomeViewModel extends ReactiveViewModel {
       await File(sourcePath).copy(destinationPath);
 
       setBusy(false);
-      await _dialogService.showDialog(title: 'Importación Completa', description: 'La base de datos se ha importado correctamente. La aplicación se reiniciará para cargar los nuevos datos.');
+      await _dialogService.showDialog(title: l10n.importComplete, description: l10n.importCompleteMessage);
       
       _navigationService.clearStackAndShow(Routes.homeView);
 
     } catch (e) {
       setBusy(false);
-      await _dialogService.showDialog(title: 'Error al Importar', description: 'No se pudo importar la base de datos. Asegúrate de que es un archivo válido. Detalle: ${e.toString()}');
+      await _dialogService.showDialog(title: l10n.importError, description: l10n.importErrorDescription(e.toString()));
     }
   }
 
@@ -220,8 +223,8 @@ Future<void> generateAndShareWarehouseReport() async {
 
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
         await _dialogService.showDialog(
-            title: 'Informe Vacío',
-            description: 'No hay palets en los almacenes para generar un informe.');
+            title: l10n.reportEmptyTitle,
+            description: l10n.reportEmptyMessage);
         setBusy(false);
         return;
       }
@@ -230,20 +233,18 @@ Future<void> generateAndShareWarehouseReport() async {
 
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final file = await File('${tempDir.path}/reporte_almacen_$timestamp.pdf')
+      final file = await File('${tempDir.path}/report_warehouse_$timestamp.pdf')
           .writeAsBytes(pdfBytes);
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        subject:
-            'Reporte de Almacenes - ${DateTime.now().toLocal().toString().split(' ')[0]}',
-        text: 'Adjunto se encuentra el reporte del estado actual de los almacenes.',
+        subject: l10n.reportSubject(DateTime.now().toLocal().toString().split(' ')[0]),
+        text: l10n.reportBody,
       );
     } catch (e) {
       await _dialogService.showDialog(
-          title: 'Error al Generar PDF',
-          description:
-              'Ocurrió un problema al crear el informe. Detalle: ${e.toString()}');
+          title: l10n.pdfError,
+          description: l10n.pdfErrorDescription(e.toString()));
     } finally {
       setBusy(false);
     }
@@ -294,7 +295,7 @@ Future<void> generateAndShareWarehouseReport() async {
                     color: brandPrimary)),
             pw.SizedBox(height: 20),
 
-            pw.Text('Inventario Estándar',
+            pw.Text(l10n.reportStandardInventory,
                 style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
@@ -306,18 +307,18 @@ Future<void> generateAndShareWarehouseReport() async {
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Text('Total Palets Estándar: $totalNormalPallets',
+                child: pw.Text(l10n.reportTotalStandard(totalNormalPallets),
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, color: brandPrimary)),
               ),
             ] else
-              pw.Text('No hay palets estándar en este almacén.',
+              pw.Text(l10n.reportNoStandardPallets,
                   style: pw.TextStyle(
                       fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
 
             pw.SizedBox(height: 25),
 
-            pw.Text('Inventario Defectuoso',
+            pw.Text(l10n.reportDefectiveInventory,
                 style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
@@ -330,13 +331,13 @@ Future<void> generateAndShareWarehouseReport() async {
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Text('Total Palets Defectuosos: $totalDefectivePallets',
+                child: pw.Text(l10n.reportTotalDefective(totalDefectivePallets),
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         color: brandDefective)),
               ),
             ] else
-              pw.Text('No hay palets defectuosos en este almacén.',
+              pw.Text(l10n.reportNoDefectivePallets,
                   style: pw.TextStyle(
                       fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
           ],
@@ -366,13 +367,13 @@ Future<void> generateAndShareWarehouseReport() async {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text('Reporte de Inventario',
+              pw.Text(l10n.reportTitle,
                   style: pw.TextStyle(
                       color: brandPrimary,
                       fontSize: 18,
                       fontWeight: pw.FontWeight.bold)),
               pw.Text(
-                  'Generado: ${DateTime.now().toLocal().toString().split('.')[0]}',
+                  l10n.reportGenerated(DateTime.now().toLocal().toString().split(' ')[0]),
                   style: const pw.TextStyle(
                       color: PdfColors.grey600, fontSize: 10)),
             ],
@@ -386,7 +387,7 @@ Future<void> generateAndShareWarehouseReport() async {
     return pw.Container(
       alignment: pw.Alignment.centerRight,
       child: pw.Text(
-        'Página ${context.pageNumber} de ${context.pagesCount}',
+        l10n.reportPage(context.pageNumber, context.pagesCount),
         style: pw.TextStyle(
           color: PdfColor(brandPrimary.red, brandPrimary.green, brandPrimary.blue, 0.7),
           fontSize: 9,
@@ -398,7 +399,7 @@ Future<void> generateAndShareWarehouseReport() async {
   pw.Widget _buildWarehouseTable(List<WarehouseReportItem> items,
       PdfColor headerColor, PdfColor zebraColor) {
     
-    final headers = ['Producto', 'Lote', 'Nº Palets'];
+    final headers = [l10n.product, l10n.batch, l10n.reportPalletCount];
 
     final headerStyle = pw.TextStyle(
         fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10);
@@ -413,7 +414,7 @@ Future<void> generateAndShareWarehouseReport() async {
           child: pw.Text(
             header,
             style: headerStyle,
-            textAlign: header == 'Nº Palets' ? pw.TextAlign.right : pw.TextAlign.left,
+            textAlign: header == l10n.reportPalletCount ? pw.TextAlign.right : pw.TextAlign.left,
           ),
         );
       }).toList(),

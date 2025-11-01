@@ -41,7 +41,15 @@
     "resetFilters": "Reset filters",
     "defaultNumberPallets": "26",
     
-    "palletsTitle": "PALLETS",
+    "palletsTitle": "{count, plural, =1{PALLET} other{PALLETS}}",
+    "@palletsTitle": {
+        "description": "The title for the pallet section, in singular or plural",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
     "palletsDefective": "Defective Pallets",
     "defectiveLot": "DEFECTIVE LOT",
     "numberOfPallets": "Number of pallets",
