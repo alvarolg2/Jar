@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jar/ui/bottom_sheets/pallet_in/pallet_in_sheet_model.dart';
-import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
@@ -18,74 +17,52 @@ class PalletsInSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ViewModelBuilder<PalletsInSheetModel>.reactive(
       viewModelBuilder: () => PalletsInSheetModel(),
       builder: (context, model, child) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [kcBackgroundColor, kcPrimaryColor],
-          ),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
         ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            verticalSpace(20),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            verticalSpaceMedium,
             Text(
               inPallets,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    offset: const Offset(1.0, 1.0),
-                    blurRadius: 3.0,
-                    color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.5),
-                  ),
-                ],
-              ),
+              style: theme.textTheme.titleLarge
+                  ?.copyWith(color: theme.colorScheme.primary),
             ),
             Text(
               "Lote: ${request.title}",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    offset: const Offset(1.0, 1.0),
-                    blurRadius: 3.0,
-                    color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.5),
-                  ),
-                ],
-              ),
+              style: theme.textTheme.bodyLarge
+                  ?.copyWith(color: theme.colorScheme.primary),
             ),
             verticalSpace(20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: TextField(
-                      controller: model.palletsController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: numberOfPallets,
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                      ),
+                  child: TextField(
+                    controller: model.palletsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: numberOfPallets,
                     ),
                   ),
                 ),
@@ -93,12 +70,13 @@ class PalletsInSheet extends StatelessWidget {
                 ElevatedButton(
                   onPressed: model.addTwentySixPallets,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,
-                    backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                   ),
                   child: const Text(defaultNumberPallets),
                 ),
@@ -115,16 +93,9 @@ class PalletsInSheet extends StatelessWidget {
                   model.showInvalidInputError();
                 }
               },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
               child: const Text(confirmPallets),
             ),
+            verticalSpaceSmall,
           ],
         ),
       ),
