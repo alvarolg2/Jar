@@ -12,6 +12,7 @@ import 'package:stacked_services/src/navigation/navigation_service.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 
 import '../services/filter_service.dart';
+import '../services/label_parser_service.dart';
 import '../services/locale_service.dart';
 import '../services/update_service.dart';
 import '../services/warehouse_data_service.dart';
@@ -34,4 +35,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => UpdateService());
   locator.registerLazySingleton(() => FilterService());
   locator.registerLazySingleton(() => LocaleService());
+  locator.registerLazySingleton(() => LabelParserService());
 }
