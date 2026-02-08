@@ -11,6 +11,7 @@ import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/services/label_parser_service.dart';
+import 'package:jar/models/parsed_label_data.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -59,7 +60,7 @@ class CreateReceivedViewModel extends BaseViewModel {
           await textRecognizer.processImage(inputImage);
       textRecognizer.close();
 
-      _parseRecognizedText(recognizedText);
+      await _parseRecognizedText(recognizedText);
     } catch (e) {
       await _dialogService.showDialog(
         title: l10n.scanError,
@@ -70,8 +71,23 @@ class CreateReceivedViewModel extends BaseViewModel {
     }
   }
 
-  void _parseRecognizedText(RecognizedText recognizedText) {
-    final parsedData = _labelParserService.parseRecognizedText(recognizedText);
+  Future<void> _parseRecognizedText(RecognizedText recognizedText) async {
+    ParsedLabelData parsedData =
+        _labelParserService.parseRecognizedText(recognizedText);
+
+    try {
+      final aiData = await _labelParserService.parseWithAi(recognizedText.text);
+      if (aiData != null) {
+        parsedData = ParsedLabelData(
+          product: aiData.product ?? parsedData.product,
+          description: aiData.description ?? parsedData.description,
+          lot: aiData.lot ?? parsedData.lot,
+          pallets: aiData.pallets ?? parsedData.pallets,
+        );
+      }
+    } catch (e) {
+      print('AI parsing failed: $e');
+    }
 
     if (parsedData.product != null)
       _productNameController.text = parsedData.product!;

@@ -1,11 +1,11 @@
 import 'dart:ui';
-import 'dart:math' as math; // Importante para cálculos de distancia
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:jar/app/app.locator.dart';
+import 'package:jar/services/ai_label_parser_service.dart';
+import 'package:jar/models/parsed_label_data.dart';
 
 class LabelParserService {
-  /// Analiza el texto reconocido y extrae los datos relevantes usando geometría y proximidad.
   ParsedLabelData parseRecognizedText(RecognizedText recognizedText) {
-    // 1. Diccionarios de palabras clave (Multilingüe y robusto)
     final productKeys = [
       'Material Code',
       'Material',
@@ -17,31 +17,21 @@ class LabelParserService {
     final lotKeys = ['Batch', 'Lote', 'Lot', 'Partida', 'Serie', 'B.'];
     final descKeys = ['Description', 'Desc', 'Descripción', 'Denominación'];
 
-    // 2. Usamos TextLine en lugar de TextElement para preservar palabras juntas
-    // Esto evita cortar "Manzanas Rojas" en solo "Manzanas"
     List<TextLine> allLines = _getAllLines(recognizedText);
 
     String? foundProduct;
     String? foundLot;
     String? foundDescription;
     String? foundPallets;
-    Rect?
-        productLabelRect; // Guardamos dónde encontramos la etiqueta del producto
+    Rect? productLabelRect;
 
-    // --- A. BÚSQUEDA GEOMÉTRICA INTELIGENTE ---
-
-    // Buscar Producto
     final productResult = _findValueSmart(allLines, productKeys);
     foundProduct = productResult?.value;
     productLabelRect = productResult?.labelRect;
 
-    // Buscar Lote
     final lotResult = _findValueSmart(allLines, lotKeys);
     foundLot = lotResult?.value;
 
-    // Buscar Descripción
-    // Estrategia: Si tenemos la posición del producto, buscamos texto debajo.
-    // Si no, buscamos la etiqueta "Description" explícita.
     if (productLabelRect != null) {
       foundDescription =
           _findTextBelow(allLines, productLabelRect, maxDistanceLines: 3);
@@ -51,37 +41,29 @@ class LabelParserService {
       foundDescription = descResult?.value;
     }
 
-    // --- B. BÚSQUEDA POR REGEX GLOBAL (Caso Pallets) ---
-    // Para pallets, suele ser "26 / PAL". Es mejor buscar en todo el texto líneas completas
-    // que coincidan con este patrón específico.
-    if (foundPallets == null) {
-      foundPallets = _findPalletsGlobal(recognizedText);
-    }
+    foundPallets = _findPalletsGlobal(recognizedText);
 
-    // --- C. LIMPIEZA ---
     return ParsedLabelData(
       product: _cleanValue(foundProduct),
-      description: _cleanDescription(
-          foundDescription), // Limpieza menos agresiva para descripción
+      description: _cleanDescription(foundDescription),
       lot: _cleanValue(foundLot),
       pallets: _cleanValue(foundPallets),
     );
   }
 
-  // --- MÉTODOS PRIVADOS DE LÓGICA GEOMÉTRICA ---
+  Future<ParsedLabelData?> parseWithAi(String rawText) async {
+    final aiService = locator<AiLabelParserService>();
+    return await aiService.parseWithAi(rawText);
+  }
 
-  /// Busca una etiqueta y devuelve el valor más cercano (en la misma línea, a la derecha o abajo)
   _ResultWithRect? _findValueSmart(List<TextLine> lines, List<String> keys) {
     for (var line in lines) {
       String text = line.text.trim();
 
-      // ¿Esta línea contiene una de nuestras etiquetas clave?
       bool isKey =
           keys.any((k) => text.toLowerCase().contains(k.toLowerCase()));
 
       if (isKey) {
-        // Opción 1: El valor está pegado en la misma línea (ej: "Lote: 12345")
-        // Intentamos quitar la clave y ver si queda algo útil.
         String cleanText = text;
         for (var k in keys) {
           cleanText = cleanText.replaceAll(RegExp(k, caseSensitive: false), '');
@@ -89,18 +71,15 @@ class LabelParserService {
         cleanText = cleanText.replaceAll(RegExp(r'[:\.\-]'), '').trim();
 
         if (cleanText.length > 2) {
-          // Si queda texto largo, asumimos que es el valor
           return _ResultWithRect(cleanText, line.boundingBox);
         }
 
-        // Opción 2: Buscar vecino a la DERECHA (poco común con TextLine, pero posible si son columnas muy separadas)
         TextLine? rightNeighbor =
             _findNearestNeighbor(line, lines, SearchDirection.right);
         if (rightNeighbor != null) {
           return _ResultWithRect(rightNeighbor.text, line.boundingBox);
         }
 
-        // Opción 3: Buscar vecino ABAJO
         TextLine? bottomNeighbor =
             _findNearestNeighbor(line, lines, SearchDirection.below);
         if (bottomNeighbor != null) {
@@ -111,15 +90,12 @@ class LabelParserService {
     return null;
   }
 
-  /// Encuentra la línea visual más cercana en una dirección
   TextLine? _findNearestNeighbor(
       TextLine target, List<TextLine> allLines, SearchDirection direction) {
     TextLine? bestMatch;
     double minDistance = double.infinity;
     Rect tRect = target.boundingBox;
 
-    // Usamos distancias relativas al tamaño del texto, no píxeles absolutos
-    // Esto hace que funcione igual en imágenes 4K o VGA
     final double relativeHeight = tRect.height;
 
     for (var candidate in allLines) {
@@ -130,32 +106,24 @@ class LabelParserService {
       double distance = double.infinity;
 
       if (direction == SearchDirection.right) {
-        // Alineado verticalmente (centers Y parecidos) y está a la derecha
-        bool sameRow = (cRect.center.dy - tRect.center.dy).abs() <
-            (relativeHeight * 1.5); // Tolerancia 1.5x altura
-        bool isRight =
-            cRect.left > tRect.left; // Estrictamente a la derecha del inicio
+        bool sameRow =
+            (cRect.center.dy - tRect.center.dy).abs() < (relativeHeight * 1.5);
+        bool isRight = cRect.left > tRect.left;
 
         if (sameRow && isRight) {
           isCandidate = true;
-          distance = cRect.left - tRect.right; // Distancia horizontal
+          distance = cRect.left - tRect.right;
         }
       } else {
-        // SearchDirection.below
-        // Alineado horizontalmente (centers X parecidos) y está abajo
-        // Aumentamos tolerancia en X porque la indentación puede variar
         bool sameCol =
             (cRect.center.dx - tRect.center.dx).abs() < (tRect.width * 2.0);
-        bool isBelow = cRect.top > tRect.bottom; // Estrictamente abajo
+        bool isBelow = cRect.top > tRect.bottom;
 
         if (sameCol && isBelow) {
           isCandidate = true;
-          distance = cRect.top - tRect.bottom; // Distancia vertical
+          distance = cRect.top - tRect.bottom;
         }
       }
-
-      // Filtros de distancia máxima relativos
-      // Max distancia: 3 saltos de línea aprox (3.0 * height)
       if (isCandidate &&
           distance >= 0 &&
           distance < (relativeHeight * 3.5) &&
@@ -167,7 +135,6 @@ class LabelParserService {
     return bestMatch;
   }
 
-  /// Busca texto alineado debajo de un rectángulo dado (para descripciones sin etiqueta)
   String? _findTextBelow(List<TextLine> lines, Rect topRect,
       {int maxDistanceLines = 2}) {
     TextLine? bestMatch;
@@ -177,11 +144,8 @@ class LabelParserService {
     for (var candidate in lines) {
       Rect cRect = candidate.boundingBox;
 
-      // Está debajo
       if (cRect.top <= topRect.bottom) continue;
 
-      // Alineación izquierda similar (útil para listas) o centro
-      // Tolerancia: medio ancho del caracter aprox, o porcentual
       bool alignedLeft =
           (cRect.left - topRect.left).abs() < (relativeHeight * 2);
       bool alignedCenter =
@@ -189,7 +153,6 @@ class LabelParserService {
 
       if (alignedLeft || alignedCenter) {
         double distance = cRect.top - topRect.bottom;
-        // Buscamos el más cercano que no esté lejísimos
         if (distance < (relativeHeight * maxDistanceLines * 1.8) &&
             distance < minDistance) {
           minDistance = distance;
@@ -201,8 +164,6 @@ class LabelParserService {
   }
 
   String? _findPalletsGlobal(RecognizedText text) {
-    // Busca patrones como "26 PAL", "26 / PAL", "26 pallets"
-    // El (\d+) captura el número antes
     final palletPattern =
         RegExp(r'(\d+)\s*[\/\|\\]?\s*(?:PAL|PLT)', caseSensitive: false);
 
@@ -217,7 +178,6 @@ class LabelParserService {
     return null;
   }
 
-  // Devolvemos TextLine directamente
   List<TextLine> _getAllLines(RecognizedText text) {
     List<TextLine> lines = [];
     for (var block in text.blocks) {
@@ -228,8 +188,6 @@ class LabelParserService {
 
   String? _cleanValue(String? text) {
     if (text == null) return null;
-    // Permitimos espacios ahora, para códigos como "Lote A 55"
-    // Siguen eliminándose caracteres raros
     return text.replaceAll(RegExp(r'[^\w\d\-\.\s]'), '').trim();
   }
 
@@ -239,20 +197,10 @@ class LabelParserService {
   }
 }
 
-// Clases de ayuda
 enum SearchDirection { right, below }
 
 class _ResultWithRect {
   final String value;
   final Rect labelRect;
   _ResultWithRect(this.value, this.labelRect);
-}
-
-class ParsedLabelData {
-  final String? product;
-  final String? description;
-  final String? lot;
-  final String? pallets;
-
-  ParsedLabelData({this.product, this.description, this.lot, this.pallets});
 }
