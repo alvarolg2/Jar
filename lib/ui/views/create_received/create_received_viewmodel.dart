@@ -10,6 +10,8 @@ import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/ui/common/database_helper.dart';
+import 'package:jar/services/label_parser_service.dart';
+import 'package:jar/models/parsed_label_data.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -18,6 +20,7 @@ enum SearchDirection { after, before }
 class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
+  final _labelParserService = locator<LabelParserService>();
 
   final _productNameController = TextEditingController();
   final _productDescriptionController = TextEditingController();
@@ -25,7 +28,8 @@ class CreateReceivedViewModel extends BaseViewModel {
   final _numPalletController = TextEditingController();
 
   TextEditingController get productNameController => _productNameController;
-  TextEditingController get productDescriptionController => _productDescriptionController;
+  TextEditingController get productDescriptionController =>
+      _productDescriptionController;
   TextEditingController get lotController => _lotController;
   TextEditingController get numPalletController => _numPalletController;
 
@@ -35,25 +39,28 @@ class CreateReceivedViewModel extends BaseViewModel {
     _warehouse = warehouse;
   }
 
-  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get l10n =>
+      AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
   Future<void> captureAndRecognizeText() async {
     setBusy(true);
     try {
-      final List<String> pictures = await CunningDocumentScanner.getPictures() ?? [];
+      final List<String> pictures =
+          await CunningDocumentScanner.getPictures() ?? [];
       if (pictures.isEmpty) {
         setBusy(false);
         return;
       }
-      
+
       final imagePath = pictures.first;
       final inputImage = InputImage.fromFilePath(imagePath);
-      final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-      final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+      final textRecognizer =
+          TextRecognizer(script: TextRecognitionScript.latin);
+      final RecognizedText recognizedText =
+          await textRecognizer.processImage(inputImage);
       textRecognizer.close();
 
-      _parseRecognizedText(recognizedText);
-
+      await _parseRecognizedText(recognizedText);
     } catch (e) {
       await _dialogService.showDialog(
         title: l10n.scanError,
@@ -64,69 +71,33 @@ class CreateReceivedViewModel extends BaseViewModel {
     }
   }
 
-  void _parseRecognizedText(RecognizedText recognizedText) {
-    String? foundProduct;
-    String? foundDescription;
-    String? foundLot;
-    String? foundPallets;
+  Future<void> _parseRecognizedText(RecognizedText recognizedText) async {
+    ParsedLabelData parsedData =
+        _labelParserService.parseRecognizedText(recognizedText);
 
-    Rect? productLineRect;
-
-    final productPattern = RegExp(r'Materia[l]?\s*Code[:\s]*([\w\d]+)', caseSensitive: false);
-    final lotPattern = RegExp(r'B?atch[:\s]*(\d+)', caseSensitive: false);
-    final palletPattern = RegExp(r'(\d+)\s*\/?\s*pal', caseSensitive: false);
-
-    for (TextBlock block in recognizedText.blocks) {
-      for (TextLine line in block.lines) {
-        final lineText = line.text;
-
-        if (foundProduct == null) {
-          final match = productPattern.firstMatch(lineText);
-          if (match != null && match.group(1) != null) {
-            foundProduct = match.group(1)!.toUpperCase();
-            productLineRect = line.boundingBox; // Guardamos su posición
-          }
-        }
-        
-        if (foundLot == null) {
-          final match = lotPattern.firstMatch(lineText);
-          if (match != null && match.group(1) != null) {
-            foundLot = match.group(1);
-          }
-        }
-
-        if (foundPallets == null) {
-          final match = palletPattern.firstMatch(lineText.toLowerCase());
-          if (match != null && match.group(1) != null) {
-            foundPallets = match.group(1);
-          }
-        }
+    try {
+      final aiData = await _labelParserService.parseWithAi(recognizedText.text);
+      if (aiData != null) {
+        parsedData = ParsedLabelData(
+          product: aiData.product ?? parsedData.product,
+          description: aiData.description ?? parsedData.description,
+          lot: aiData.lot ?? parsedData.lot,
+          pallets: aiData.pallets ?? parsedData.pallets,
+        );
       }
+    } catch (e) {
+      print('AI parsing failed: $e');
     }
 
-    if (productLineRect != null) {
-      for (TextBlock block in recognizedText.blocks) {
-        for (TextLine line in block.lines) {
-          bool isNotProductLine = !line.text.toLowerCase().contains('material');
-          
-          bool isVerticallyAligned = (line.boundingBox.center.dy - productLineRect!.center.dy).abs() < (productLineRect!.height / 2);
-
-          if (isNotProductLine && isVerticallyAligned) {
-            foundDescription = line.text.trim();
-            break; 
-          }
-        }
-        if (foundDescription != null) break;
-      }
-    }
-
-    if (foundProduct != null) _productNameController.text = foundProduct;
-    if (foundDescription != null) _productDescriptionController.text = foundDescription;
-    if (foundLot != null) _lotController.text = foundLot;
-    if (foundPallets != null) _numPalletController.text = foundPallets;
+    if (parsedData.product != null)
+      _productNameController.text = parsedData.product!;
+    if (parsedData.description != null)
+      _productDescriptionController.text = parsedData.description!;
+    if (parsedData.lot != null) _lotController.text = parsedData.lot!;
+    if (parsedData.pallets != null)
+      _numPalletController.text = parsedData.pallets!;
   }
-  
-  
+
   Future<bool> createLot() async {
     setBusy(true);
     try {
@@ -138,7 +109,9 @@ class CreateReceivedViewModel extends BaseViewModel {
       await _generatePallets(numPallets, lot.id!, _warehouse);
       return true;
     } catch (e) {
-      await _dialogService.showDialog(title: l10n.saveError, description: l10n.saveErrorDescription(e.toString()));
+      await _dialogService.showDialog(
+          title: l10n.saveError,
+          description: l10n.saveErrorDescription(e.toString()));
       return false;
     } finally {
       setBusy(false);
@@ -148,10 +121,12 @@ class CreateReceivedViewModel extends BaseViewModel {
   Future<Product> _findOrCreateProduct(String name, String description) async {
     if (name.trim().isEmpty) throw Exception(l10n.productNameRequired);
 
-    Product? existingProduct = await DatabaseHelper.instance.findProductByName(name);
+    Product? existingProduct =
+        await DatabaseHelper.instance.findProductByName(name);
 
     if (existingProduct != null) {
-      final bool needsUpdate = description.trim().isNotEmpty && existingProduct.description != description;
+      final bool needsUpdate = description.trim().isNotEmpty &&
+          existingProduct.description != description;
 
       if (needsUpdate) {
         final productToUpdate = Product(
@@ -160,13 +135,14 @@ class CreateReceivedViewModel extends BaseViewModel {
           description: description,
         );
         await DatabaseHelper.instance.updateProduct(productToUpdate);
-        return productToUpdate; 
+        return productToUpdate;
       } else {
         return existingProduct;
       }
     } else {
       final newProduct = Product(name: name, description: description);
-      int newProductId = await DatabaseHelper.instance.insertProduct(newProduct);
+      int newProductId =
+          await DatabaseHelper.instance.insertProduct(newProduct);
       return Product(id: newProductId, name: name, description: description);
     }
   }
@@ -175,15 +151,19 @@ class CreateReceivedViewModel extends BaseViewModel {
     if (name.trim().isEmpty) throw Exception(l10n.lotNameRequired);
     Lot? existingLot = await DatabaseHelper.instance.findLotByName(name);
     if (existingLot != null) return existingLot;
-    int newLotId = await DatabaseHelper.instance.insertLot(Lot(name: name, product: product));
+    int newLotId = await DatabaseHelper.instance
+        .insertLot(Lot(name: name, product: product));
     return Lot(id: newLotId, name: name, product: product);
   }
 
-  Future<void> _generatePallets(int numberOfPallets, int lotId, Warehouse warehouse) async {
+  Future<void> _generatePallets(
+      int numberOfPallets, int lotId, Warehouse warehouse) async {
     Random random = Random();
     for (int i = 0; i < numberOfPallets; i++) {
-      String palletReference = 'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}';
-      Pallet pallet = Pallet(name: palletReference, date: null, warehouse: warehouse);
+      String palletReference =
+          'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}';
+      Pallet pallet =
+          Pallet(name: palletReference, date: null, warehouse: warehouse);
       await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
     }
   }
