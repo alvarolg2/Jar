@@ -1,3 +1,4 @@
+import 'package:jar/services/locale_service.dart';
 import 'package:jar/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:jar/ui/dialogs/info_alert/info_alert_dialog.dart';
 import 'package:jar/ui/views/home/home_view.dart';
@@ -7,6 +8,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:jar/services/warehouse_data_service.dart';
 import 'package:jar/services/update_service.dart';
 import 'package:jar/services/filter_service.dart';
+import 'package:jar/services/label_parser_service.dart';
+import 'package:jar/services/ai_label_parser_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -22,6 +25,9 @@ import 'package:jar/services/filter_service.dart';
     LazySingleton(classType: WarehouseDataService),
     LazySingleton(classType: UpdateService),
     LazySingleton(classType: FilterService),
+    LazySingleton(classType: LocaleService),
+    LazySingleton(classType: LabelParserService),
+    LazySingleton(classType: AiLabelParserService),
 // @stacked-service
   ],
   bottomsheets: [

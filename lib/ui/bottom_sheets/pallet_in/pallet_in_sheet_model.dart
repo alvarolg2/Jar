@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
-import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
@@ -11,6 +11,8 @@ import 'package:stacked_services/stacked_services.dart';
 
 class PalletsInSheetModel extends BaseViewModel {
   final _snackbarService = SnackbarService();
+
+  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
   final TextEditingController palletsController = TextEditingController();
   bool _validationPassed = false;
@@ -29,7 +31,7 @@ class PalletsInSheetModel extends BaseViewModel {
   }
 
   void addTwentySixPallets() {
-    palletsController.text = defaultNumberPallets;
+    palletsController.text = l10n.defaultNumberPallets;
     notifyListeners();
   }
 
@@ -41,12 +43,12 @@ class PalletsInSheetModel extends BaseViewModel {
     } else {
       _validationPassed = false;
       _snackbarService.showSnackbar(
-        title: error,
-        message: snackbarDefective,
+        title: l10n.error,
+        message: l10n.snackbarDefective,
         duration: durationSnackbar,
       );
     }
-    notifyListeners(); // Asegúrate de notificar a los listeners sobre el cambio de estado.
+    notifyListeners();
   }
 
   Future<List<Pallet>> generatePallets(int numberOfPallets, int lotId, int warehouseId) async {
@@ -66,8 +68,8 @@ class PalletsInSheetModel extends BaseViewModel {
 
   void showInvalidInputError() {
     _snackbarService.showSnackbar(
-      title: error,
-      message: snackbarDefective,
+      title: l10n.error,
+      message: l10n.snackbarDefective,
       duration: durationSnackbar,
     );
   }

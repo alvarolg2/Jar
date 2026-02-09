@@ -1,7 +1,7 @@
 name: jar
 description: A new Flutter project.
 publish_to: 'none'
-version: 0.5.0
+version: 0.7.0
 
 environment:
   sdk: '>=3.0.3 <4.0.0'
@@ -21,7 +21,7 @@ dependencies:
   google_mlkit_smart_reply: ^0.13.0
   image_picker: ^1.0.7
   cunning_document_scanner: ^1.1.5
-  intl: ^0.17.0
+  intl: ^0.20.2
   stacked_hooks: ^0.2.4
   share_plus: ^11.1.0
   file_picker: ^10.3.1
@@ -29,6 +29,13 @@ dependencies:
   package_info_plus: ^8.3.1  
   in_app_update: ^4.2.3
   printing: ^5.12.0
+  shared_preferences: ^2.5.3
+  flag: ^7.0.0
+
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.1.5+1
+  google_generative_ai: ^0.4.7
 
 dev_dependencies:
   build_runner: ^2.4.5
@@ -41,6 +48,7 @@ dev_dependencies:
   change_app_package_name: ^1.5.0
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - assets/images/logo.png
@@ -49,6 +57,9 @@ flutter:
     - assets/images/background_bottom.png
     - assets/images/body.png
     - assets/icon/icon.png
+
+flutter_localizations:
+    sdk: flutter
 
 flutter_launcher_icons:
   android: true

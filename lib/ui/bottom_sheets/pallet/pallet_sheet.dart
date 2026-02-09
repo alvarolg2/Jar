@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/ui/bottom_sheets/pallet/pallet_sheet_model.dart';
-import 'package:jar/ui/common/app_strings.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -17,7 +17,9 @@ class PalletsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return ViewModelBuilder<PalletsSheetModel>.reactive(
       viewModelBuilder: () => PalletsSheetModel(),
@@ -44,12 +46,12 @@ class PalletsSheet extends StatelessWidget {
             ),
             verticalSpaceMedium,
             Text(
-              'Salida de Palés',
+              l10n.palletExit,
               style: theme.textTheme.titleLarge
                   ?.copyWith(color: theme.colorScheme.primary),
             ),
             Text(
-              "Lote: ${request.title}",
+              l10n.lotLabel(request.title ?? ""),
               style: theme.textTheme.bodyLarge
                   ?.copyWith(color: theme.colorScheme.primary),
             ),
@@ -61,8 +63,8 @@ class PalletsSheet extends StatelessWidget {
                   child: TextField(
                     controller: model.palletsController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: numberOfPallets,
+                    decoration: InputDecoration(
+                      labelText: l10n.numberOfPallets,
                     ),
                   ),
                 ),
@@ -78,7 +80,7 @@ class PalletsSheet extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
                   ),
-                  child: const Text(defaultNumberPallets),
+                  child: Text(l10n.defaultNumberPallets),
                 ),
               ],
             ),
@@ -92,7 +94,7 @@ class PalletsSheet extends StatelessWidget {
                       SheetResponse(confirmed: true, data: {"count": model.currentCount}));
                 }
               },
-              child: const Text(confirmPallets),
+              child: Text(l10n.confirmPallets),
             ),
             verticalSpaceSmall,
           ],
