@@ -44,14 +44,18 @@ class HomeViewModel extends ReactiveViewModel {
   Product? get selectedProduct => _filterService.selectedProduct.value;
   late bool isFilterActive;
 
-  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get l10n =>
+      AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
   void setShowDropdown(bool value) {
     _filterService.setShowDropdown(value);
   }
 
   @override
-  List<ListenableServiceMixin> get listenableServices => [_warehouseDataService, _filterService,];
+  List<ListenableServiceMixin> get listenableServices => [
+        _warehouseDataService,
+        _filterService,
+      ];
 
   bool get showDropdown => _filterService.showDropdown.value;
 
@@ -92,7 +96,8 @@ class HomeViewModel extends ReactiveViewModel {
 
   void initTabController(TickerProvider vsync) {
     if (tabController != null && tabController!.length == warehouseCount) {
-      if (tabController!.index != currentIndex) tabController!.animateTo(currentIndex);
+      if (tabController!.index != currentIndex)
+        tabController!.animateTo(currentIndex);
       return;
     }
     tabController?.removeListener(_onTabChanged);
@@ -101,30 +106,35 @@ class HomeViewModel extends ReactiveViewModel {
       tabController = null;
       return;
     }
-    tabController = TabController(length: warehouseCount, initialIndex: currentIndex, vsync: vsync);
+    tabController = TabController(
+        length: warehouseCount, initialIndex: currentIndex, vsync: vsync);
     tabController!.addListener(_onTabChanged);
   }
 
   void _onTabChanged() {
-    if (currentIndex != tabController!.index && !tabController!.indexIsChanging) {
+    if (currentIndex != tabController!.index &&
+        !tabController!.indexIsChanging) {
       currentIndex = tabController!.index;
       notifyListeners();
     }
   }
 
   Future<void> fetchWarehouses() async {
-    _warehouseDataService.warehouses.value = await DatabaseHelper.instance.getAllWarehouses();
+    _warehouseDataService.warehouses.value =
+        await DatabaseHelper.instance.getAllWarehouses();
     if (currentIndex >= warehouses.length) {
       currentIndex = warehouses.isNotEmpty ? warehouses.length - 1 : 0;
     }
   }
 
   Future<void> fetchPalletCounts() async {
-    _warehouseDataService.palletCounts.value = await DatabaseHelper.instance.getAllWarehousePalletCounts(isDefective: isActivated);
+    _warehouseDataService.palletCounts.value = await DatabaseHelper.instance
+        .getAllWarehousePalletCounts(isDefective: isActivated);
   }
 
   Future<void> addWarehouse(String name) async {
-    await runBusyFuture(DatabaseHelper.instance.createWarehouse(Warehouse(name: name)));
+    await runBusyFuture(
+        DatabaseHelper.instance.createWarehouse(Warehouse(name: name)));
     await fetchWarehouses();
     await fetchPalletCounts();
   }
@@ -145,14 +155,22 @@ class HomeViewModel extends ReactiveViewModel {
     isActivated = !isActivated;
     _filterService.setSelectedProduct(null);
     fetchPalletCounts();
-    notifyListeners();  
+    notifyListeners();
   }
 
   void navigateToCreateReceived(BuildContext context) {
     if (warehouses.isNotEmpty) {
       final Warehouse selectedWarehouse = warehouses[currentIndex];
-      Navigator.push(context, MaterialPageRoute(builder: (context) => CreateReceivedView(warehouse: selectedWarehouse)));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  CreateReceivedView(warehouse: selectedWarehouse)));
     }
+  }
+
+  void navigateToAnalysis() {
+    _navigationService.navigateToAnalysisView();
   }
 
   void setCurrentIndex(int index) {
@@ -168,13 +186,14 @@ class HomeViewModel extends ReactiveViewModel {
       await DatabaseHelper.instance.close();
       await Future.delayed(const Duration(milliseconds: 500));
       final path = await DatabaseHelper.getDatabasePath();
-      await Share.shareXFiles(
-        [XFile(path)],
-        subject: l10n.dbBackupSubject(DateTime.now().toLocal().toString().split(' ')[0]),
-        text: l10n.dbBackupBody
-      );
+      await Share.shareXFiles([XFile(path)],
+          subject: l10n.dbBackupSubject(
+              DateTime.now().toLocal().toString().split(' ')[0]),
+          text: l10n.dbBackupBody);
     } catch (e) {
-      await _dialogService.showDialog(title: l10n.exportError, description: l10n.exportErrorDescription(e.toString()));
+      await _dialogService.showDialog(
+          title: l10n.exportError,
+          description: l10n.exportErrorDescription(e.toString()));
     } finally {
       setBusy(false);
     }
@@ -182,7 +201,8 @@ class HomeViewModel extends ReactiveViewModel {
 
   Future<void> importDatabase() async {
     try {
-      final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['db']);
+      final result = await FilePicker.platform
+          .pickFiles(type: FileType.custom, allowedExtensions: ['db']);
       if (result == null) return;
 
       final response = await _dialogService.showConfirmationDialog(
@@ -203,28 +223,29 @@ class HomeViewModel extends ReactiveViewModel {
       await File(sourcePath).copy(destinationPath);
 
       setBusy(false);
-      await _dialogService.showDialog(title: l10n.importComplete, description: l10n.importCompleteMessage);
-      
-      _navigationService.clearStackAndShow(Routes.homeView);
+      await _dialogService.showDialog(
+          title: l10n.importComplete, description: l10n.importCompleteMessage);
 
+      _navigationService.clearStackAndShow(Routes.homeView);
     } catch (e) {
       setBusy(false);
-      await _dialogService.showDialog(title: l10n.importError, description: l10n.importErrorDescription(e.toString()));
+      await _dialogService.showDialog(
+          title: l10n.importError,
+          description: l10n.importErrorDescription(e.toString()));
     }
   }
 
-Future<void> generateAndShareWarehouseReport() async {
+  Future<void> generateAndShareWarehouseReport() async {
     setBusy(true);
     try {
-      final normalItems =
-          await DatabaseHelper.instance.getWarehouseReportItems(isDefective: false);
-      final defectiveItems =
-          await DatabaseHelper.instance.getWarehouseReportItems(isDefective: true);
+      final normalItems = await DatabaseHelper.instance
+          .getWarehouseReportItems(isDefective: false);
+      final defectiveItems = await DatabaseHelper.instance
+          .getWarehouseReportItems(isDefective: true);
 
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
         await _dialogService.showDialog(
-            title: l10n.reportEmptyTitle,
-            description: l10n.reportEmptyMessage);
+            title: l10n.reportEmptyTitle, description: l10n.reportEmptyMessage);
         setBusy(false);
         return;
       }
@@ -238,7 +259,8 @@ Future<void> generateAndShareWarehouseReport() async {
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        subject: l10n.reportSubject(DateTime.now().toLocal().toString().split(' ')[0]),
+        subject: l10n
+            .reportSubject(DateTime.now().toLocal().toString().split(' ')[0]),
         text: l10n.reportBody,
       );
     } catch (e) {
@@ -271,21 +293,21 @@ Future<void> generateAndShareWarehouseReport() async {
     for (final warehouseName in allWarehouseNames) {
       final currentNormalItems =
           normalItems.where((i) => i.warehouseName == warehouseName).toList();
-      final currentDefectiveItems =
-          defectiveItems.where((i) => i.warehouseName == warehouseName).toList();
+      final currentDefectiveItems = defectiveItems
+          .where((i) => i.warehouseName == warehouseName)
+          .toList();
 
-      final totalNormalPallets =
-          currentNormalItems.fold<int>(0, (sum, item) => sum + item.palletCount);
-      final totalDefectivePallets = currentDefectiveItems
-          .fold<int>(0, (sum, item) => sum + item.palletCount);
+      final totalNormalPallets = currentNormalItems.fold<int>(
+          0, (sum, item) => sum + item.palletCount);
+      final totalDefectivePallets = currentDefectiveItems.fold<int>(
+          0, (sum, item) => sum + item.palletCount);
 
       pdf.addPage(
         pw.MultiPage(
           pageTheme: pw.PageTheme(
               pageFormat: PdfPageFormat.a4,
               margin: const pw.EdgeInsets.all(32)),
-          header: (context) =>
-              _buildHeader(context, logoImage, brandPrimary),
+          header: (context) => _buildHeader(context, logoImage, brandPrimary),
           footer: (context) => _buildFooter(context, brandPrimary),
           build: (context) => [
             pw.Text(warehouseName,
@@ -294,7 +316,6 @@ Future<void> generateAndShareWarehouseReport() async {
                     fontWeight: pw.FontWeight.bold,
                     color: brandPrimary)),
             pw.SizedBox(height: 20),
-
             pw.Text(l10n.reportStandardInventory,
                 style: pw.TextStyle(
                     fontSize: 16,
@@ -302,8 +323,7 @@ Future<void> generateAndShareWarehouseReport() async {
                     color: brandAccent)),
             pw.SizedBox(height: 10),
             if (currentNormalItems.isNotEmpty) ...[
-              _buildWarehouseTable(
-                  currentNormalItems, brandPrimary, lightGrey),
+              _buildWarehouseTable(currentNormalItems, brandPrimary, lightGrey),
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
@@ -315,16 +335,13 @@ Future<void> generateAndShareWarehouseReport() async {
               pw.Text(l10n.reportNoStandardPallets,
                   style: pw.TextStyle(
                       fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
-
             pw.SizedBox(height: 25),
-
             pw.Text(l10n.reportDefectiveInventory,
                 style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
                     color: brandDefective)),
             pw.SizedBox(height: 10),
-
             if (currentDefectiveItems.isNotEmpty) ...[
               _buildWarehouseTable(
                   currentDefectiveItems, brandDefective, lightGrey),
@@ -333,8 +350,7 @@ Future<void> generateAndShareWarehouseReport() async {
                 alignment: pw.Alignment.centerRight,
                 child: pw.Text(l10n.reportTotalDefective(totalDefectivePallets),
                     style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        color: brandDefective)),
+                        fontWeight: pw.FontWeight.bold, color: brandDefective)),
               ),
             ] else
               pw.Text(l10n.reportNoDefectivePallets,
@@ -373,7 +389,8 @@ Future<void> generateAndShareWarehouseReport() async {
                       fontSize: 18,
                       fontWeight: pw.FontWeight.bold)),
               pw.Text(
-                  l10n.reportGenerated(DateTime.now().toLocal().toString().split(' ')[0]),
+                  l10n.reportGenerated(
+                      DateTime.now().toLocal().toString().split(' ')[0]),
                   style: const pw.TextStyle(
                       color: PdfColors.grey600, fontSize: 10)),
             ],
@@ -389,7 +406,8 @@ Future<void> generateAndShareWarehouseReport() async {
       child: pw.Text(
         l10n.reportPage(context.pageNumber, context.pagesCount),
         style: pw.TextStyle(
-          color: PdfColor(brandPrimary.red, brandPrimary.green, brandPrimary.blue, 0.7),
+          color: PdfColor(
+              brandPrimary.red, brandPrimary.green, brandPrimary.blue, 0.7),
           fontSize: 9,
         ),
       ),
@@ -398,7 +416,6 @@ Future<void> generateAndShareWarehouseReport() async {
 
   pw.Widget _buildWarehouseTable(List<WarehouseReportItem> items,
       PdfColor headerColor, PdfColor zebraColor) {
-    
     final headers = [l10n.product, l10n.batch, l10n.reportPalletCount];
 
     final headerStyle = pw.TextStyle(
@@ -414,7 +431,9 @@ Future<void> generateAndShareWarehouseReport() async {
           child: pw.Text(
             header,
             style: headerStyle,
-            textAlign: header == l10n.reportPalletCount ? pw.TextAlign.right : pw.TextAlign.left,
+            textAlign: header == l10n.reportPalletCount
+                ? pw.TextAlign.right
+                : pw.TextAlign.left,
           ),
         );
       }).toList(),
@@ -458,8 +477,8 @@ Future<void> generateAndShareWarehouseReport() async {
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
       columnWidths: const {
-        0: pw.FlexColumnWidth(3),   // Producto
-        1: pw.FlexColumnWidth(3),   // Lote
+        0: pw.FlexColumnWidth(3), // Producto
+        1: pw.FlexColumnWidth(3), // Lote
         2: pw.FlexColumnWidth(1.5), // Contador
       },
       children: [
@@ -469,7 +488,7 @@ Future<void> generateAndShareWarehouseReport() async {
     );
   }
 
-  Color filterActive () {
+  Color filterActive() {
     return selectedProduct == null ? Colors.white : kcDefectiveColor;
   }
 }
