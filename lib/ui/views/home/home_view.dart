@@ -6,7 +6,7 @@ import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:jar/ui/views/warehouse_detailed/warehouse_details_view.dart';
 import 'package:stacked/stacked.dart';
-import 'package:jar/ui/common/app_locales.dart'; 
+import 'package:jar/ui/common/app_locales.dart';
 
 import 'home_viewmodel.dart';
 
@@ -36,7 +36,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         if (model.isBusy && model.warehouses.isEmpty) {
           return Scaffold(
             body: Center(
-              child: CircularProgressIndicator(color: theme.colorScheme.secondary),
+              child:
+                  CircularProgressIndicator(color: theme.colorScheme.secondary),
             ),
           );
         }
@@ -49,7 +50,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(right: 8.0, top: 4.0, bottom: 4.0),
+                padding:
+                    const EdgeInsets.only(right: 8.0, top: 4.0, bottom: 4.0),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.15),
@@ -60,47 +62,53 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     children: [
                       IconButton(
                         icon: Icon(
-                          model.isActivated ? Icons.warning : Icons.warning_amber_outlined,
-                          color: model.isActivated ? kcDefectiveColor : Colors.white,
+                          model.isActivated
+                              ? Icons.warning
+                              : Icons.warning_amber_outlined,
+                          color: model.isActivated
+                              ? kcDefectiveColor
+                              : Colors.white,
                         ),
-                        onPressed: model.warehouses.isNotEmpty ? model.toggleActivation : null,
+                        onPressed: model.warehouses.isNotEmpty
+                            ? model.toggleActivation
+                            : null,
                         tooltip: l10n.tooltipDefectiveButton,
                       ),
                       PopupMenuButton<_MenuOptions>(
                         icon: const Icon(Icons.more_vert, color: Colors.white),
                         tooltip: l10n.moreOptions,
                         onSelected: (value) {
-                          if (value == _MenuOptions.import) model.importDatabase();
-                          else if (value == _MenuOptions.export) model.exportDatabase();
-                          else if (value == _MenuOptions.generateReport) model.generateAndShareWarehouseReport();
-                          else if (value == _MenuOptions.langEs) model.setLocale(const Locale('es'));
-                          else if (value == _MenuOptions.langEn) model.setLocale(const Locale('en'));
-                          else if (value == _MenuOptions.langFr) model.setLocale(const Locale('fr'));
+                          if (value == _MenuOptions.import)
+                            model.importDatabase();
+                          else if (value == _MenuOptions.export)
+                            model.exportDatabase();
+                          else if (value == _MenuOptions.generateReport)
+                            model.generateAndShareWarehouseReport();
+                          else if (value == _MenuOptions.langEs)
+                            model.setLocale(const Locale('es'));
+                          else if (value == _MenuOptions.langEn)
+                            model.setLocale(const Locale('en'));
+                          else if (value == _MenuOptions.langFr)
+                            model.setLocale(const Locale('fr'));
                         },
-                        itemBuilder: (BuildContext context) => <PopupMenuEntry<_MenuOptions>>[
-                          PopupMenuItem(value: _MenuOptions.import, child: ListTile(leading: const Icon(Icons.download_for_offline), title: Text(l10n.importDB))),
-                          PopupMenuItem(value: _MenuOptions.export, child: ListTile(leading: const Icon(Icons.upload_file), title: Text(l10n.exportDB))),
-                          PopupMenuItem(value: _MenuOptions.generateReport, child: ListTile(leading: const Icon(Icons.picture_as_pdf), title: Text(l10n.generatePDFReport))),
-                          const PopupMenuDivider(),
+                        itemBuilder: (BuildContext context) =>
+                            <PopupMenuEntry<_MenuOptions>>[
                           PopupMenuItem(
-                              enabled: false,
+                              value: _MenuOptions.import,
                               child: ListTile(
-                                leading: Icon(Icons.language, color: theme.colorScheme.secondary),
-                                title: const Text("Idioma / Language"),
-                              ),
-                            ),
+                                  leading:
+                                      const Icon(Icons.download_for_offline),
+                                  title: Text(l10n.importDB))),
                           PopupMenuItem(
-                            value: _MenuOptions.langEs,
-                            child: _buildLanguageMenuItem(context, model, 'es'),
-                          ),
+                              value: _MenuOptions.export,
+                              child: ListTile(
+                                  leading: const Icon(Icons.upload_file),
+                                  title: Text(l10n.exportDB))),
                           PopupMenuItem(
-                            value: _MenuOptions.langEn,
-                            child: _buildLanguageMenuItem(context, model, 'en'),
-                          ),
-                          PopupMenuItem(
-                            value: _MenuOptions.langFr,
-                            child: _buildLanguageMenuItem(context, model, 'fr'),
-                          ),
+                              value: _MenuOptions.generateReport,
+                              child: ListTile(
+                                  leading: const Icon(Icons.picture_as_pdf),
+                                  title: Text(l10n.generatePDFReport))),
                           const PopupMenuDivider(),
                           if (model.appVersion != null)
                             PopupMenuItem(
@@ -108,7 +116,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               child: Center(
                                 child: Text(
                                   "${l10n.version} ${model.appVersion!.split(' ').last}",
-                                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 14),
                                 ),
                               ),
                             ),
@@ -138,7 +147,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 warehouse: warehouse,
                                 model: model,
                                 onTap: () => model.setCurrentIndex(index),
-                                onLongPress: () => _showWarehouseOptions(context, model, warehouse: warehouse),
+                                onLongPress: () => _showWarehouseOptions(
+                                    context, model,
+                                    warehouse: warehouse),
                               );
                             }).toList(),
                           )
@@ -148,7 +159,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
                       child: IconButton(
-                        icon: const Icon(Icons.add_box_outlined, color: Colors.white),
+                        icon: const Icon(Icons.add_box_outlined,
+                            color: Colors.white),
                         onPressed: () => _showWarehouseOptions(context, model),
                         tooltip: l10n.tooltipAddWarehouseButton,
                       ),
@@ -157,10 +169,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       padding: const EdgeInsets.only(right: 8.0),
                       child: IconButton(
                         icon: Icon(
-                          model.filterActive() == Colors.white ? Icons.filter_list_off_outlined : Icons.filter_list_alt,
+                          model.filterActive() == Colors.white
+                              ? Icons.filter_list_off_outlined
+                              : Icons.filter_list_alt,
                           color: model.filterActive(),
                         ),
-                        onPressed: () => model.setShowDropdown(!model.showDropdown),
+                        onPressed: () =>
+                            model.setShowDropdown(!model.showDropdown),
                         tooltip: l10n.filterByProduct,
                       ),
                     ),
@@ -182,7 +197,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 )
               : Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 32.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32.0, vertical: 32.0),
                     margin: const EdgeInsets.symmetric(horizontal: 24.0),
                     decoration: BoxDecoration(
                       color: kcSurface,
@@ -219,22 +235,24 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-          floatingActionButton: (model.isActivated != true && model.warehouses.isNotEmpty)
-              ? FloatingActionButton.extended(
-                  onPressed: () => model.navigateToCreateReceived(context),
-                  tooltip: l10n.addReception,
-                  icon: const Icon(Icons.add),
-                  label: Text(
-                    l10n.addReception,
-                  ),
-                )
-              : null,
+          floatingActionButton:
+              (model.isActivated != true && model.warehouses.isNotEmpty)
+                  ? FloatingActionButton.extended(
+                      onPressed: () => model.navigateToCreateReceived(context),
+                      tooltip: l10n.addReception,
+                      icon: const Icon(Icons.add),
+                      label: Text(
+                        l10n.addReception,
+                      ),
+                    )
+                  : null,
         );
       },
     );
   }
 
-  Widget _buildLanguageMenuItem(BuildContext context, HomeViewModel model, String langCode) {
+  Widget _buildLanguageMenuItem(
+      BuildContext context, HomeViewModel model, String langCode) {
     final theme = Theme.of(context);
     final isSelected = langCode == model.currentLocale.languageCode;
 
@@ -274,7 +292,8 @@ class _BuildCustomTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final count = model.palletCounts[warehouse.id] ?? 0;
-    final isSelected = model.currentIndex == model.warehouses.indexOf(warehouse);
+    final isSelected =
+        model.currentIndex == model.warehouses.indexOf(warehouse);
 
     final Color selectedColor = theme.colorScheme.secondary;
     final Color defaultColor = theme.colorScheme.primary;
@@ -333,11 +352,12 @@ class _BuildCustomTab extends StatelessWidget {
   }
 }
 
-void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse? warehouse}) {
-  
+void _showWarehouseOptions(BuildContext context, HomeViewModel model,
+    {Warehouse? warehouse}) {
   final l10n = AppLocalizations.of(context)!;
-  final TextEditingController controller = TextEditingController(text: warehouse?.name);
-  
+  final TextEditingController controller =
+      TextEditingController(text: warehouse?.name);
+
   showDialog(
     context: context,
     builder: (context) {
@@ -355,7 +375,8 @@ void _showWarehouseOptions(BuildContext context, HomeViewModel model, {Warehouse
           ),
           if (warehouse != null)
             TextButton(
-              child: Text(l10n.delete, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(l10n.delete,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
               onPressed: () {
                 model.deleteWarehouse(warehouse);
                 Navigator.of(context).pop();
