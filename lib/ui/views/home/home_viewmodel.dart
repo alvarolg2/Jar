@@ -243,6 +243,13 @@ class HomeViewModel extends ReactiveViewModel {
       final defectiveItems = await DatabaseHelper.instance
           .getWarehouseReportItems(isDefective: true);
 
+      // Fetch Analysis Data
+      final globalStats = await DatabaseHelper.instance.getGlobalStats();
+      final warehouseDistribution =
+          await DatabaseHelper.instance.getWarehouseDistribution();
+      final topProducts = await DatabaseHelper.instance.getTopProducts(5);
+      final movementStats = await DatabaseHelper.instance.getMovementStats(30);
+
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
         await _dialogService.showDialog(
             title: l10n.reportEmptyTitle, description: l10n.reportEmptyMessage);
@@ -250,7 +257,14 @@ class HomeViewModel extends ReactiveViewModel {
         return;
       }
 
-      final pdfBytes = await _generatePdf(normalItems, defectiveItems);
+      final pdfBytes = await _generatePdf(
+        normalItems,
+        defectiveItems,
+        globalStats,
+        warehouseDistribution,
+        topProducts,
+        movementStats,
+      );
 
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -277,12 +291,38 @@ class HomeViewModel extends ReactiveViewModel {
   final PdfColor brandDefective = PdfColor.fromHex("#D32F2F");
   final PdfColor lightGrey = PdfColor.fromHex("#F5F7FA");
 
-  Future<Uint8List> _generatePdf(List<WarehouseReportItem> normalItems,
-      List<WarehouseReportItem> defectiveItems) async {
+  Future<Uint8List> _generatePdf(
+    List<WarehouseReportItem> normalItems,
+    List<WarehouseReportItem> defectiveItems,
+    Map<String, int> globalStats,
+    List<Map<String, dynamic>> warehouseDistribution,
+    List<Map<String, dynamic>> topProducts,
+    List<Map<String, dynamic>> movementStats,
+  ) async {
     final pdf = pw.Document();
 
     final logoData = await rootBundle.load('assets/icon/icon.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+
+    // 1. Add Analysis Page
+    pdf.addPage(
+      pw.MultiPage(
+        pageTheme: pw.PageTheme(
+            pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(32)),
+        header: (context) => _buildHeader(context, logoImage, brandPrimary),
+        footer: (context) => _buildFooter(context, brandPrimary),
+        build: (context) => [
+          pw.Text('Analysis & Statistics',
+              style: pw.TextStyle(
+                  fontSize: 22,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandPrimary)),
+          pw.SizedBox(height: 20),
+          _buildAnalysisDashboard(globalStats, warehouseDistribution,
+              topProducts, movementStats, brandPrimary, brandAccent),
+        ],
+      ),
+    );
 
     final allWarehouseNames = {
       ...normalItems.map((i) => i.warehouseName),
@@ -398,6 +438,248 @@ class HomeViewModel extends ReactiveViewModel {
         ],
       ),
     );
+  }
+
+  pw.Widget _buildAnalysisDashboard(
+      Map<String, int> globalStats,
+      List<Map<String, dynamic>> warehouseDistribution,
+      List<Map<String, dynamic>> topProducts,
+      List<Map<String, dynamic>> movementStats,
+      PdfColor primary,
+      PdfColor secondary) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        // 1. Global Stats
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            _buildStatCard('In Stock', '${globalStats['totalIn']}',
+                PdfColors.blue700, primary),
+            pw.SizedBox(width: 10),
+            _buildStatCard('Dispatched', '${globalStats['totalOut']}',
+                PdfColors.green700, primary),
+            pw.SizedBox(width: 10),
+            _buildStatCard('Defective', '${globalStats['totalDefective']}',
+                PdfColors.red700, primary),
+          ],
+        ),
+        pw.SizedBox(height: 20),
+
+        // 2. Tables Row
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            // Warehouse Distribution
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Warehouse Distribution',
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.SizedBox(height: 5),
+                  pw.Table(
+                    border: pw.TableBorder.all(color: PdfColors.grey300),
+                    children: warehouseDistribution.map((item) {
+                      return pw.TableRow(
+                        children: [
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(5),
+                            child: pw.Text(item['warehouseName'] ?? 'Unknown',
+                                style: const pw.TextStyle(fontSize: 10)),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(5),
+                            child: pw.Text('${item['count']}',
+                                style: pw.TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: pw.FontWeight.bold)),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            pw.SizedBox(width: 20),
+            // Top Products
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text('Top 5 Products',
+                      style: pw.TextStyle(
+                          fontWeight: pw.FontWeight.bold, fontSize: 14)),
+                  pw.SizedBox(height: 5),
+                  pw.Table(
+                    border: pw.TableBorder.all(color: PdfColors.grey300),
+                    children: topProducts.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      PdfColor rankColor = PdfColors.grey300;
+                      if (index == 0) rankColor = PdfColor.fromHex("#FFD700");
+                      if (index == 1) rankColor = PdfColor.fromHex("#C0C0C0");
+                      if (index == 2) rankColor = PdfColor.fromHex("#CD7F32");
+
+                      return pw.TableRow(
+                        children: [
+                          pw.Container(
+                            width: 15,
+                            height: 15,
+                            margin: const pw.EdgeInsets.all(5),
+                            decoration: pw.BoxDecoration(
+                                color: rankColor, shape: pw.BoxShape.circle),
+                            child: pw.Center(
+                                child: pw.Text('${index + 1}',
+                                    style: const pw.TextStyle(fontSize: 8))),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.symmetric(
+                                vertical: 5, horizontal: 2),
+                            child: pw.Column(
+                              crossAxisAlignment: pw.CrossAxisAlignment.start,
+                              children: [
+                                pw.Text(item['productName'] ?? 'Unknown',
+                                    style: const pw.TextStyle(fontSize: 10)),
+                                pw.Text(item['description'] ?? '',
+                                    style: const pw.TextStyle(
+                                        fontSize: 8, color: PdfColors.grey600)),
+                              ],
+                            ),
+                          ),
+                          pw.Padding(
+                            padding: const pw.EdgeInsets.all(5),
+                            child: pw.Text('${item['count']}',
+                                textAlign: pw.TextAlign.right,
+                                style: pw.TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: pw.FontWeight.bold)),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 20),
+
+        // 3. Movement Chart (Simplified)
+        pw.Text('Movement Trends (Last 30 Days)',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+        pw.SizedBox(height: 5),
+        pw.Container(
+          height: 150,
+          width: double.infinity,
+          decoration:
+              pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300)),
+          padding: const pw.EdgeInsets.all(10),
+          child: _buildPdfChart(movementStats),
+        ),
+        pw.Row(children: [
+          pw.Container(width: 8, height: 8, color: PdfColors.green),
+          pw.SizedBox(width: 4),
+          pw.Text("In Stock", style: const pw.TextStyle(fontSize: 8)),
+          pw.SizedBox(width: 10),
+          pw.Container(width: 8, height: 8, color: PdfColors.orange),
+          pw.SizedBox(width: 4),
+          pw.Text("Dispatched", style: const pw.TextStyle(fontSize: 8)),
+        ])
+      ],
+    );
+  }
+
+  pw.Widget _buildStatCard(
+      String title, String value, PdfColor color, PdfColor textColor) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.all(10),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(5),
+        ),
+        child: pw.Column(
+          children: [
+            pw.Text(value,
+                style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                    color: color)),
+            pw.Text(title,
+                style:
+                    const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
+    if (data.isEmpty) return pw.Center(child: pw.Text("No Data"));
+
+    // Simple logic to draw bars or points
+    // We will render it as a Row of bars for simplicity in PDF
+    // Group by date
+    Map<String, int> inData = {};
+    Map<String, int> outData = {};
+    Set<String> allDates = {};
+
+    for (var item in data) {
+      final date = item['date'] as String;
+      final type = item['type'] as String;
+      final count = item['count'] as int;
+
+      allDates.add(date);
+      if (type == 'in') {
+        inData[date] = count;
+      } else {
+        outData[date] = count;
+      }
+    }
+    List<String> sortedDates = allDates.toList()..sort();
+
+    // Find max for scaling
+    int maxCount = 0;
+    for (var v in inData.values) if (v > maxCount) maxCount = v;
+    for (var v in outData.values) if (v > maxCount) maxCount = v;
+    if (maxCount == 0) maxCount = 10;
+
+    return pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: sortedDates.map((date) {
+          final inVal = (inData[date] ?? 0);
+          final outVal = (outData[date] ?? 0);
+          // If too many dates, maybe skip some or make bars very thin.
+          // For 30 days, we have space.
+
+          // Calculate height percentage
+          final double hIn = inVal / maxCount * 100;
+          final double hOut = outVal / maxCount * 100;
+
+          return pw.Expanded(
+              child: pw.Column(
+                  mainAxisAlignment: pw.MainAxisAlignment.end,
+                  children: [
+                pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    mainAxisAlignment: pw.MainAxisAlignment.center,
+                    children: [
+                      if (inVal > 0)
+                        pw.Container(
+                            width: 3, height: hIn, color: PdfColors.green),
+                      if (outVal > 0)
+                        pw.Container(
+                            width: 3, height: hOut, color: PdfColors.orange),
+                    ]),
+                pw.Container(
+                    height: 1, color: PdfColors.grey200), // minimal x-axis
+              ]));
+        }).toList());
   }
 
   pw.Widget _buildFooter(pw.Context context, PdfColor brandPrimary) {
