@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jar/l10n/app_localizations.dart';
 import 'dart:math';
 
 class TrendChart extends StatelessWidget {
@@ -9,7 +10,8 @@ class TrendChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (data.isEmpty) {
-      return const Center(child: Text("No data available"));
+      final l10n = AppLocalizations.of(context)!;
+      return Center(child: Text(l10n.noData));
     }
 
     return LayoutBuilder(

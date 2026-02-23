@@ -82,7 +82,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         icon: const Icon(Icons.analytics_outlined,
                             color: Colors.white),
                         onPressed: model.navigateToAnalysis,
-                        tooltip: 'Analysis & Statistics', // TODO: Localize
+                        tooltip: l10n.analysisTitle,
                       ),
                       PopupMenuButton<_MenuOptions>(
                         icon: const Icon(Icons.more_vert, color: Colors.white),

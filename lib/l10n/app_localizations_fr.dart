@@ -331,4 +331,52 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dropdownProductText => 'Sélectionner un produit';
+
+  @override
+  String get analysisTitle => 'Analyse et Statistiques';
+
+  @override
+  String get globalInventory => 'Inventaire Global';
+
+  @override
+  String get inStock => 'En Stock';
+
+  @override
+  String get dispatched => 'Expédié';
+
+  @override
+  String get defective => 'Défectueux';
+
+  @override
+  String get warehouseDistribution => 'Répartition par entrepôt';
+
+  @override
+  String get unknown => 'Inconnu';
+
+  @override
+  String palletsCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count palettes',
+      one: '$count palette',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get movementTrends30Days =>
+      'Tendances de mouvement (30 derniers jours)';
+
+  @override
+  String get movementLegend => 'Vert : Entrée, Orange : Sortie';
+
+  @override
+  String get top5Products => 'Top 5 des produits';
+
+  @override
+  String get noDescription => 'Aucune description';
+
+  @override
+  String get noData => 'Aucune donnée';
 }

@@ -312,7 +312,7 @@ class HomeViewModel extends ReactiveViewModel {
         header: (context) => _buildHeader(context, logoImage, brandPrimary),
         footer: (context) => _buildFooter(context, brandPrimary),
         build: (context) => [
-          pw.Text('Analysis & Statistics',
+          pw.Text(l10n.analysisTitle,
               style: pw.TextStyle(
                   fontSize: 22,
                   fontWeight: pw.FontWeight.bold,
@@ -454,13 +454,13 @@ class HomeViewModel extends ReactiveViewModel {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard('In Stock', '${globalStats['totalIn']}',
+            _buildStatCard(l10n.inStock, '${globalStats['totalIn']}',
                 PdfColors.blue700, primary),
             pw.SizedBox(width: 10),
-            _buildStatCard('Dispatched', '${globalStats['totalOut']}',
+            _buildStatCard(l10n.dispatched, '${globalStats['totalOut']}',
                 PdfColors.green700, primary),
             pw.SizedBox(width: 10),
-            _buildStatCard('Defective', '${globalStats['totalDefective']}',
+            _buildStatCard(l10n.defective, '${globalStats['totalDefective']}',
                 PdfColors.red700, primary),
           ],
         ),
@@ -475,7 +475,7 @@ class HomeViewModel extends ReactiveViewModel {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('Warehouse Distribution',
+                  pw.Text(l10n.warehouseDistribution,
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold, fontSize: 14)),
                   pw.SizedBox(height: 5),
@@ -486,7 +486,8 @@ class HomeViewModel extends ReactiveViewModel {
                         children: [
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(item['warehouseName'] ?? 'Unknown',
+                            child: pw.Text(
+                                item['warehouseName'] ?? l10n.unknown,
                                 style: const pw.TextStyle(fontSize: 10)),
                           ),
                           pw.Padding(
@@ -509,7 +510,7 @@ class HomeViewModel extends ReactiveViewModel {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text('Top 5 Products',
+                  pw.Text(l10n.top5Products,
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold, fontSize: 14)),
                   pw.SizedBox(height: 5),
@@ -541,7 +542,7 @@ class HomeViewModel extends ReactiveViewModel {
                             child: pw.Column(
                               crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
-                                pw.Text(item['productName'] ?? 'Unknown',
+                                pw.Text(item['productName'] ?? l10n.unknown,
                                     style: const pw.TextStyle(fontSize: 10)),
                                 pw.Text(item['description'] ?? '',
                                     style: const pw.TextStyle(
@@ -569,7 +570,7 @@ class HomeViewModel extends ReactiveViewModel {
         pw.SizedBox(height: 20),
 
         // 3. Movement Chart (Simplified)
-        pw.Text('Movement Trends (Last 30 Days)',
+        pw.Text(l10n.movementTrends30Days,
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
         pw.SizedBox(height: 5),
         pw.Container(
@@ -583,11 +584,11 @@ class HomeViewModel extends ReactiveViewModel {
         pw.Row(children: [
           pw.Container(width: 8, height: 8, color: PdfColors.green),
           pw.SizedBox(width: 4),
-          pw.Text("In Stock", style: const pw.TextStyle(fontSize: 8)),
+          pw.Text(l10n.inStock, style: const pw.TextStyle(fontSize: 8)),
           pw.SizedBox(width: 10),
           pw.Container(width: 8, height: 8, color: PdfColors.orange),
           pw.SizedBox(width: 4),
-          pw.Text("Dispatched", style: const pw.TextStyle(fontSize: 8)),
+          pw.Text(l10n.dispatched, style: const pw.TextStyle(fontSize: 8)),
         ])
       ],
     );
@@ -620,7 +621,7 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
-    if (data.isEmpty) return pw.Center(child: pw.Text("No Data"));
+    if (data.isEmpty) return pw.Center(child: pw.Text(l10n.noData));
 
     // Simple logic to draw bars or points
     // We will render it as a Row of bars for simplicity in PDF

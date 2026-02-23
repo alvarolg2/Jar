@@ -17,7 +17,7 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analysis & Statistics'),
+        title: Text(l10n.analysisTitle),
         elevation: 0,
       ),
       body: viewModel.isBusy
@@ -29,15 +29,16 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. Global Stats
-                  const Text(
-                    'Global Inventory',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.globalInventory,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Row(
                     children: [
                       Expanded(
                         child: StatCard(
-                          title: 'In Stock',
+                          title: l10n.inStock,
                           value: '${viewModel.globalStats['totalIn'] ?? 0}',
                           icon: Icons.inventory_2,
                           color: Colors.blue.shade700,
@@ -45,7 +46,7 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                       ),
                       Expanded(
                         child: StatCard(
-                          title: 'Dispatched',
+                          title: l10n.dispatched,
                           value: '${viewModel.globalStats['totalOut'] ?? 0}',
                           icon: Icons.local_shipping,
                           color: Colors.green.shade700,
@@ -53,7 +54,7 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                       ),
                       Expanded(
                         child: StatCard(
-                          title: "Defective",
+                          title: l10n.defective,
                           value:
                               '${viewModel.globalStats['totalDefective'] ?? 0}',
                           icon: Icons.error_outline,
@@ -63,9 +64,10 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                     ],
                   ),
                   // 2. Warehouse Distribution
-                  const Text(
-                    'Warehouse Distribution',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.warehouseDistribution,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Card(
                     child: ListView.separated(
@@ -77,9 +79,9 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                         final item = viewModel.warehouseDistribution[index];
                         return ListTile(
                           leading: const Icon(Icons.warehouse),
-                          title: Text(item['warehouseName'] ?? 'Unknown'),
+                          title: Text(item['warehouseName'] ?? l10n.unknown),
                           trailing: Text(
-                            '${item['count']} pallets',
+                            l10n.palletsCountLabel(item['count'] ?? 0),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         );
@@ -87,13 +89,14 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                     ),
                   ),
                   // 3. Movement Trends
-                  const Text(
-                    'Movement Trends (Last 30 Days)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.movementTrends30Days,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  const Text(
-                    'Green: In, Orange: Out',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  Text(
+                    l10n.movementLegend,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   Container(
                     height: 200,
@@ -112,9 +115,10 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                   ),
 
                   // 4. Top Products
-                  const Text(
-                    'Top 5 Products',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    l10n.top5Products,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   Card(
                     child: ListView.separated(
@@ -152,9 +156,9 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                             foregroundColor: avatarFgColor,
                             child: Text('${index + 1}'),
                           ),
-                          title: Text(item['productName'] ?? 'Unknown'),
+                          title: Text(item['productName'] ?? l10n.unknown),
                           subtitle: Text(
-                            item['description'] ?? 'No description',
+                            item['description'] ?? l10n.noDescription,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
