@@ -198,5 +198,23 @@
         }
     },
     "reportPalletCount": "Nb Palettes",
-    "dropdownProductText": "Sélectionner un produit"
+    "dropdownProductText": "Sélectionner un produit",
+    "analysisTitle": "Analyse et Statistiques",
+    "globalInventory": "Inventaire Global",
+    "inStock": "En Stock",
+    "dispatched": "Expédié",
+    "defective": "Défectueux",
+    "warehouseDistribution": "Répartition par entrepôt",
+    "unknown": "Inconnu",
+    "palletsCountLabel": "{count, plural, =1{{count} palette} other{{count} palettes}}",
+    "@palletsCountLabel": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "movementTrends30Days": "Tendances de mouvement (30 derniers jours)",
+    "movementLegend": "Vert : Entrée, Orange : Sortie",
+    "top5Products": "Top 5 des produits",
+    "noDescription": "Aucune description",
+    "noData": "Aucune donnée"
 }

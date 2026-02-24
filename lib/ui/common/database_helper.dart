@@ -23,12 +23,14 @@ class DatabaseHelper {
   Future<Database> _initDB(String filePath) async {
     final dbPath = await getApplicationDocumentsDirectory();
     final path = join(dbPath.path, filePath);
-    return await openDatabase(path, version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
+    return await openDatabase(path,
+        version: 3, onCreate: _createDB, onUpgrade: _upgradeDB);
   }
 
   Future<void> _upgradeDB(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
-      await db.execute('ALTER TABLE pallet ADD COLUMN defective INTEGER DEFAULT 0');
+      await db
+          .execute('ALTER TABLE pallet ADD COLUMN defective INTEGER DEFAULT 0');
     }
     if (oldVersion < 3) {
       await db.execute('ALTER TABLE product ADD COLUMN description TEXT');
@@ -72,10 +74,11 @@ class DatabaseHelper {
     await _database!.close();
     _database = null;
   }
-  
-  Future<List<WarehouseReportItem>> getWarehouseReportItems({required bool isDefective}) async {
+
+  Future<List<WarehouseReportItem>> getWarehouseReportItems(
+      {required bool isDefective}) async {
     final db = await database;
-    
+
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT
           w.name AS warehouseName,
@@ -131,7 +134,8 @@ class DatabaseHelper {
       WHERE l.id IN ($subQuery)
       ORDER BY l.create_date DESC
     ''';
-    final List<Map<String, dynamic>> maps = await db.rawQuery(mainQuery, subQueryParams);
+    final List<Map<String, dynamic>> maps =
+        await db.rawQuery(mainQuery, subQueryParams);
 
     List<Lot> lots = [];
     for (var map in maps) {
@@ -160,7 +164,8 @@ class DatabaseHelper {
     return lots;
   }
 
-  Future<Map<int, int>> getAllWarehousePalletCounts({required bool isDefective}) async {
+  Future<Map<int, int>> getAllWarehousePalletCounts(
+      {required bool isDefective}) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT warehouse, COUNT(id) as count
@@ -174,12 +179,14 @@ class DatabaseHelper {
   // ** LOT **
   Future<int> insertLot(Lot lot) async {
     final db = await database;
-    return await db.insert('lot', lot.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('lot', lot.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<Lot?> findLotByName(String lotName) async {
     final db = await database;
-    final List<Map<String, dynamic>> results = await db.query('lot', where: 'name = ?', whereArgs: [lotName]);
+    final List<Map<String, dynamic>> results =
+        await db.query('lot', where: 'name = ?', whereArgs: [lotName]);
     if (results.isNotEmpty) return Lot.fromJson(results.first);
     return null;
   }
@@ -187,12 +194,14 @@ class DatabaseHelper {
   // ** WAREHOUSE **
   Future<int> createWarehouse(Warehouse warehouse) async {
     final db = await database;
-    return await db.insert('warehouse', warehouse.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('warehouse', warehouse.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<int> updateWarehouse(Warehouse warehouse) async {
     final db = await database;
-    return await db.update('warehouse', warehouse.toMap(), where: 'id = ?', whereArgs: [warehouse.id]);
+    return await db.update('warehouse', warehouse.toMap(),
+        where: 'id = ?', whereArgs: [warehouse.id]);
   }
 
   Future<int> deleteWarehouse(int id) async {
@@ -202,14 +211,16 @@ class DatabaseHelper {
 
   Future<List<Warehouse>> getAllWarehouses() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('warehouse', orderBy: 'name ASC');
+    final List<Map<String, dynamic>> maps =
+        await db.query('warehouse', orderBy: 'name ASC');
     return List.generate(maps.length, (i) => Warehouse.fromMap(maps[i]));
   }
 
   // ** PRODUCT **
   Future<int> insertProduct(Product product) async {
     final db = await database;
-    return await db.insert('product', product.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('product', product.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<int> updateProduct(Product product) async {
@@ -224,12 +235,14 @@ class DatabaseHelper {
 
   Future<Product?> findProductByName(String productName) async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('product', where: 'name = ?', whereArgs: [productName]);
+    final List<Map<String, dynamic>> maps =
+        await db.query('product', where: 'name = ?', whereArgs: [productName]);
     if (maps.isNotEmpty) return Product.fromJson(maps.first);
     return null;
   }
 
-  Future<List<Product>> getProductsByPalletsNotOutWithCount(int warehouseId) async {
+  Future<List<Product>> getProductsByPalletsNotOutWithCount(
+      int warehouseId) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT p.*, COUNT(pal.id) AS numPallets
@@ -249,11 +262,14 @@ class DatabaseHelper {
     final db = await database;
     Map<String, dynamic> palletData = pallet.toJson();
     palletData['create_date'] = DateTime.now().toIso8601String();
-    int palletId = await db.insert('pallet', palletData, conflictAlgorithm: ConflictAlgorithm.replace);
-    await db.insert('pallet_lot', {'id_pallet': palletId, 'id_lot': lotId}, conflictAlgorithm: ConflictAlgorithm.replace);
+    int palletId = await db.insert('pallet', palletData,
+        conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert('pallet_lot', {'id_pallet': palletId, 'id_lot': lotId},
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> markPalletsAsOut(int lotId, int numberOfPallets, int warehouseId) async {
+  Future<void> markPalletsAsOut(
+      int lotId, int numberOfPallets, int warehouseId) async {
     final db = await database;
     List<Map<String, dynamic>> palletIds = await db.rawQuery('''
       SELECT p.id FROM pallet p
@@ -263,11 +279,14 @@ class DatabaseHelper {
       LIMIT ?
     ''', [lotId, warehouseId, numberOfPallets]);
     for (var row in palletIds) {
-      await db.update('pallet', {'is_out': 1, 'out_date': DateTime.now().toIso8601String()}, where: 'id = ?', whereArgs: [row['id']]);
+      await db.update(
+          'pallet', {'is_out': 1, 'out_date': DateTime.now().toIso8601String()},
+          where: 'id = ?', whereArgs: [row['id']]);
     }
   }
 
-  Future<void> markPalletsAsDefectuous(int lotId, int numberOfPallets, int warehouseId) async {
+  Future<void> markPalletsAsDefectuous(
+      int lotId, int numberOfPallets, int warehouseId) async {
     final db = await database;
     List<Map<String, dynamic>> palletIds = await db.rawQuery('''
       SELECT p.id FROM pallet p
@@ -277,11 +296,13 @@ class DatabaseHelper {
       LIMIT ?
     ''', [lotId, warehouseId, numberOfPallets]);
     for (var row in palletIds) {
-      await db.update('pallet', {'defective': 1}, where: 'id = ?', whereArgs: [row['id']]);
+      await db.update('pallet', {'defective': 1},
+          where: 'id = ?', whereArgs: [row['id']]);
     }
   }
 
-  Future<void> markPalletsAsOutDefective(int lotId, int numberOfPallets, int warehouseId) async {
+  Future<void> markPalletsAsOutDefective(
+      int lotId, int numberOfPallets, int warehouseId) async {
     final db = await database;
     List<Map<String, dynamic>> palletIds = await db.rawQuery('''
       SELECT p.id FROM pallet p
@@ -291,7 +312,74 @@ class DatabaseHelper {
       LIMIT ?
     ''', [lotId, warehouseId, numberOfPallets]);
     for (var row in palletIds) {
-      await db.update('pallet', {'is_out': 1, 'out_date': DateTime.now().toIso8601String()}, where: 'id = ?', whereArgs: [row['id']]);
+      await db.update(
+          'pallet', {'is_out': 1, 'out_date': DateTime.now().toIso8601String()},
+          where: 'id = ?', whereArgs: [row['id']]);
     }
+  }
+
+  Future<Map<String, int>> getGlobalStats() async {
+    final db = await database;
+    final totalIn = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM pallet WHERE is_out = 0 AND defective = 0'));
+    final totalOut = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM pallet WHERE is_out = 1'));
+    final totalDefective = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM pallet WHERE defective = 1'));
+
+    return {
+      'totalIn': totalIn ?? 0,
+      'totalOut': totalOut ?? 0,
+      'totalDefective': totalDefective ?? 0,
+    };
+  }
+
+  Future<List<Map<String, dynamic>>> getWarehouseDistribution() async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT w.name as warehouseName, COUNT(p.id) as count
+      FROM pallet p
+      JOIN warehouse w ON p.warehouse = w.id
+      WHERE p.is_out = 0 AND p.defective = 0
+      GROUP BY w.id
+    ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getTopProducts(int limit) async {
+    final db = await database;
+    return await db.rawQuery('''
+      SELECT pr.name as productName, pr.description as description, COUNT(p.id) as count
+      FROM pallet p
+      JOIN pallet_lot pl ON p.id = pl.id_pallet
+      JOIN lot l ON pl.id_lot = l.id
+      JOIN product pr ON l.product = pr.id
+      WHERE p.is_out = 0 AND p.defective = 0
+      GROUP BY pr.id
+      ORDER BY count DESC
+      LIMIT ?
+    ''', [limit]);
+  }
+
+  Future<List<Map<String, dynamic>>> getMovementStats(int days) async {
+    final db = await database;
+    final now = DateTime.now();
+    final startDate = now.subtract(Duration(days: days));
+    final startDateStr = startDate.toIso8601String();
+
+    return await db.rawQuery('''
+      SELECT date(create_date) as date, 'in' as type, COUNT(*) as count
+      FROM pallet
+      WHERE create_date >= ?
+      GROUP BY date(create_date)
+
+      UNION ALL
+
+      SELECT date(out_date) as date, 'out' as type, COUNT(*) as count
+      FROM pallet
+      WHERE out_date >= ? AND is_out = 1
+      GROUP BY date(out_date)
+      
+      ORDER BY date ASC
+    ''', [startDateStr, startDateStr]);
   }
 }

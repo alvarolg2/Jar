@@ -8,12 +8,16 @@ import 'package:jar/ui/views/warehouse_detailed/warehouse_details_view.dart';
 import 'package:stacked/stacked.dart';
 import 'package:jar/ui/common/app_locales.dart';
 
-import 'home_viewmodel.dart';
+import 'package:jar/ui/views/home/home_viewmodel.dart';
 
-enum _MenuOptions { import, export, generateReport, langEs, langEn, langFr }
+enum _MenuOptions {
+  import,
+  export,
+  generateReport,
+}
 
 class HomeView extends StatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({super.key});
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -74,6 +78,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             : null,
                         tooltip: l10n.tooltipDefectiveButton,
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.analytics_outlined,
+                            color: Colors.white),
+                        onPressed: model.navigateToAnalysis,
+                        tooltip: l10n.analysisTitle,
+                      ),
                       PopupMenuButton<_MenuOptions>(
                         icon: const Icon(Icons.more_vert, color: Colors.white),
                         tooltip: l10n.moreOptions,
@@ -84,12 +94,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             model.exportDatabase();
                           else if (value == _MenuOptions.generateReport)
                             model.generateAndShareWarehouseReport();
-                          else if (value == _MenuOptions.langEs)
-                            model.setLocale(const Locale('es'));
-                          else if (value == _MenuOptions.langEn)
-                            model.setLocale(const Locale('en'));
-                          else if (value == _MenuOptions.langFr)
-                            model.setLocale(const Locale('fr'));
                         },
                         itemBuilder: (BuildContext context) =>
                             <PopupMenuEntry<_MenuOptions>>[
