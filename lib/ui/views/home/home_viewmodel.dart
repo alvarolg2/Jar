@@ -23,6 +23,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 class HomeViewModel extends ReactiveViewModel {
   final _warehouseDataService = locator<WarehouseDataService>();
@@ -299,7 +300,16 @@ class HomeViewModel extends ReactiveViewModel {
     List<Map<String, dynamic>> topProducts,
     List<Map<String, dynamic>> movementStats,
   ) async {
-    final pdf = pw.Document();
+    final fontRegular = await PdfGoogleFonts.robotoRegular();
+    final fontBold = await PdfGoogleFonts.robotoBold();
+    final fontItalic = await PdfGoogleFonts.robotoItalic();
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: fontRegular,
+        bold: fontBold,
+        italic: fontItalic,
+      ),
+    );
 
     final logoData = await rootBundle.load('assets/icon/icon.png');
     final logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
