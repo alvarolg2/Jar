@@ -242,7 +242,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           floatingActionButton:
               (model.isActivated != true && model.warehouses.isNotEmpty)
                   ? FloatingActionButton.extended(
-                      onPressed: () => model.navigateToCreateReceived(context),
+                      onPressed: () => model.navigateToCreateReceived(),
                       tooltip: l10n.addReception,
                       icon: const Icon(Icons.add),
                       label: Text(
