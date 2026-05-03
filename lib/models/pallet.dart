@@ -20,7 +20,7 @@ class Pallet {
         'out_date': outDate?.toIso8601String(),
         'date': date?.toIso8601String(),
         'is_out': isOut ?? false ? 1 : 0,
-        'defective': isOut ?? false ? 1 : 0,
+        'defective': defective ?? false ? 1 : 0,
       };
 
   factory Pallet.fromJson(Map<String, dynamic> json) => Pallet(
