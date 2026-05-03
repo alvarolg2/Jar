@@ -330,4 +330,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dropdownProductText => 'Select a product';
+
+  @override
+  String get analysisTitle => 'Analysis & Statistics';
+
+  @override
+  String get globalInventory => 'Global Inventory';
+
+  @override
+  String get inStock => 'In Stock';
+
+  @override
+  String get dispatched => 'Dispatched';
+
+  @override
+  String get defective => 'Defective';
+
+  @override
+  String get warehouseDistribution => 'Warehouse Distribution';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String palletsCountLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pallets',
+      one: '$count pallet',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get movementTrends30Days => 'Movement Trends (Last 30 Days)';
+
+  @override
+  String get movementLegend => 'Green: In, Orange: Out';
+
+  @override
+  String get top5Products => 'Top 5 Products';
+
+  @override
+  String get noDescription => 'No description';
+
+  @override
+  String get noData => 'No Data';
 }

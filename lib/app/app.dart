@@ -3,6 +3,7 @@ import 'package:jar/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:jar/ui/dialogs/info_alert/info_alert_dialog.dart';
 import 'package:jar/ui/views/home/home_view.dart';
 import 'package:jar/ui/views/startup/startup_view.dart';
+import 'package:jar/ui/views/analysis/analysis_view.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:jar/services/warehouse_data_service.dart';
@@ -16,6 +17,7 @@ import 'package:jar/services/ai_label_parser_service.dart';
   routes: [
     MaterialRoute(page: HomeView),
     MaterialRoute(page: StartupView),
+    MaterialRoute(page: AnalysisView),
     // @stacked-route
   ],
   dependencies: [

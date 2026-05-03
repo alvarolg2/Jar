@@ -173,5 +173,23 @@
         }
     },
     "reportPalletCount": "Pallet Count",
-    "dropdownProductText": "Select a product"
+    "dropdownProductText": "Select a product",
+    "analysisTitle": "Analysis & Statistics",
+    "globalInventory": "Global Inventory",
+    "inStock": "In Stock",
+    "dispatched": "Dispatched",
+    "defective": "Defective",
+    "warehouseDistribution": "Warehouse Distribution",
+    "unknown": "Unknown",
+    "palletsCountLabel": "{count, plural, =1{{count} pallet} other{{count} pallets}}",
+    "@palletsCountLabel": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "movementTrends30Days": "Movement Trends (Last 30 Days)",
+    "movementLegend": "Green: In, Orange: Out",
+    "top5Products": "Top 5 Products",
+    "noDescription": "No description",
+    "noData": "No Data"
 }

@@ -173,5 +173,23 @@
         }
     },
     "reportPalletCount": "Nº Palets",
-    "dropdownProductText": "Selecciona un producto"
+    "dropdownProductText": "Selecciona un producto",
+    "analysisTitle": "Análisis y Estadísticas",
+    "globalInventory": "Inventario Global",
+    "inStock": "En Stock",
+    "dispatched": "Expedido",
+    "defective": "Defectuoso",
+    "warehouseDistribution": "Distribución por Almacén",
+    "unknown": "Desconocido",
+    "palletsCountLabel": "{count, plural, =1{{count} palé} other{{count} palés}}",
+    "@palletsCountLabel": {
+        "placeholders": {
+            "count": { "type": "int" }
+        }
+    },
+    "movementTrends30Days": "Tendencias de Movimiento (Últimos 30 Días)",
+    "movementLegend": "Verde: Entrada, Naranja: Salida",
+    "top5Products": "Top 5 Productos",
+    "noDescription": "Sin descripción",
+    "noData": "Sin Datos"
 }

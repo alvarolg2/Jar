@@ -13,6 +13,9 @@ import 'test_helpers.mocks.dart';
   MockSpec<NavigationService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<BottomSheetService>(onMissingStub: OnMissingStub.returnDefault),
   MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<WarehouseDataService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<UpdateService>(onMissingStub: OnMissingStub.returnDefault),
+  MockSpec<FilterService>(onMissingStub: OnMissingStub.returnDefault),
 ])
 void registerServices() {
   getAndRegisterNavigationService();
@@ -60,7 +63,10 @@ MockBottomSheetService getAndRegisterBottomSheetService<T>({
     customData: anyNamed('customData'),
     data: anyNamed('data'),
     description: anyNamed('description'),
-  )).thenAnswer((realInvocation) => Future.value(showCustomSheetResponse ?? SheetResponse<T>()));
+    elevation: anyNamed('elevation'),
+    useRootNavigator: anyNamed('useRootNavigator'),
+  )).thenAnswer((realInvocation) =>
+      Future.value(showCustomSheetResponse ?? SheetResponse<T>()));
 
   locator.registerSingleton<BottomSheetService>(service);
   return service;

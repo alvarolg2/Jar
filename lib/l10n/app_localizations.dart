@@ -657,6 +657,84 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Selecciona un producto'**
   String get dropdownProductText;
+
+  /// No description provided for @analysisTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Análisis y Estadísticas'**
+  String get analysisTitle;
+
+  /// No description provided for @globalInventory.
+  ///
+  /// In es, this message translates to:
+  /// **'Inventario Global'**
+  String get globalInventory;
+
+  /// No description provided for @inStock.
+  ///
+  /// In es, this message translates to:
+  /// **'En Stock'**
+  String get inStock;
+
+  /// No description provided for @dispatched.
+  ///
+  /// In es, this message translates to:
+  /// **'Expedido'**
+  String get dispatched;
+
+  /// No description provided for @defective.
+  ///
+  /// In es, this message translates to:
+  /// **'Defectuoso'**
+  String get defective;
+
+  /// No description provided for @warehouseDistribution.
+  ///
+  /// In es, this message translates to:
+  /// **'Distribución por Almacén'**
+  String get warehouseDistribution;
+
+  /// No description provided for @unknown.
+  ///
+  /// In es, this message translates to:
+  /// **'Desconocido'**
+  String get unknown;
+
+  /// No description provided for @palletsCountLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{{count} palé} other{{count} palés}}'**
+  String palletsCountLabel(int count);
+
+  /// No description provided for @movementTrends30Days.
+  ///
+  /// In es, this message translates to:
+  /// **'Tendencias de Movimiento (Últimos 30 Días)'**
+  String get movementTrends30Days;
+
+  /// No description provided for @movementLegend.
+  ///
+  /// In es, this message translates to:
+  /// **'Verde: Entrada, Naranja: Salida'**
+  String get movementLegend;
+
+  /// No description provided for @top5Products.
+  ///
+  /// In es, this message translates to:
+  /// **'Top 5 Productos'**
+  String get top5Products;
+
+  /// No description provided for @noDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin descripción'**
+  String get noDescription;
+
+  /// No description provided for @noData.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin Datos'**
+  String get noData;
 }
 
 class _AppLocalizationsDelegate
