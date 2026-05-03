@@ -191,5 +191,6 @@
     "movementLegend": "Green: In, Orange: Out",
     "top5Products": "Top 5 Products",
     "noDescription": "No description",
-    "noData": "No Data"
+    "noData": "No Data",
+    "noDate": "No date"
 }

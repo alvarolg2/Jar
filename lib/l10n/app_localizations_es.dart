@@ -380,4 +380,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noData => 'Sin Datos';
+
+  @override
+  String get noDate => 'Sin fecha';
 }

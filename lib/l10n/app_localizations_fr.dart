@@ -379,4 +379,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noData => 'Aucune donnée';
+
+  @override
+  String get noDate => 'Pas de date';
 }

@@ -49,8 +49,17 @@ class HomeViewModel extends ReactiveViewModel {
   Product? get selectedProduct => _filterService.selectedProduct.value;
   late bool isFilterActive;
 
-  AppLocalizations get l10n =>
-      AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get _l10n {
+    final context = StackedService.navigatorKey?.currentContext;
+    if (context == null) {
+      throw StateError('Localizations accessed before navigator is ready');
+    }
+    final localization = AppLocalizations.of(context);
+    if (localization == null) {
+      throw StateError('Localizations not found in context');
+    }
+    return localization;
+  }
 
   void setShowDropdown(bool value) {
     _filterService.setShowDropdown(value);
@@ -86,10 +95,10 @@ class HomeViewModel extends ReactiveViewModel {
   Future<void> _getAppVersion() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      _appVersion = '${l10n.version} ${packageInfo.version}';
+      _appVersion = '${_l10n.version} ${packageInfo.version}';
       notifyListeners();
     } catch (e) {
-      _appVersion = l10n.versionUnknown;
+      _appVersion = _l10n.versionUnknown;
       notifyListeners();
     }
   }
@@ -125,7 +134,6 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   Future<void> fetchWarehouses() async {
-    _warehouseDataService.warehouses.value =
     _warehouseDataService.warehouses.value =
         await _warehouseRepo.getAll();
     if (currentIndex >= warehouses.length) {
@@ -188,13 +196,13 @@ class HomeViewModel extends ReactiveViewModel {
       await Future.delayed(const Duration(milliseconds: 500));
       final path = await DatabaseService.getDatabasePath();
       await Share.shareXFiles([XFile(path)],
-          subject: l10n.dbBackupSubject(
+          subject: _l10n.dbBackupSubject(
               DateTime.now().toLocal().toString().split(' ')[0]),
-          text: l10n.dbBackupBody);
+          text: _l10n.dbBackupBody);
     } catch (e) {
       await _dialogService.showDialog(
-          title: l10n.exportError,
-          description: l10n.exportErrorDescription(e.toString()));
+          title: _l10n.exportError,
+          description: _l10n.exportErrorDescription(e.toString()));
     } finally {
       setBusy(false);
     }
@@ -207,10 +215,10 @@ class HomeViewModel extends ReactiveViewModel {
       if (result == null) return;
 
       final response = await _dialogService.showConfirmationDialog(
-        title: l10n.importConfirm,
-        description: l10n.importConfirmMessage,
-        confirmationTitle: l10n.importConfirmYes,
-        cancelTitle: l10n.cancel,
+        title: _l10n.importConfirm,
+        description: _l10n.importConfirmMessage,
+        confirmationTitle: _l10n.importConfirmYes,
+        cancelTitle: _l10n.cancel,
       );
       if (response?.confirmed != true) return;
 
@@ -225,14 +233,14 @@ class HomeViewModel extends ReactiveViewModel {
 
       setBusy(false);
       await _dialogService.showDialog(
-          title: l10n.importComplete, description: l10n.importCompleteMessage);
+          title: _l10n.importComplete, description: _l10n.importCompleteMessage);
 
       _navigationService.clearStackAndShow(Routes.homeView);
     } catch (e) {
       setBusy(false);
       await _dialogService.showDialog(
-          title: l10n.importError,
-          description: l10n.importErrorDescription(e.toString()));
+          title: _l10n.importError,
+          description: _l10n.importErrorDescription(e.toString()));
     }
   }
 
@@ -253,7 +261,7 @@ class HomeViewModel extends ReactiveViewModel {
 
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
         await _dialogService.showDialog(
-            title: l10n.reportEmptyTitle, description: l10n.reportEmptyMessage);
+            title: _l10n.reportEmptyTitle, description: _l10n.reportEmptyMessage);
         setBusy(false);
         return;
       }
@@ -274,14 +282,14 @@ class HomeViewModel extends ReactiveViewModel {
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        subject: l10n
+        subject: _l10n
             .reportSubject(DateTime.now().toLocal().toString().split(' ')[0]),
-        text: l10n.reportBody,
+        text: _l10n.reportBody,
       );
     } catch (e) {
       await _dialogService.showDialog(
-          title: l10n.pdfError,
-          description: l10n.pdfErrorDescription(e.toString()));
+          title: _l10n.pdfError,
+          description: _l10n.pdfErrorDescription(e.toString()));
     } finally {
       setBusy(false);
     }
@@ -322,7 +330,7 @@ class HomeViewModel extends ReactiveViewModel {
         header: (context) => _buildHeader(context, logoImage, brandPrimary),
         footer: (context) => _buildFooter(context, brandPrimary),
         build: (context) => [
-          pw.Text(l10n.analysisTitle,
+          pw.Text(_l10n.analysisTitle,
               style: pw.TextStyle(
                   fontSize: 22,
                   fontWeight: pw.FontWeight.bold,
@@ -366,7 +374,7 @@ class HomeViewModel extends ReactiveViewModel {
                     fontWeight: pw.FontWeight.bold,
                     color: brandPrimary)),
             pw.SizedBox(height: 20),
-            pw.Text(l10n.reportStandardInventory,
+            pw.Text(_l10n.reportStandardInventory,
                 style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
@@ -377,16 +385,16 @@ class HomeViewModel extends ReactiveViewModel {
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Text(l10n.reportTotalStandard(totalNormalPallets),
+                child: pw.Text(_l10n.reportTotalStandard(totalNormalPallets),
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, color: brandPrimary)),
               ),
             ] else
-              pw.Text(l10n.reportNoStandardPallets,
+              pw.Text(_l10n.reportNoStandardPallets,
                   style: pw.TextStyle(
                       fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
             pw.SizedBox(height: 25),
-            pw.Text(l10n.reportDefectiveInventory,
+            pw.Text(_l10n.reportDefectiveInventory,
                 style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
@@ -398,12 +406,12 @@ class HomeViewModel extends ReactiveViewModel {
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Text(l10n.reportTotalDefective(totalDefectivePallets),
+                child: pw.Text(_l10n.reportTotalDefective(totalDefectivePallets),
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, color: brandDefective)),
               ),
             ] else
-              pw.Text(l10n.reportNoDefectivePallets,
+              pw.Text(_l10n.reportNoDefectivePallets,
                   style: pw.TextStyle(
                       fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
           ],
@@ -433,13 +441,13 @@ class HomeViewModel extends ReactiveViewModel {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              pw.Text(l10n.reportTitle,
+              pw.Text(_l10n.reportTitle,
                   style: pw.TextStyle(
                       color: brandPrimary,
                       fontSize: 18,
                       fontWeight: pw.FontWeight.bold)),
               pw.Text(
-                  l10n.reportGenerated(
+                  _l10n.reportGenerated(
                       DateTime.now().toLocal().toString().split(' ')[0]),
                   style: const pw.TextStyle(
                       color: PdfColors.grey600, fontSize: 10)),
@@ -464,13 +472,13 @@ class HomeViewModel extends ReactiveViewModel {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(l10n.inStock, '${globalStats['totalIn']}',
+            _buildStatCard(_l10n.inStock, '${globalStats['totalIn']}',
                 PdfColors.blue700, primary),
             pw.SizedBox(width: 10),
-            _buildStatCard(l10n.dispatched, '${globalStats['totalOut']}',
+            _buildStatCard(_l10n.dispatched, '${globalStats['totalOut']}',
                 PdfColors.green700, primary),
             pw.SizedBox(width: 10),
-            _buildStatCard(l10n.defective, '${globalStats['totalDefective']}',
+            _buildStatCard(_l10n.defective, '${globalStats['totalDefective']}',
                 PdfColors.red700, primary),
           ],
         ),
@@ -485,7 +493,7 @@ class HomeViewModel extends ReactiveViewModel {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(l10n.warehouseDistribution,
+                  pw.Text(_l10n.warehouseDistribution,
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold, fontSize: 14)),
                   pw.SizedBox(height: 5),
@@ -497,7 +505,7 @@ class HomeViewModel extends ReactiveViewModel {
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(5),
                             child: pw.Text(
-                                item['warehouseName'] ?? l10n.unknown,
+                                item['warehouseName'] ?? _l10n.unknown,
                                 style: const pw.TextStyle(fontSize: 10)),
                           ),
                           pw.Padding(
@@ -520,7 +528,7 @@ class HomeViewModel extends ReactiveViewModel {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(l10n.top5Products,
+                  pw.Text(_l10n.top5Products,
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold, fontSize: 14)),
                   pw.SizedBox(height: 5),
@@ -552,7 +560,7 @@ class HomeViewModel extends ReactiveViewModel {
                             child: pw.Column(
                               crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
-                                pw.Text(item['productName'] ?? l10n.unknown,
+                                pw.Text(item['productName'] ?? _l10n.unknown,
                                     style: const pw.TextStyle(fontSize: 10)),
                                 pw.Text(item['description'] ?? '',
                                     style: const pw.TextStyle(
@@ -580,7 +588,7 @@ class HomeViewModel extends ReactiveViewModel {
         pw.SizedBox(height: 20),
 
         // 3. Movement Chart (Simplified)
-        pw.Text(l10n.movementTrends30Days,
+        pw.Text(_l10n.movementTrends30Days,
             style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
         pw.SizedBox(height: 5),
         pw.Container(
@@ -594,11 +602,11 @@ class HomeViewModel extends ReactiveViewModel {
         pw.Row(children: [
           pw.Container(width: 8, height: 8, color: PdfColors.green),
           pw.SizedBox(width: 4),
-          pw.Text(l10n.inStock, style: const pw.TextStyle(fontSize: 8)),
+          pw.Text(_l10n.inStock, style: const pw.TextStyle(fontSize: 8)),
           pw.SizedBox(width: 10),
           pw.Container(width: 8, height: 8, color: PdfColors.orange),
           pw.SizedBox(width: 4),
-          pw.Text(l10n.dispatched, style: const pw.TextStyle(fontSize: 8)),
+          pw.Text(_l10n.dispatched, style: const pw.TextStyle(fontSize: 8)),
         ])
       ],
     );
@@ -631,7 +639,7 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
-    if (data.isEmpty) return pw.Center(child: pw.Text(l10n.noData));
+    if (data.isEmpty) return pw.Center(child: pw.Text(_l10n.noData));
 
     // Simple logic to draw bars or points
     // We will render it as a Row of bars for simplicity in PDF
@@ -697,7 +705,7 @@ class HomeViewModel extends ReactiveViewModel {
     return pw.Container(
       alignment: pw.Alignment.centerRight,
       child: pw.Text(
-        l10n.reportPage(context.pageNumber, context.pagesCount),
+        _l10n.reportPage(context.pageNumber, context.pagesCount),
         style: pw.TextStyle(
           color: PdfColor(
               brandPrimary.red, brandPrimary.green, brandPrimary.blue, 0.7),
@@ -709,7 +717,7 @@ class HomeViewModel extends ReactiveViewModel {
 
   pw.Widget _buildWarehouseTable(List<WarehouseReportItem> items,
       PdfColor headerColor, PdfColor zebraColor) {
-    final headers = [l10n.product, l10n.batch, l10n.reportPalletCount];
+    final headers = [_l10n.product, _l10n.batch, _l10n.reportPalletCount];
 
     final headerStyle = pw.TextStyle(
         fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10);
@@ -724,7 +732,7 @@ class HomeViewModel extends ReactiveViewModel {
           child: pw.Text(
             header,
             style: headerStyle,
-            textAlign: header == l10n.reportPalletCount
+            textAlign: header == _l10n.reportPalletCount
                 ? pw.TextAlign.right
                 : pw.TextAlign.left,
           ),

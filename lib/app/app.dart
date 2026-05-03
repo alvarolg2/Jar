@@ -31,6 +31,7 @@ import 'package:jar/services/pallet_repository.dart';
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: DialogService),
     LazySingleton(classType: NavigationService),
+    LazySingleton(classType: SnackbarService),
     LazySingleton(classType: WarehouseDataService),
     LazySingleton(classType: UpdateService),
     LazySingleton(classType: FilterService),
