@@ -1,6 +1,7 @@
 import 'package:jar/models/lot.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/product.dart';
+import 'package:jar/models/warehouse.dart';
 import 'package:jar/services/database_service.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -26,51 +27,77 @@ class LotRepository {
     int? productId,
   }) async {
     final db = await _dbService.database;
-    String subQuery = '''
-      SELECT DISTINCT l.id FROM lot l
-      JOIN pallet_lot pl ON pl.id_lot = l.id
-      JOIN pallet pal ON pl.id_pallet = pal.id
+
+    String whereClause = '''
       WHERE pal.warehouse = ? AND pal.is_out = 0 AND pal.defective = ?
     ''';
-    List<dynamic> subQueryParams = [warehouseId, isDefective ? 1 : 0];
+    List<dynamic> queryParams = [warehouseId, isDefective ? 1 : 0];
 
     if (productId != null) {
-      subQuery += ' AND l.product = ?';
-      subQueryParams.add(productId);
+      whereClause += ' AND l.product = ?';
+      queryParams.add(productId);
     }
 
-    String mainQuery = '''
-      SELECT l.*, p.id AS productId, p.name AS productName, p.description AS productDescription, p.create_date AS productCreateDate      FROM lot l
+    final query = '''
+      SELECT 
+        l.id AS lotId, l.name AS lotName, l.create_date AS lotCreateDate,
+        p.id AS productId, p.name AS productName, p.description AS productDescription, p.create_date AS productCreateDate,
+        pal.id AS palletId, pal.name AS palletName, pal.warehouse AS palletWarehouse, 
+        pal.create_date AS palletCreateDate, pal.out_date AS palletOutDate, pal.date AS palletDate,
+        pal.is_out AS palletIsOut, pal.defective AS palletDefective
+      FROM lot l
       JOIN product p ON l.product = p.id
-      WHERE l.id IN ($subQuery)
-      ORDER BY l.create_date DESC
+      JOIN pallet_lot pl ON l.id = pl.id_lot
+      JOIN pallet pal ON pl.id_pallet = pal.id
+      $whereClause
+      ORDER BY l.create_date DESC, pal.id ASC
     ''';
-    final maps = await db.rawQuery(mainQuery, subQueryParams);
 
-    List<Lot> lots = [];
-    for (var map in maps) {
-      final product = Product.fromJson({
-        'id': map['productId'],
-        'name': map['productName'],
-        'description': map['productDescription'],
-        'create_date': map['productCreateDate'],
-      });
-      var lot = Lot(
-        id: map['id'] as int?,
-        name: map['name'] as String?,
-        createDate: DateTime.parse(map['create_date'] as String),
-        product: product,
-        pallet: [],
+    final results = await db.rawQuery(query, queryParams);
+
+    final Map<int, Lot> lotsMap = {};
+
+    for (final row in results) {
+      final lotId = row['lotId'] as int;
+
+      if (!lotsMap.containsKey(lotId)) {
+        final product = Product(
+          id: row['productId'] as int?,
+          name: row['productName'] as String?,
+          description: row['productDescription'] as String?,
+        );
+
+        lotsMap[lotId] = Lot(
+          id: lotId,
+          name: row['lotName'] as String?,
+          createDate: row['lotCreateDate'] != null
+              ? DateTime.parse(row['lotCreateDate'] as String).toLocal()
+              : null,
+          product: product,
+          pallet: [],
+        );
+      }
+
+      final pallet = Pallet(
+        id: row['palletId'] as int?,
+        name: row['palletName'] as String?,
+        warehouse: Warehouse(id: row['palletWarehouse'] as int?),
+        createDate: row['palletCreateDate'] != null
+            ? DateTime.parse(row['palletCreateDate'] as String)
+            : null,
+        outDate: row['palletOutDate'] != null
+            ? DateTime.parse(row['palletOutDate'] as String)
+            : null,
+        date: row['palletDate'] != null
+            ? DateTime.parse(row['palletDate'] as String)
+            : null,
+        isOut: (row['palletIsOut'] as int) == 1,
+        defective: (row['palletDefective'] as int) == 1,
       );
-      final palletMaps = await db.rawQuery('''
-        SELECT * FROM pallet
-        WHERE id IN (SELECT id_pallet FROM pallet_lot WHERE id_lot = ?) 
-              AND warehouse = ?
-      ''', [lot.id, warehouseId]);
-      var pallets = palletMaps.map((p) => Pallet.fromJson(p)).toList();
-      lot = lot.copyWith(pallet: pallets);
-      lots.add(lot);
+
+      lotsMap[lotId]!.pallet!.add(pallet);
     }
-    return lots;
+
+    return lotsMap.values.toList();
   }
 }
