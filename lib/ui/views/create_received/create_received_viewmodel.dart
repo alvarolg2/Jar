@@ -39,6 +39,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   TextEditingController get numPalletController => _numPalletController;
 
   late Warehouse _warehouse;
+  TextRecognizer? _textRecognizer;
 
   void init(Warehouse warehouse) {
     _warehouse = warehouse;
@@ -68,11 +69,10 @@ class CreateReceivedViewModel extends BaseViewModel {
 
       final imagePath = pictures.first;
       final inputImage = InputImage.fromFilePath(imagePath);
-      final textRecognizer =
-          TextRecognizer(script: TextRecognitionScript.latin);
+      
+      _textRecognizer ??= TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText =
-          await textRecognizer.processImage(inputImage);
-      textRecognizer.close();
+          await _textRecognizer!.processImage(inputImage);
 
       await _parseRecognizedText(recognizedText);
     } catch (e) {
@@ -188,6 +188,7 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    _textRecognizer?.close();
     _productNameController.dispose();
     _productDescriptionController.dispose();
     _lotController.dispose();
