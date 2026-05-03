@@ -110,8 +110,8 @@ class PalletRepository {
         'SELECT COUNT(*) FROM pallet WHERE is_out = 0 AND defective = 0'));
     final totalOut = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM pallet WHERE is_out = 1'));
-    final totalDefective = Sqflite.firstIntValue(
-        await db.rawQuery('SELECT COUNT(*) FROM pallet WHERE defective = 1'));
+    final totalDefective = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM pallet WHERE defective = 1 AND is_out = 0'));
 
     return {
       'totalIn': totalIn ?? 0,
@@ -134,7 +134,7 @@ class PalletRepository {
   Future<List<Map<String, dynamic>>> getTopProducts(int limit) async {
     final db = await _dbService.database;
     return await db.rawQuery('''
-      SELECT pr.name as productName, pr.description as description, COUNT(p.id) as count
+      SELECT pr.name as productName, pr.description as description, COUNT(DISTINCT p.id) as count
       FROM pallet p
       JOIN pallet_lot pl ON p.id = pl.id_pallet
       JOIN lot l ON pl.id_lot = l.id
@@ -152,10 +152,10 @@ class PalletRepository {
     final startDate = now.subtract(Duration(days: days));
     final startDateStr = startDate.toIso8601String();
 
-    return await db.rawQuery('''
+    final results = await db.rawQuery('''
       SELECT date(create_date) as date, 'in' as type, COUNT(*) as count
       FROM pallet
-      WHERE create_date >= ?
+      WHERE create_date >= ? AND defective = 0
       GROUP BY date(create_date)
 
       UNION ALL
@@ -167,5 +167,41 @@ class PalletRepository {
       
       ORDER BY date ASC
     ''', [startDateStr, startDateStr]);
+
+    final Map<String, int> inData = {};
+    final Map<String, int> outData = {};
+
+    for (final row in results) {
+      final date = row['date'] as String?;
+      if (date == null) continue;
+
+      final type = row['type'] as String;
+      final count = row['count'] as int;
+
+      if (type == 'in') {
+        inData[date] = count;
+      } else {
+        outData[date] = count;
+      }
+    }
+
+    final List<Map<String, dynamic>> filledData = [];
+    for (int i = 0; i < days; i++) {
+      final date = now.subtract(Duration(days: days - 1 - i));
+      final dateStr = date.toIso8601String().split('T').first;
+
+      filledData.add({
+        'date': dateStr,
+        'type': 'in',
+        'count': inData[dateStr] ?? 0,
+      });
+      filledData.add({
+        'date': dateStr,
+        'type': 'out',
+        'count': outData[dateStr] ?? 0,
+      });
+    }
+
+    return filledData;
   }
 }
