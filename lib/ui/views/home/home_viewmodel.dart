@@ -412,6 +412,83 @@ class HomeViewModel extends ReactiveViewModel {
     }.toList();
     allWarehouseNames.sort();
 
+    final totalNormalPallets = normalItems.fold<int>(
+        0, (sum, item) => sum + item.palletCount);
+    final totalDefectivePallets = defectiveItems.fold<int>(
+        0, (sum, item) => sum + item.palletCount);
+
+    final normalByProduct = <String, int>{};
+    for (final item in normalItems) {
+      final key = '${item.productName} - ${item.lotName}';
+      normalByProduct[key] = (normalByProduct[key] ?? 0) + item.palletCount;
+    }
+
+    final defectiveByProduct = <String, int>{};
+    for (final item in defectiveItems) {
+      final key = '${item.productName} - ${item.lotName}';
+      defectiveByProduct[key] = (defectiveByProduct[key] ?? 0) + item.palletCount;
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageTheme: pw.PageTheme(
+            pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(32)),
+        header: (context) => _buildHeader(context, logoImage, brandPrimary),
+        footer: (context) => _buildFooter(context, brandPrimary),
+        build: (context) => [
+          pw.Text(_l10n.reportTitle,
+              style: pw.TextStyle(
+                  fontSize: 22,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandPrimary)),
+          pw.SizedBox(height: 20),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatCard(
+                  _l10n.reportStandardInventory,
+                  '$totalNormalPallets',
+                  brandAccent,
+                  brandPrimary),
+              pw.SizedBox(width: 20),
+              _buildStatCard(
+                  _l10n.reportDefectiveInventory,
+                  '$totalDefectivePallets',
+                  brandDefective,
+                  brandPrimary),
+            ],
+          ),
+          pw.SizedBox(height: 25),
+          pw.Text(_l10n.reportStandardInventory,
+              style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandAccent)),
+          pw.SizedBox(height: 10),
+          if (normalByProduct.isNotEmpty)
+            _buildSummaryTable(normalByProduct, totalNormalPallets, brandAccent)
+          else
+            pw.Text(_l10n.reportNoStandardPallets,
+                style: pw.TextStyle(
+                    fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
+          pw.SizedBox(height: 25),
+          pw.Text(_l10n.reportDefectiveInventory,
+              style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandDefective)),
+          pw.SizedBox(height: 10),
+          if (defectiveByProduct.isNotEmpty)
+            _buildSummaryTable(
+                defectiveByProduct, totalDefectivePallets, brandDefective)
+          else
+            pw.Text(_l10n.reportNoDefectivePallets,
+                style: pw.TextStyle(
+                    fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
+        ],
+      ),
+    );
+
     for (final warehouseName in allWarehouseNames) {
       final currentNormalItems =
           normalItems.where((i) => i.warehouseName == warehouseName).toList();
@@ -845,6 +922,95 @@ class HomeViewModel extends ReactiveViewModel {
         0: pw.FlexColumnWidth(3), // Producto
         1: pw.FlexColumnWidth(3), // Lote
         2: pw.FlexColumnWidth(1.5), // Contador
+      },
+      children: [
+        headerRow,
+        ...dataRows,
+      ],
+    );
+  }
+
+  pw.Widget _buildSummaryTable(
+      Map<String, int> itemsByProduct, int total, PdfColor color) {
+    final headerStyle = pw.TextStyle(
+        fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10);
+    const cellStyle = pw.TextStyle(fontSize: 10);
+    const cellPadding = pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8);
+
+    final headerRow = pw.TableRow(
+      decoration: pw.BoxDecoration(color: color),
+      children: [
+        pw.Padding(
+          padding: cellPadding,
+          child: pw.Text(_l10n.product, style: headerStyle),
+        ),
+        pw.Padding(
+          padding: cellPadding,
+          child: pw.Text(_l10n.reportPalletCount,
+              style: headerStyle, textAlign: pw.TextAlign.right),
+        ),
+      ],
+    );
+
+    final sortedEntries = itemsByProduct.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final List<pw.TableRow> dataRows = [];
+    for (var index = 0; index < sortedEntries.length; index++) {
+      final entry = sortedEntries[index];
+      final bool isZebra = index % 2 != 0;
+
+      dataRows.add(
+        pw.TableRow(
+          decoration: isZebra
+              ? pw.BoxDecoration(color: lightGrey)
+              : const pw.BoxDecoration(color: PdfColors.white),
+          children: [
+            pw.Padding(
+              padding: cellPadding,
+              child: pw.Text(entry.key, style: cellStyle),
+            ),
+            pw.Padding(
+              padding: cellPadding,
+              child: pw.Text(
+                entry.value.toString(),
+                style: cellStyle,
+                textAlign: pw.TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    dataRows.add(
+      pw.TableRow(
+        decoration: pw.BoxDecoration(color: lightGrey),
+        children: [
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text('Total',
+                style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          ),
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text(
+              total.toString(),
+              style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold, fontSize: 10),
+              textAlign: pw.TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(4),
+        1: pw.FlexColumnWidth(1.5),
       },
       children: [
         headerRow,
