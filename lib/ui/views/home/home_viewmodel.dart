@@ -193,7 +193,6 @@ class HomeViewModel extends ReactiveViewModel {
     setBusy(true);
     try {
       await _dbService.close();
-      await Future.delayed(const Duration(milliseconds: 500));
       final path = await DatabaseService.getDatabasePath();
       await Share.shareXFiles([XFile(path)],
           subject: _l10n.dbBackupSubject(
@@ -204,6 +203,7 @@ class HomeViewModel extends ReactiveViewModel {
           title: _l10n.exportError,
           description: _l10n.exportErrorDescription(e.toString()));
     } finally {
+      await _dbService.reopen();
       setBusy(false);
     }
   }
@@ -222,26 +222,90 @@ class HomeViewModel extends ReactiveViewModel {
       );
       if (response?.confirmed != true) return;
 
-      setBusy(true);
-
-      await _dbService.close();
-      await Future.delayed(const Duration(milliseconds: 200));
-
       final sourcePath = result.files.single.path!;
       final destinationPath = await DatabaseService.getDatabasePath();
-      await File(sourcePath).copy(destinationPath);
+      final backupPath = '$destinationPath.backup';
 
-      setBusy(false);
-      await _dialogService.showDialog(
-          title: _l10n.importComplete, description: _l10n.importCompleteMessage);
+      setBusy(true);
 
-      _navigationService.clearStackAndShow(Routes.homeView);
+      try {
+        if (!await _dbService.isValidSqliteFile(sourcePath)) {
+          await _dialogService.showDialog(
+              title: _l10n.importError,
+              description: _l10n.importNotSqlite);
+          return;
+        }
+
+        final integrityError = await _dbService.checkIntegrity(sourcePath);
+        if (integrityError != null) {
+          await _dialogService.showDialog(
+              title: _l10n.importError,
+              description: _l10n.importCorrupted);
+          return;
+        }
+
+        if (!await _dbService.hasValidSchema(sourcePath)) {
+          await _dialogService.showDialog(
+              title: _l10n.importError,
+              description: _l10n.importSchemaMismatch);
+          return;
+        }
+
+        await _dbService.close();
+
+        final backupFile = File(destinationPath);
+        if (await backupFile.exists()) {
+          await backupFile.copy(backupPath);
+        }
+
+        try {
+          await File(sourcePath).copy(destinationPath);
+        } catch (e) {
+          await _restoreFromBackup(backupPath, destinationPath);
+          await _dialogService.showDialog(
+              title: _l10n.importError,
+              description: _l10n.importErrorDescription(e.toString()));
+          return;
+        }
+
+        setBusy(false);
+        await _dialogService.showDialog(
+            title: _l10n.importComplete, description: _l10n.importCompleteMessage);
+
+        _navigationService.clearStackAndShow(Routes.homeView);
+      } catch (e) {
+        await _restoreFromBackup(backupPath, destinationPath);
+        setBusy(false);
+        await _dialogService.showDialog(
+            title: _l10n.importError,
+            description: _l10n.importBackupRestored);
+      } finally {
+        await _cleanupBackup(backupPath);
+      }
     } catch (e) {
       setBusy(false);
       await _dialogService.showDialog(
           title: _l10n.importError,
           description: _l10n.importErrorDescription(e.toString()));
     }
+  }
+
+  Future<void> _restoreFromBackup(String backupPath, String destinationPath) async {
+    try {
+      final backupFile = File(backupPath);
+      if (await backupFile.exists()) {
+        await backupFile.copy(destinationPath);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _cleanupBackup(String backupPath) async {
+    try {
+      final backupFile = File(backupPath);
+      if (await backupFile.exists()) {
+        await backupFile.delete();
+      }
+    } catch (_) {}
   }
 
   Future<void> generateAndShareWarehouseReport() async {

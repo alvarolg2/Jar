@@ -556,6 +556,36 @@ abstract class AppLocalizations {
   /// **'No se pudo importar la base de datos. Asegúrate de que es un archivo válido. Detalle: {error}'**
   String importErrorDescription(String error);
 
+  /// No description provided for @importNotSqlite.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo seleccionado no es una base de datos SQLite válida.'**
+  String get importNotSqlite;
+
+  /// No description provided for @importCorrupted.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo de base de datos está corrupto o dañado.'**
+  String get importCorrupted;
+
+  /// No description provided for @importSchemaMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'El esquema de la base de datos es incompatible con esta versión de la app.'**
+  String get importSchemaMismatch;
+
+  /// No description provided for @importBackupRestored.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al importar. Tus datos anteriores han sido restaurados.'**
+  String get importBackupRestored;
+
+  /// No description provided for @importBackupFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al importar y no se pudo restaurar la copia de seguridad. Reinstala la app.'**
+  String get importBackupFailed;
+
   /// No description provided for @reportSubject.
   ///
   /// In es, this message translates to:
