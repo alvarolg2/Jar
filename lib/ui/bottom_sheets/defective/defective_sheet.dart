@@ -88,7 +88,7 @@ class DefectiveSheet extends StatelessWidget {
             verticalSpaceMedium,
             ElevatedButton(
               onPressed: () {
-                int numPalletsAvailable = request.data['num_pallets'];
+                final numPalletsAvailable = request.data['num_pallets'] as int? ?? 0;
                 model.confirmPallets(numPalletsAvailable);
                 if (model.validationPassed) {
                   completer?.call(SheetResponse(confirmed: true, data: {"count": model.currentCount}));

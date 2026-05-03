@@ -44,8 +44,17 @@ class CreateReceivedViewModel extends BaseViewModel {
     _warehouse = warehouse;
   }
 
-  AppLocalizations get l10n =>
-      AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get _l10n {
+    final context = StackedService.navigatorKey?.currentContext;
+    if (context == null) {
+      throw StateError('Localizations accessed before navigator is ready');
+    }
+    final localization = AppLocalizations.of(context);
+    if (localization == null) {
+      throw StateError('Localizations not found in context');
+    }
+    return localization;
+  }
 
   Future<void> captureAndRecognizeText() async {
     setBusy(true);
@@ -68,8 +77,8 @@ class CreateReceivedViewModel extends BaseViewModel {
       await _parseRecognizedText(recognizedText);
     } catch (e) {
       await _dialogService.showDialog(
-        title: l10n.scanError,
-        description: l10n.scanErrorDescription(e.toString()),
+        title: _l10n.scanError,
+        description: _l10n.scanErrorDescription(e.toString()),
       );
     } finally {
       setBusy(false);
@@ -110,13 +119,13 @@ class CreateReceivedViewModel extends BaseViewModel {
           productNameController.text, productDescriptionController.text);
       Lot lot = await _findOrCreateLot(lotController.text, product);
       int numPallets = int.tryParse(numPalletController.text) ?? 0;
-      if (numPallets <= 0) throw Exception(l10n.palletsGreaterThanZero);
+      if (numPallets <= 0) throw Exception(_l10n.palletsGreaterThanZero);
       await _generatePallets(numPallets, lot.id!, _warehouse);
       return true;
     } catch (e) {
       await _dialogService.showDialog(
-          title: l10n.saveError,
-          description: l10n.saveErrorDescription(e.toString()));
+          title: _l10n.saveError,
+          description: _l10n.saveErrorDescription(e.toString()));
       return false;
     } finally {
       setBusy(false);
@@ -124,7 +133,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   }
 
   Future<Product> _findOrCreateProduct(String name, String description) async {
-    if (name.trim().isEmpty) throw Exception(l10n.productNameRequired);
+    if (name.trim().isEmpty) throw Exception(_l10n.productNameRequired);
 
     Product? existingProduct =
         await _productRepo.findByName(name);
@@ -153,7 +162,7 @@ class CreateReceivedViewModel extends BaseViewModel {
   }
 
   Future<Lot> _findOrCreateLot(String name, Product product) async {
-    if (name.trim().isEmpty) throw Exception(l10n.lotNameRequired);
+    if (name.trim().isEmpty) throw Exception(_l10n.lotNameRequired);
     Lot? existingLot = await _lotRepo.findByName(name);
     if (existingLot != null) return existingLot;
     int newLotId = await _lotRepo

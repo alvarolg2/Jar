@@ -735,6 +735,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sin Datos'**
   String get noData;
+
+  /// No description provided for @noDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin fecha'**
+  String get noDate;
 }
 
 class _AppLocalizationsDelegate

@@ -216,5 +216,6 @@
     "movementLegend": "Vert : Entrée, Orange : Sortie",
     "top5Products": "Top 5 des produits",
     "noDescription": "Aucune description",
-    "noData": "Aucune donnée"
+    "noData": "Aucune donnée",
+    "noDate": "Pas de date"
 }

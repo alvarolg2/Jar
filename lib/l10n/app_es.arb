@@ -191,5 +191,6 @@
     "movementLegend": "Verde: Entrada, Naranja: Salida",
     "top5Products": "Top 5 Productos",
     "noDescription": "Sin descripción",
-    "noData": "Sin Datos"
+    "noData": "Sin Datos",
+    "noDate": "Sin fecha"
 }

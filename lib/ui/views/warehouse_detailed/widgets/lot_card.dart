@@ -117,7 +117,9 @@ class LotCard extends StatelessWidget {
                     _buildMetric(
                       context,
                       icon: Icons.date_range_outlined,
-                      label: DateFormatter.format(lot.createDate!),
+                      label: lot.createDate != null
+                          ? DateFormatter.format(lot.createDate!)
+                          : l10n.noDate,
                       tooltip: l10n.tooltipDateCreationBatch,
                     ),
                   ],
@@ -230,7 +232,9 @@ class LotCard extends StatelessWidget {
                 _buildMetric(
                   context,
                   icon: Icons.date_range_outlined,
-                  label: DateFormatter.format(lot.createDate!),
+                  label: lot.createDate != null
+                      ? DateFormatter.format(lot.createDate!)
+                      : l10n.noDate,
                   tooltip: l10n.tooltipDateCreationBatch,
                 ),
                 
