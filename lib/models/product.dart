@@ -7,10 +7,17 @@ class Product {
 
   Product({this.id, this.name, this.description, this.createDate, this.numPallets});
 
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'description': description,
-      };
+  Map<String, dynamic> toJson() {
+    final map = {
+      'id': id,
+      'name': name,
+      'description': description,
+    };
+    if (createDate != null) {
+      map['create_date'] = createDate!.toIso8601String();
+    }
+    return map;
+  }
 
   Map<String, dynamic> toMap() {
     return {
