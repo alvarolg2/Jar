@@ -15,7 +15,6 @@ import 'package:jar/services/locale_service.dart';
 import 'package:jar/services/warehouse_data_service.dart';
 import 'package:jar/ui/common/app_colors.dart';
 import 'package:jar/ui/common/database_helper.dart';
-import 'package:jar/ui/views/create_received/create_received_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -159,14 +158,10 @@ class HomeViewModel extends ReactiveViewModel {
     notifyListeners();
   }
 
-  void navigateToCreateReceived(BuildContext context) {
+  void navigateToCreateReceived() {
     if (warehouses.isNotEmpty) {
-      final Warehouse selectedWarehouse = warehouses[currentIndex];
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  CreateReceivedView(warehouse: selectedWarehouse)));
+        final Warehouse selectedWarehouse = warehouses[currentIndex];
+        _navigationService.navigateToCreateReceivedView(warehouse: selectedWarehouse);
     }
   }
 
