@@ -27,7 +27,7 @@ class Lot {
         id: json['id'],
         name: json['name'],
         createDate: json['create_date'] != null ? DateTime.parse(json['create_date']).toLocal() : null,
-        product: json['product'] != null ? Product.fromJson(json) : null,
+        product: json['product'] != null ? Product(id: json['product'] as int) : null,
       );
 
   Lot copyWith({List<Pallet>? pallet}) {
