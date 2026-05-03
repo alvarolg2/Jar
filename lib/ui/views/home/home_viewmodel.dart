@@ -412,6 +412,83 @@ class HomeViewModel extends ReactiveViewModel {
     }.toList();
     allWarehouseNames.sort();
 
+    final totalNormalPallets = normalItems.fold<int>(
+        0, (sum, item) => sum + item.palletCount);
+    final totalDefectivePallets = defectiveItems.fold<int>(
+        0, (sum, item) => sum + item.palletCount);
+
+    final normalByProduct = <String, int>{};
+    for (final item in normalItems) {
+      final key = '${item.productName} - ${item.lotName}';
+      normalByProduct[key] = (normalByProduct[key] ?? 0) + item.palletCount;
+    }
+
+    final defectiveByProduct = <String, int>{};
+    for (final item in defectiveItems) {
+      final key = '${item.productName} - ${item.lotName}';
+      defectiveByProduct[key] = (defectiveByProduct[key] ?? 0) + item.palletCount;
+    }
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageTheme: pw.PageTheme(
+            pageFormat: PdfPageFormat.a4, margin: const pw.EdgeInsets.all(32)),
+        header: (context) => _buildHeader(context, logoImage, brandPrimary),
+        footer: (context) => _buildFooter(context, brandPrimary),
+        build: (context) => [
+          pw.Text(_l10n.reportTitle,
+              style: pw.TextStyle(
+                  fontSize: 22,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandPrimary)),
+          pw.SizedBox(height: 20),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            children: [
+              _buildStatCard(
+                  _l10n.reportStandardInventory,
+                  '$totalNormalPallets',
+                  brandAccent,
+                  brandPrimary),
+              pw.SizedBox(width: 20),
+              _buildStatCard(
+                  _l10n.reportDefectiveInventory,
+                  '$totalDefectivePallets',
+                  brandDefective,
+                  brandPrimary),
+            ],
+          ),
+          pw.SizedBox(height: 25),
+          pw.Text(_l10n.reportStandardInventory,
+              style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandAccent)),
+          pw.SizedBox(height: 10),
+          if (normalByProduct.isNotEmpty)
+            _buildSummaryTable(normalByProduct, totalNormalPallets, brandAccent)
+          else
+            pw.Text(_l10n.reportNoStandardPallets,
+                style: pw.TextStyle(
+                    fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
+          pw.SizedBox(height: 25),
+          pw.Text(_l10n.reportDefectiveInventory,
+              style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                  color: brandDefective)),
+          pw.SizedBox(height: 10),
+          if (defectiveByProduct.isNotEmpty)
+            _buildSummaryTable(
+                defectiveByProduct, totalDefectivePallets, brandDefective)
+          else
+            pw.Text(_l10n.reportNoDefectivePallets,
+                style: pw.TextStyle(
+                    fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
+        ],
+      ),
+    );
+
     for (final warehouseName in allWarehouseNames) {
       final currentNormalItems =
           normalItems.where((i) => i.warehouseName == warehouseName).toList();
@@ -705,64 +782,110 @@ class HomeViewModel extends ReactiveViewModel {
   pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
     if (data.isEmpty) return pw.Center(child: pw.Text(_l10n.noData));
 
-    // Simple logic to draw bars or points
-    // We will render it as a Row of bars for simplicity in PDF
-    // Group by date
     Map<String, int> inData = {};
     Map<String, int> outData = {};
-    Set<String> allDates = {};
 
     for (var item in data) {
       final date = item['date'] as String;
       final type = item['type'] as String;
       final count = item['count'] as int;
 
-      allDates.add(date);
       if (type == 'in') {
         inData[date] = count;
       } else {
         outData[date] = count;
       }
     }
-    List<String> sortedDates = allDates.toList()..sort();
 
-    // Find max for scaling
-    int maxCount = 0;
+    List<String> sortedDates = inData.keys.toSet().union(outData.keys.toSet()).toList();
+    sortedDates.sort();
+
+    int maxCount = 1;
     for (var v in inData.values) if (v > maxCount) maxCount = v;
     for (var v in outData.values) if (v > maxCount) maxCount = v;
-    if (maxCount == 0) maxCount = 10;
 
-    return pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: sortedDates.map((date) {
-          final inVal = (inData[date] ?? 0);
-          final outVal = (outData[date] ?? 0);
-          // If too many dates, maybe skip some or make bars very thin.
-          // For 30 days, we have space.
+    final double chartHeight = 100.0;
 
-          // Calculate height percentage
-          final double hIn = inVal / maxCount * 100;
-          final double hOut = outVal / maxCount * 100;
+    List<pw.Widget> barColumns = [];
+    for (final date in sortedDates) {
+      final int inVal = inData[date] ?? 0;
+      final int outVal = outData[date] ?? 0;
 
-          return pw.Expanded(
-              child: pw.Column(
-                  mainAxisAlignment: pw.MainAxisAlignment.end,
-                  children: [
-                pw.Row(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    mainAxisAlignment: pw.MainAxisAlignment.center,
-                    children: [
-                      if (inVal > 0)
-                        pw.Container(
-                            width: 3, height: hIn, color: PdfColors.green),
-                      if (outVal > 0)
-                        pw.Container(
-                            width: 3, height: hOut, color: PdfColors.orange),
-                    ]),
+      final double hIn = (inVal.toDouble() / maxCount.toDouble()) * chartHeight;
+      final double hOut = (outVal.toDouble() / maxCount.toDouble()) * chartHeight;
+
+      barColumns.add(
+        pw.Column(
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
                 pw.Container(
-                    height: 1, color: PdfColors.grey200), // minimal x-axis
-              ]));
-        }).toList());
+                  width: 4,
+                  height: hIn < 1 ? 1 : hIn,
+                  color: inVal > 0 ? PdfColors.green : PdfColors.grey300,
+                ),
+                pw.Container(width: 1),
+                pw.Container(
+                  width: 4,
+                  height: hOut < 1 ? 1 : hOut,
+                  color: outVal > 0 ? PdfColors.orange : PdfColors.grey300,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    List<pw.Widget> dateLabels = [];
+    final int labelSkip = sortedDates.length > 15 ? 5 : (sortedDates.length > 7 ? 3 : 1);
+    for (int i = 0; i < sortedDates.length; i++) {
+      if (i % labelSkip == 0) {
+        final date = sortedDates[i];
+        final label = date.length >= 10 ? '${date.substring(8, 10)}/${date.substring(5, 7)}' : date;
+        dateLabels.add(
+          pw.Container(
+            width: 10,
+            child: pw.Text(
+              label,
+              style: pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
+              textAlign: pw.TextAlign.center,
+            ),
+          ),
+        );
+      } else {
+        dateLabels.add(pw.Container(width: 10));
+      }
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(
+          height: chartHeight,
+          decoration: pw.BoxDecoration(
+            border: pw.Border(
+              left: pw.BorderSide(color: PdfColors.grey600, width: 1),
+              bottom: pw.BorderSide(color: PdfColors.grey600, width: 1),
+            ),
+          ),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            children: barColumns,
+          ),
+        ),
+        pw.Container(
+          height: 14,
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            children: dateLabels,
+          ),
+        ),
+      ],
+    );
   }
 
   pw.Widget _buildFooter(pw.Context context, PdfColor brandPrimary) {
@@ -845,6 +968,95 @@ class HomeViewModel extends ReactiveViewModel {
         0: pw.FlexColumnWidth(3), // Producto
         1: pw.FlexColumnWidth(3), // Lote
         2: pw.FlexColumnWidth(1.5), // Contador
+      },
+      children: [
+        headerRow,
+        ...dataRows,
+      ],
+    );
+  }
+
+  pw.Widget _buildSummaryTable(
+      Map<String, int> itemsByProduct, int total, PdfColor color) {
+    final headerStyle = pw.TextStyle(
+        fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10);
+    const cellStyle = pw.TextStyle(fontSize: 10);
+    const cellPadding = pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8);
+
+    final headerRow = pw.TableRow(
+      decoration: pw.BoxDecoration(color: color),
+      children: [
+        pw.Padding(
+          padding: cellPadding,
+          child: pw.Text(_l10n.product, style: headerStyle),
+        ),
+        pw.Padding(
+          padding: cellPadding,
+          child: pw.Text(_l10n.reportPalletCount,
+              style: headerStyle, textAlign: pw.TextAlign.right),
+        ),
+      ],
+    );
+
+    final sortedEntries = itemsByProduct.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final List<pw.TableRow> dataRows = [];
+    for (var index = 0; index < sortedEntries.length; index++) {
+      final entry = sortedEntries[index];
+      final bool isZebra = index % 2 != 0;
+
+      dataRows.add(
+        pw.TableRow(
+          decoration: isZebra
+              ? pw.BoxDecoration(color: lightGrey)
+              : const pw.BoxDecoration(color: PdfColors.white),
+          children: [
+            pw.Padding(
+              padding: cellPadding,
+              child: pw.Text(entry.key, style: cellStyle),
+            ),
+            pw.Padding(
+              padding: cellPadding,
+              child: pw.Text(
+                entry.value.toString(),
+                style: cellStyle,
+                textAlign: pw.TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    dataRows.add(
+      pw.TableRow(
+        decoration: pw.BoxDecoration(color: lightGrey),
+        children: [
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text('Total',
+                style: pw.TextStyle(
+                    fontWeight: pw.FontWeight.bold, fontSize: 10)),
+          ),
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text(
+              total.toString(),
+              style: pw.TextStyle(
+                  fontWeight: pw.FontWeight.bold, fontSize: 10),
+              textAlign: pw.TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(4),
+        1: pw.FlexColumnWidth(1.5),
       },
       children: [
         headerRow,

@@ -177,5 +177,7 @@ class ChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant ChartPainter oldDelegate) {
+    return oldDelegate.data != data;
+  }
 }
