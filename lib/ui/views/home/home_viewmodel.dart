@@ -782,64 +782,110 @@ class HomeViewModel extends ReactiveViewModel {
   pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
     if (data.isEmpty) return pw.Center(child: pw.Text(_l10n.noData));
 
-    // Simple logic to draw bars or points
-    // We will render it as a Row of bars for simplicity in PDF
-    // Group by date
     Map<String, int> inData = {};
     Map<String, int> outData = {};
-    Set<String> allDates = {};
 
     for (var item in data) {
       final date = item['date'] as String;
       final type = item['type'] as String;
       final count = item['count'] as int;
 
-      allDates.add(date);
       if (type == 'in') {
         inData[date] = count;
       } else {
         outData[date] = count;
       }
     }
-    List<String> sortedDates = allDates.toList()..sort();
 
-    // Find max for scaling
-    int maxCount = 0;
+    List<String> sortedDates = inData.keys.toSet().union(outData.keys.toSet()).toList();
+    sortedDates.sort();
+
+    int maxCount = 1;
     for (var v in inData.values) if (v > maxCount) maxCount = v;
     for (var v in outData.values) if (v > maxCount) maxCount = v;
-    if (maxCount == 0) maxCount = 10;
 
-    return pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.end,
-        children: sortedDates.map((date) {
-          final inVal = (inData[date] ?? 0);
-          final outVal = (outData[date] ?? 0);
-          // If too many dates, maybe skip some or make bars very thin.
-          // For 30 days, we have space.
+    final double chartHeight = 100.0;
 
-          // Calculate height percentage
-          final double hIn = inVal / maxCount * 100;
-          final double hOut = outVal / maxCount * 100;
+    List<pw.Widget> barColumns = [];
+    for (final date in sortedDates) {
+      final int inVal = inData[date] ?? 0;
+      final int outVal = outData[date] ?? 0;
 
-          return pw.Expanded(
-              child: pw.Column(
-                  mainAxisAlignment: pw.MainAxisAlignment.end,
-                  children: [
-                pw.Row(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    mainAxisAlignment: pw.MainAxisAlignment.center,
-                    children: [
-                      if (inVal > 0)
-                        pw.Container(
-                            width: 3, height: hIn, color: PdfColors.green),
-                      if (outVal > 0)
-                        pw.Container(
-                            width: 3, height: hOut, color: PdfColors.orange),
-                    ]),
+      final double hIn = (inVal.toDouble() / maxCount.toDouble()) * chartHeight;
+      final double hOut = (outVal.toDouble() / maxCount.toDouble()) * chartHeight;
+
+      barColumns.add(
+        pw.Column(
+          mainAxisAlignment: pw.MainAxisAlignment.end,
+          children: [
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
                 pw.Container(
-                    height: 1, color: PdfColors.grey200), // minimal x-axis
-              ]));
-        }).toList());
+                  width: 4,
+                  height: hIn < 1 ? 1 : hIn,
+                  color: inVal > 0 ? PdfColors.green : PdfColors.grey300,
+                ),
+                pw.Container(width: 1),
+                pw.Container(
+                  width: 4,
+                  height: hOut < 1 ? 1 : hOut,
+                  color: outVal > 0 ? PdfColors.orange : PdfColors.grey300,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
+    List<pw.Widget> dateLabels = [];
+    final int labelSkip = sortedDates.length > 15 ? 5 : (sortedDates.length > 7 ? 3 : 1);
+    for (int i = 0; i < sortedDates.length; i++) {
+      if (i % labelSkip == 0) {
+        final date = sortedDates[i];
+        final label = date.length >= 10 ? '${date.substring(8, 10)}/${date.substring(5, 7)}' : date;
+        dateLabels.add(
+          pw.Container(
+            width: 10,
+            child: pw.Text(
+              label,
+              style: pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
+              textAlign: pw.TextAlign.center,
+            ),
+          ),
+        );
+      } else {
+        dateLabels.add(pw.Container(width: 10));
+      }
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Container(
+          height: chartHeight,
+          decoration: pw.BoxDecoration(
+            border: pw.Border(
+              left: pw.BorderSide(color: PdfColors.grey600, width: 1),
+              bottom: pw.BorderSide(color: PdfColors.grey600, width: 1),
+            ),
+          ),
+          child: pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            children: barColumns,
+          ),
+        ),
+        pw.Container(
+          height: 14,
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            children: dateLabels,
+          ),
+        ),
+      ],
+    );
   }
 
   pw.Widget _buildFooter(pw.Context context, PdfColor brandPrimary) {
