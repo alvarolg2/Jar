@@ -267,6 +267,26 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get importNotSqlite =>
+      'El archivo seleccionado no es una base de datos SQLite válida.';
+
+  @override
+  String get importCorrupted =>
+      'El archivo de base de datos está corrupto o dañado.';
+
+  @override
+  String get importSchemaMismatch =>
+      'El esquema de la base de datos es incompatible con esta versión de la app.';
+
+  @override
+  String get importBackupRestored =>
+      'Error al importar. Tus datos anteriores han sido restaurados.';
+
+  @override
+  String get importBackupFailed =>
+      'Error al importar y no se pudo restaurar la copia de seguridad. Reinstala la app.';
+
+  @override
   String reportSubject(String date) {
     return 'Reporte de Almacenes - $date';
   }

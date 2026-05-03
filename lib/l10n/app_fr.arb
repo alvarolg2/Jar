@@ -137,6 +137,11 @@
             }
         }
     },
+    "importNotSqlite": "Le fichier sélectionné n'est pas une base de données SQLite valide.",
+    "importCorrupted": "Le fichier de base de données est corrompu ou endommagé.",
+    "importSchemaMismatch": "Le schéma de la base de données est incompatible avec cette version de l'application.",
+    "importBackupRestored": "Échec de l'importation. Vos données précédentes ont été restaurées.",
+    "importBackupFailed": "Échec de l'importation et la sauvegarde n'a pas pu être restaurée. Veuillez réinstaller l'application.",
     "reportSubject": "Rapport d'entrepôt - {date}",
     "@reportSubject": {
         "placeholders": {

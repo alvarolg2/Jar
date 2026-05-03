@@ -135,6 +135,11 @@
     "@importErrorDescription": {
         "placeholders": { "error": { "type": "String" } }
     },
+    "importNotSqlite": "El archivo seleccionado no es una base de datos SQLite válida.",
+    "importCorrupted": "El archivo de base de datos está corrupto o dañado.",
+    "importSchemaMismatch": "El esquema de la base de datos es incompatible con esta versión de la app.",
+    "importBackupRestored": "Error al importar. Tus datos anteriores han sido restaurados.",
+    "importBackupFailed": "Error al importar y no se pudo restaurar la copia de seguridad. Reinstala la app.",
 
     "reportSubject": "Reporte de Almacenes - {date}",
     "@reportSubject": {

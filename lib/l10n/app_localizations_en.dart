@@ -265,6 +265,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get importNotSqlite =>
+      'The selected file is not a valid SQLite database.';
+
+  @override
+  String get importCorrupted => 'The database file is corrupted or damaged.';
+
+  @override
+  String get importSchemaMismatch =>
+      'The database schema is incompatible with this version of the app.';
+
+  @override
+  String get importBackupRestored =>
+      'Import failed. Your previous data has been restored.';
+
+  @override
+  String get importBackupFailed =>
+      'Import failed and backup could not be restored. Please reinstall the app.';
+
+  @override
   String reportSubject(String date) {
     return 'Warehouse Report - $date';
   }

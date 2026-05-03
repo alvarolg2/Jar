@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -64,5 +65,51 @@ class DatabaseService {
     if (_database == null) return;
     await _database!.close();
     _database = null;
+  }
+
+  Future<void> reopen() async {
+    await close();
+    await database;
+  }
+
+  Future<bool> isValidSqliteFile(String path) async {
+    try {
+      final file = File(path);
+      if (!await file.exists()) return false;
+
+      final fileSize = await file.length();
+      if (fileSize < 100) return false;
+
+      final headerBytes = await file.openRead(0, 16).first;
+      final header = String.fromCharCodes(headerBytes);
+      return header.startsWith('SQLite format 3');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<String?> checkIntegrity(String dbPath) async {
+    try {
+      final db = await openDatabase(dbPath, readOnly: true);
+      final result = await db.rawQuery('PRAGMA integrity_check');
+      await db.close();
+      final integrity = result.first['integrity_check'] as String;
+      return integrity == 'ok' ? null : integrity;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
+  Future<bool> hasValidSchema(String dbPath) async {
+    try {
+      final db = await openDatabase(dbPath, readOnly: true);
+      final tables = await db.rawQuery(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('product', 'lot', 'pallet', 'pallet_lot', 'warehouse')",
+      );
+      await db.close();
+      return tables.length == 5;
+    } catch (_) {
+      return false;
+    }
   }
 }
