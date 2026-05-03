@@ -13,8 +13,10 @@ import 'package:jar/models/warehouse.dart';
 import 'package:jar/services/filter_service.dart';
 import 'package:jar/services/locale_service.dart';
 import 'package:jar/services/warehouse_data_service.dart';
+import 'package:jar/services/database_service.dart';
+import 'package:jar/services/warehouse_repository.dart';
+import 'package:jar/services/pallet_repository.dart';
 import 'package:jar/ui/common/app_colors.dart';
-import 'package:jar/ui/common/database_helper.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -30,6 +32,9 @@ class HomeViewModel extends ReactiveViewModel {
   final _dialogService = locator<DialogService>();
   final _navigationService = locator<NavigationService>();
   final _localeService = locator<LocaleService>();
+  final _warehouseRepo = locator<WarehouseRepository>();
+  final _palletRepo = locator<PalletRepository>();
+  final _dbService = DatabaseService.instance;
 
   bool isActivated = false;
   int currentIndex = 0;
@@ -121,33 +126,33 @@ class HomeViewModel extends ReactiveViewModel {
 
   Future<void> fetchWarehouses() async {
     _warehouseDataService.warehouses.value =
-        await DatabaseHelper.instance.getAllWarehouses();
+    _warehouseDataService.warehouses.value =
+        await _warehouseRepo.getAll();
     if (currentIndex >= warehouses.length) {
       currentIndex = warehouses.isNotEmpty ? warehouses.length - 1 : 0;
     }
   }
 
   Future<void> fetchPalletCounts() async {
-    _warehouseDataService.palletCounts.value = await DatabaseHelper.instance
+    _warehouseDataService.palletCounts.value = await _palletRepo
         .getAllWarehousePalletCounts(isDefective: isActivated);
   }
 
   Future<void> addWarehouse(String name) async {
-    await runBusyFuture(
-        DatabaseHelper.instance.createWarehouse(Warehouse(name: name)));
+    await runBusyFuture(_warehouseRepo.create(Warehouse(name: name)));
     await fetchWarehouses();
     await fetchPalletCounts();
   }
 
   Future<void> deleteWarehouse(Warehouse warehouse) async {
-    await runBusyFuture(DatabaseHelper.instance.deleteWarehouse(warehouse.id!));
+    await runBusyFuture(_warehouseRepo.delete(warehouse.id!));
     await fetchWarehouses();
     await fetchPalletCounts();
   }
 
   Future<void> updateWarehouseName(Warehouse warehouse, String name) async {
     warehouse.name = name;
-    await runBusyFuture(DatabaseHelper.instance.updateWarehouse(warehouse));
+    await runBusyFuture(_warehouseRepo.update(warehouse));
     notifyListeners();
   }
 
@@ -179,9 +184,9 @@ class HomeViewModel extends ReactiveViewModel {
   Future<void> exportDatabase() async {
     setBusy(true);
     try {
-      await DatabaseHelper.instance.close();
+      await _dbService.close();
       await Future.delayed(const Duration(milliseconds: 500));
-      final path = await DatabaseHelper.getDatabasePath();
+      final path = await DatabaseService.getDatabasePath();
       await Share.shareXFiles([XFile(path)],
           subject: l10n.dbBackupSubject(
               DateTime.now().toLocal().toString().split(' ')[0]),
@@ -211,11 +216,11 @@ class HomeViewModel extends ReactiveViewModel {
 
       setBusy(true);
 
-      await DatabaseHelper.instance.close();
+      await _dbService.close();
       await Future.delayed(const Duration(milliseconds: 200));
 
       final sourcePath = result.files.single.path!;
-      final destinationPath = await DatabaseHelper.getDatabasePath();
+      final destinationPath = await DatabaseService.getDatabasePath();
       await File(sourcePath).copy(destinationPath);
 
       setBusy(false);
@@ -234,17 +239,17 @@ class HomeViewModel extends ReactiveViewModel {
   Future<void> generateAndShareWarehouseReport() async {
     setBusy(true);
     try {
-      final normalItems = await DatabaseHelper.instance
-          .getWarehouseReportItems(isDefective: false);
-      final defectiveItems = await DatabaseHelper.instance
-          .getWarehouseReportItems(isDefective: true);
+      final normalItems = await _palletRepo
+          .getReportItems(isDefective: false);
+      final defectiveItems = await _palletRepo
+          .getReportItems(isDefective: true);
 
       // Fetch Analysis Data
-      final globalStats = await DatabaseHelper.instance.getGlobalStats();
+      final globalStats = await _palletRepo.getGlobalStats();
       final warehouseDistribution =
-          await DatabaseHelper.instance.getWarehouseDistribution();
-      final topProducts = await DatabaseHelper.instance.getTopProducts(5);
-      final movementStats = await DatabaseHelper.instance.getMovementStats(30);
+          await _palletRepo.getWarehouseDistribution();
+      final topProducts = await _palletRepo.getTopProducts(5);
+      final movementStats = await _palletRepo.getMovementStats(30);
 
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
         await _dialogService.showDialog(

@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
-import 'package:jar/ui/common/database_helper.dart';
+import 'package:jar/app/app.locator.dart';
+import 'package:jar/services/pallet_repository.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PalletsInSheetModel extends BaseViewModel {
   final _snackbarService = SnackbarService();
+  final _palletRepo = locator<PalletRepository>();
 
   AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
@@ -60,7 +62,7 @@ class PalletsInSheetModel extends BaseViewModel {
 
       Pallet pallet = Pallet(name: palletReference, date: null, warehouse: Warehouse(id: warehouseId));
 
-      await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
+      await _palletRepo.createAndLinkToLot(pallet, lotId);
     }
 
     return pallets;

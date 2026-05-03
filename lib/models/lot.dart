@@ -19,8 +19,8 @@ class Lot {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
-        /* 'create_date': createDate?.toIso8601String(), */
-        'product': product!.id!,
+        'create_date': createDate?.toIso8601String(),
+        'product': product?.id,
       };
 
   factory Lot.fromJson(Map<String, dynamic> json) => Lot(

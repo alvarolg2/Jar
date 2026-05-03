@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:jar/services/locale_service.dart';
 import 'package:jar/ui/common/app_theme.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'ui/common/database_helper.dart';
+import 'package:jar/services/database_service.dart';
 import 'package:flutter/services.dart';
 
 Future<void> main() async {
@@ -20,8 +20,7 @@ Future<void> main() async {
   await locator<LocaleService>().init(); 
   setupDialogUi();
   setupBottomSheetUi();
-  DatabaseHelper databaseHelper = DatabaseHelper.instance;
-  await databaseHelper.database;
+  await DatabaseService.instance.database;
   
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

@@ -12,6 +12,11 @@ import 'package:jar/services/update_service.dart';
 import 'package:jar/services/filter_service.dart';
 import 'package:jar/services/label_parser_service.dart';
 import 'package:jar/services/ai_label_parser_service.dart';
+import 'package:jar/services/database_service.dart';
+import 'package:jar/services/warehouse_repository.dart';
+import 'package:jar/services/product_repository.dart';
+import 'package:jar/services/lot_repository.dart';
+import 'package:jar/services/pallet_repository.dart';
 // @stacked-import
 
 @StackedApp(
@@ -32,6 +37,11 @@ import 'package:jar/services/ai_label_parser_service.dart';
     LazySingleton(classType: LocaleService),
     LazySingleton(classType: LabelParserService),
     LazySingleton(classType: AiLabelParserService),
+    LazySingleton(classType: DatabaseService),
+    LazySingleton(classType: WarehouseRepository),
+    LazySingleton(classType: ProductRepository),
+    LazySingleton(classType: LotRepository),
+    LazySingleton(classType: PalletRepository),
 // @stacked-service
   ],
   bottomsheets: [
