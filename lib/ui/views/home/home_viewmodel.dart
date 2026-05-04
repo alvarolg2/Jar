@@ -1035,7 +1035,7 @@ class HomeViewModel extends ReactiveViewModel {
         children: [
           pw.Padding(
             padding: cellPadding,
-            child: pw.Text('Total',
+            child: pw.Text(_l10n.pdfTotal,
                 style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold, fontSize: 10)),
           ),

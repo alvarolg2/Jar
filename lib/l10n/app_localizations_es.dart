@@ -403,4 +403,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noDate => 'Sin fecha';
+
+  @override
+  String get pdfTotal => 'Total';
 }

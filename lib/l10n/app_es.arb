@@ -197,5 +197,6 @@
     "top5Products": "Top 5 Productos",
     "noDescription": "Sin descripción",
     "noData": "Sin Datos",
-    "noDate": "Sin fecha"
+    "noDate": "Sin fecha",
+    "pdfTotal": "Total"
 }

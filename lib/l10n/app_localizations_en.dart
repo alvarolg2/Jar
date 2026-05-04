@@ -399,4 +399,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noDate => 'No date';
+
+  @override
+  String get pdfTotal => 'Total';
 }
