@@ -309,8 +309,48 @@ class HomeViewModel extends ReactiveViewModel {
     } catch (_) {}
   }
 
+  Future<void> _showLoadingDialog(BuildContext context, String loadingText) {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('assets/icon/icon.png', width: 80, height: 80),
+                const SizedBox(height: 16),
+                Text(loadingText, style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: 12),
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _dismissLoadingDialog(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+
   Future<void> generateAndShareWarehouseReport() async {
-    setBusy(true);
+    final context = _navigationService.navigatorKey?.currentContext;
+    if (context == null) return;
+
+    _showLoadingDialog(context, _l10n.loading);
     try {
       final normalItems = await _palletRepo
           .getReportItems(isDefective: false);
@@ -325,9 +365,9 @@ class HomeViewModel extends ReactiveViewModel {
       final movementStats = await _palletRepo.getMovementStats(30);
 
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
+        _dismissLoadingDialog(context);
         await _dialogService.showDialog(
             title: _l10n.reportEmptyTitle, description: _l10n.reportEmptyMessage);
-        setBusy(false);
         return;
       }
 
@@ -345,6 +385,7 @@ class HomeViewModel extends ReactiveViewModel {
       final file = await File('${tempDir.path}/report_warehouse_$timestamp.pdf')
           .writeAsBytes(pdfBytes);
 
+      _dismissLoadingDialog(context);
       await Share.shareXFiles(
         [XFile(file.path)],
         subject: _l10n
@@ -352,11 +393,10 @@ class HomeViewModel extends ReactiveViewModel {
         text: _l10n.reportBody,
       );
     } catch (e) {
+      _dismissLoadingDialog(context);
       await _dialogService.showDialog(
           title: _l10n.pdfError,
           description: _l10n.pdfErrorDescription(e.toString()));
-    } finally {
-      setBusy(false);
     }
   }
 
