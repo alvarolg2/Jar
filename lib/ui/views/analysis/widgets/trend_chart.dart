@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jar/l10n/app_localizations.dart';
+import 'package:jar/utils/movement_data_processor.dart';
 import 'dart:math';
 
 class TrendChart extends StatelessWidget {
@@ -34,31 +35,13 @@ class ChartPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (data.isEmpty) return;
 
-    Map<String, int> inData = {};
-    Map<String, int> outData = {};
-    Set<String> allDates = {};
-
-    for (var item in data) {
-      final date = item['date'] as String;
-      final type = item['type'] as String;
-      final count = item['count'] as int;
-
-      allDates.add(date);
-      if (type == 'in') {
-        inData[date] = count;
-      } else {
-        outData[date] = count;
-      }
-    }
-
-    List<String> sortedDates = allDates.toList()..sort();
+    final processed = MovementDataProcessor.process(data);
+    final inData = processed.inData;
+    final outData = processed.outData;
+    final sortedDates = processed.sortedDates;
     if (sortedDates.isEmpty) return;
 
-    int maxCount = 0;
-    for (var count in inData.values) maxCount = max(maxCount, count);
-    for (var count in outData.values) maxCount = max(maxCount, count);
-
-    final double yMax = (maxCount == 0 ? 10 : maxCount).toDouble() * 1.2;
+    final double yMax = (processed.maxCount == 0 ? 10 : processed.maxCount).toDouble() * 1.2;
 
     final Paint linePaintIn = Paint()
       ..color = Colors.green
@@ -159,9 +142,7 @@ class ChartPainter extends CustomPainter {
             ..strokeWidth = 2);
 
       if (i % skip == 0) {
-        String label = date.length >= 10
-            ? '${date.substring(8, 10)}/${date.substring(5, 7)}'
-            : date;
+        final label = MovementDataProcessor.formatDateLabel(date);
 
         TextSpan span = TextSpan(
             style: const TextStyle(color: Colors.black, fontSize: 10),
@@ -178,6 +159,14 @@ class ChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ChartPainter oldDelegate) {
-    return oldDelegate.data != data;
+    if (oldDelegate.data.length != data.length) return true;
+    for (int i = 0; i < data.length; i++) {
+      if (oldDelegate.data[i]['date'] != data[i]['date'] ||
+          oldDelegate.data[i]['type'] != data[i]['type'] ||
+          oldDelegate.data[i]['count'] != data[i]['count']) {
+        return true;
+      }
+    }
+    return false;
   }
 }
