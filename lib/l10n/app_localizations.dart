@@ -771,6 +771,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sin fecha'**
   String get noDate;
+
+  /// No description provided for @pdfTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get pdfTotal;
 }
 
 class _AppLocalizationsDelegate
