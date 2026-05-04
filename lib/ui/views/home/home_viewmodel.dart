@@ -17,6 +17,7 @@ import 'package:jar/services/database_service.dart';
 import 'package:jar/services/warehouse_repository.dart';
 import 'package:jar/services/pallet_repository.dart';
 import 'package:jar/ui/common/app_colors.dart';
+import 'package:jar/utils/movement_data_processor.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -782,27 +783,11 @@ class HomeViewModel extends ReactiveViewModel {
   pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
     if (data.isEmpty) return pw.Center(child: pw.Text(_l10n.noData));
 
-    Map<String, int> inData = {};
-    Map<String, int> outData = {};
-
-    for (var item in data) {
-      final date = item['date'] as String;
-      final type = item['type'] as String;
-      final count = item['count'] as int;
-
-      if (type == 'in') {
-        inData[date] = count;
-      } else {
-        outData[date] = count;
-      }
-    }
-
-    List<String> sortedDates = inData.keys.toSet().union(outData.keys.toSet()).toList();
-    sortedDates.sort();
-
-    int maxCount = 1;
-    for (var v in inData.values) if (v > maxCount) maxCount = v;
-    for (var v in outData.values) if (v > maxCount) maxCount = v;
+    final processed = MovementDataProcessor.process(data);
+    final inData = processed.inData;
+    final outData = processed.outData;
+    final sortedDates = processed.sortedDates;
+    final maxCount = processed.maxCount == 0 ? 1 : processed.maxCount;
 
     final double chartHeight = 100.0;
 
@@ -844,7 +829,7 @@ class HomeViewModel extends ReactiveViewModel {
     for (int i = 0; i < sortedDates.length; i++) {
       if (i % labelSkip == 0) {
         final date = sortedDates[i];
-        final label = date.length >= 10 ? '${date.substring(8, 10)}/${date.substring(5, 7)}' : date;
+        final label = MovementDataProcessor.formatDateLabel(date);
         dateLabels.add(
           pw.Container(
             width: 10,
