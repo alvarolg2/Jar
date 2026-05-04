@@ -500,12 +500,8 @@ class HomeViewModel extends ReactiveViewModel {
             ],
           ),
           pw.SizedBox(height: 25),
-          pw.Text(_l10n.reportStandardInventory,
-              style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                  color: brandAccent)),
-          pw.SizedBox(height: 10),
+          _buildSectionHeader(_l10n.reportStandardInventory, brandAccent),
+          pw.SizedBox(height: 8),
           if (normalByProduct.isNotEmpty)
             _buildSummaryTable(normalByProduct, totalNormalPallets, brandAccent)
           else
@@ -513,12 +509,8 @@ class HomeViewModel extends ReactiveViewModel {
                 style: pw.TextStyle(
                     fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
           pw.SizedBox(height: 25),
-          pw.Text(_l10n.reportDefectiveInventory,
-              style: pw.TextStyle(
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                  color: brandDefective)),
-          pw.SizedBox(height: 10),
+          _buildSectionHeader(_l10n.reportDefectiveInventory, brandDefective),
+          pw.SizedBox(height: 8),
           if (defectiveByProduct.isNotEmpty)
             _buildSummaryTable(
                 defectiveByProduct, totalDefectivePallets, brandDefective)
@@ -542,6 +534,8 @@ class HomeViewModel extends ReactiveViewModel {
       final totalDefectivePallets = currentDefectiveItems.fold<int>(
           0, (sum, item) => sum + item.palletCount);
 
+      final warehouseTotal = totalNormalPallets + totalDefectivePallets;
+
       pdf.addPage(
         pw.MultiPage(
           pageTheme: pw.PageTheme(
@@ -550,47 +544,99 @@ class HomeViewModel extends ReactiveViewModel {
           header: (context) => _buildHeader(context, logoImage, brandPrimary),
           footer: (context) => _buildFooter(context, brandPrimary),
           build: (context) => [
-            pw.Text(warehouseName,
-                style: pw.TextStyle(
-                    fontSize: 22,
-                    fontWeight: pw.FontWeight.bold,
-                    color: brandPrimary)),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                color: brandPrimary,
+                borderRadius: pw.BorderRadius.circular(5),
+              ),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Text(warehouseName,
+                      style: pw.TextStyle(
+                          fontSize: 18,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white)),
+                  pw.Text('$warehouseTotal pallets',
+                      style: pw.TextStyle(
+                          fontSize: 14,
+                          color: PdfColor(1, 1, 1, 0.8))),
+                ],
+              ),
+            ),
             pw.SizedBox(height: 20),
-            pw.Text(_l10n.reportStandardInventory,
-                style: pw.TextStyle(
-                    fontSize: 16,
-                    fontWeight: pw.FontWeight.bold,
-                    color: brandAccent)),
-            pw.SizedBox(height: 10),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(8),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.white,
+                border: pw.Border.all(color: PdfColors.grey300),
+                borderRadius: pw.BorderRadius.circular(5),
+              ),
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+                children: [
+                  _buildSummaryStatItem(
+                      _l10n.inStock, '$totalNormalPallets', brandAccent),
+                  pw.Container(width: 1, height: 25, color: PdfColors.grey300),
+                  _buildSummaryStatItem(
+                      _l10n.defective, '$totalDefectivePallets', brandDefective),
+                  pw.Container(width: 1, height: 25, color: PdfColors.grey300),
+                  _buildSummaryStatItem(
+                      _l10n.reportPalletCount, '$warehouseTotal', brandPrimary),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            _buildSectionHeader(_l10n.reportStandardInventory, brandAccent),
+            pw.SizedBox(height: 8),
             if (currentNormalItems.isNotEmpty) ...[
-              _buildWarehouseTable(currentNormalItems, brandPrimary, lightGrey),
-              pw.SizedBox(height: 10),
+              _buildWarehouseTable(currentNormalItems, brandAccent, lightGrey),
+              pw.SizedBox(height: 8),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Text(_l10n.reportTotalStandard(totalNormalPallets),
-                    style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold, color: brandPrimary)),
+                child: pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: pw.BoxDecoration(
+                    color: brandAccent,
+                    borderRadius: pw.BorderRadius.circular(4),
+                  ),
+                  child: pw.Text(
+                    _l10n.reportTotalStandard(totalNormalPallets),
+                    style:  pw.TextStyle(
+                        color: PdfColors.white,
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 10),
+                  ),
+                ),
               ),
             ] else
               pw.Text(_l10n.reportNoStandardPallets,
                   style: pw.TextStyle(
                       fontStyle: pw.FontStyle.italic, color: PdfColors.grey)),
             pw.SizedBox(height: 25),
-            pw.Text(_l10n.reportDefectiveInventory,
-                style: pw.TextStyle(
-                    fontSize: 16,
-                    fontWeight: pw.FontWeight.bold,
-                    color: brandDefective)),
-            pw.SizedBox(height: 10),
+            _buildSectionHeader(_l10n.reportDefectiveInventory, brandDefective),
+            pw.SizedBox(height: 8),
             if (currentDefectiveItems.isNotEmpty) ...[
               _buildWarehouseTable(
                   currentDefectiveItems, brandDefective, lightGrey),
               pw.SizedBox(height: 10),
               pw.Align(
                 alignment: pw.Alignment.centerRight,
-                child: pw.Text(_l10n.reportTotalDefective(totalDefectivePallets),
-                    style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold, color: brandDefective)),
+                child: pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: pw.BoxDecoration(
+                    color: brandDefective,
+                    borderRadius: pw.BorderRadius.circular(4),
+                  ),
+                  child: pw.Text(
+                    _l10n.reportTotalDefective(totalDefectivePallets),
+                    style:  pw.TextStyle(
+                        color: PdfColors.white,
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 10),
+                  ),
+                ),
               ),
             ] else
               pw.Text(_l10n.reportNoDefectivePallets,
@@ -664,6 +710,8 @@ class HomeViewModel extends ReactiveViewModel {
                 PdfColors.red700, primary),
           ],
         ),
+        pw.SizedBox(height: 20),
+
         pw.SizedBox(height: 20),
 
         // 2. Tables Row
@@ -769,27 +817,8 @@ class HomeViewModel extends ReactiveViewModel {
         ),
         pw.SizedBox(height: 20),
 
-        // 3. Movement Chart (Simplified)
-        pw.Text(_l10n.movementTrends30Days,
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          height: 150,
-          width: double.infinity,
-          decoration:
-              pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300)),
-          padding: const pw.EdgeInsets.all(10),
-          child: _buildPdfChart(movementStats),
-        ),
-        pw.Row(children: [
-          pw.Container(width: 8, height: 8, color: PdfColors.green),
-          pw.SizedBox(width: 4),
-          pw.Text(_l10n.inStock, style: const pw.TextStyle(fontSize: 8)),
-          pw.SizedBox(width: 10),
-          pw.Container(width: 8, height: 8, color: PdfColors.orange),
-          pw.SizedBox(width: 4),
-          pw.Text(_l10n.dispatched, style: const pw.TextStyle(fontSize: 8)),
-        ])
+        // 4. Movement Chart
+        _buildPdfChart(movementStats, primary, secondary),
       ],
     );
   }
@@ -820,8 +849,18 @@ class HomeViewModel extends ReactiveViewModel {
     );
   }
 
-  pw.Widget _buildPdfChart(List<Map<String, dynamic>> data) {
-    if (data.isEmpty) return pw.Center(child: pw.Text(_l10n.noData));
+  pw.Widget _buildPdfChart(List<Map<String, dynamic>> data, PdfColor primary, PdfColor secondary) {
+    if (data.isEmpty) {
+      return pw.Container(
+        padding: const pw.EdgeInsets.all(20),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(5),
+        ),
+        child: pw.Center(child: pw.Text(_l10n.noData)),
+      );
+    }
 
     final processed = MovementDataProcessor.process(data);
     final inData = processed.inData;
@@ -829,87 +868,134 @@ class HomeViewModel extends ReactiveViewModel {
     final sortedDates = processed.sortedDates;
     final maxCount = processed.maxCount == 0 ? 1 : processed.maxCount;
 
-    final double chartHeight = 100.0;
+    final int totalIn = inData.values.fold(0, (a, b) => a + b);
+    final int totalOut = outData.values.fold(0, (a, b) => a + b);
 
-    List<pw.Widget> barColumns = [];
-    for (final date in sortedDates) {
-      final int inVal = inData[date] ?? 0;
-      final int outVal = outData[date] ?? 0;
+    final double chartHeight = 130.0;
+    final int labelSkip = sortedDates.length > 12 ? 4 : (sortedDates.length > 6 ? 2 : 1);
 
-      final double hIn = (inVal.toDouble() / maxCount.toDouble()) * chartHeight;
-      final double hOut = (outVal.toDouble() / maxCount.toDouble()) * chartHeight;
+    List<pw.Widget> barGroups = [];
+    for (int i = 0; i < sortedDates.length; i++) {
+      final date = sortedDates[i];
+      final inVal = inData[date] ?? 0;
+      final outVal = outData[date] ?? 0;
 
-      barColumns.add(
-        pw.Column(
-          mainAxisAlignment: pw.MainAxisAlignment.end,
-          children: [
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
-              children: [
-                pw.Container(
-                  width: 4,
-                  height: hIn < 1 ? 1 : hIn,
-                  color: inVal > 0 ? PdfColors.green : PdfColors.grey300,
-                ),
-                pw.Container(width: 1),
-                pw.Container(
-                  width: 4,
-                  height: hOut < 1 ? 1 : hOut,
-                  color: outVal > 0 ? PdfColors.orange : PdfColors.grey300,
-                ),
-              ],
-            ),
-          ],
+      final hIn = (inVal / maxCount) * chartHeight;
+      final hOut = (outVal / maxCount) * chartHeight;
+
+      barGroups.add(
+        pw.Expanded(
+          child: pw.Column(
+            mainAxisAlignment: pw.MainAxisAlignment.end,
+            children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Container(
+                    width: 6,
+                    height: hIn < 1 ? 1 : hIn,
+                    color: inVal > 0 ? PdfColors.green : PdfColors.grey300,
+                  ),
+                  pw.Container(width: 1),
+                  pw.Container(
+                    width: 6,
+                    height: hOut < 1 ? 1 : hOut,
+                    color: outVal > 0 ? PdfColors.orange : PdfColors.grey300,
+                  ),
+                ],
+              ),
+              pw.SizedBox(height: 3),
+              if (i % labelSkip == 0)
+                pw.Text(MovementDataProcessor.formatDateLabel(date),
+                    style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600))
+              else
+                pw.SizedBox(height: 8),
+            ],
+          ),
         ),
       );
-    }
-
-    List<pw.Widget> dateLabels = [];
-    final int labelSkip = sortedDates.length > 15 ? 5 : (sortedDates.length > 7 ? 3 : 1);
-    for (int i = 0; i < sortedDates.length; i++) {
-      if (i % labelSkip == 0) {
-        final date = sortedDates[i];
-        final label = MovementDataProcessor.formatDateLabel(date);
-        dateLabels.add(
-          pw.Container(
-            width: 10,
-            child: pw.Text(
-              label,
-              style: pw.TextStyle(fontSize: 6, color: PdfColors.grey600),
-              textAlign: pw.TextAlign.center,
-            ),
-          ),
-        );
-      } else {
-        dateLabels.add(pw.Container(width: 10));
-      }
     }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
+        pw.Text(_l10n.movementTrends30Days,
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+        pw.SizedBox(height: 8),
         pw.Container(
-          height: chartHeight,
+          padding: const pw.EdgeInsets.all(10),
           decoration: pw.BoxDecoration(
-            border: pw.Border(
-              left: pw.BorderSide(color: PdfColors.grey600, width: 1),
-              bottom: pw.BorderSide(color: PdfColors.grey600, width: 1),
-            ),
+            color: PdfColors.white,
+            border: pw.Border.all(color: PdfColors.grey300),
+            borderRadius: pw.BorderRadius.circular(5),
           ),
-          child: pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
-            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
-            children: barColumns,
-          ),
-        ),
-        pw.Container(
-          height: 14,
-          child: pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
-            children: dateLabels,
+          child: pw.Column(
+            children: [
+              pw.Container(
+                height: chartHeight + 12,
+                decoration: pw.BoxDecoration(
+                  border: pw.Border(
+                    left: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
+                    bottom: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
+                  ),
+                ),
+                child: pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: barGroups,
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.center,
+                children: [
+                  pw.Container(width: 8, height: 8, color: PdfColors.green),
+                  pw.SizedBox(width: 4),
+                  pw.Text('${_l10n.inStock} ($totalIn)',
+                      style: const pw.TextStyle(fontSize: 8)),
+                  pw.SizedBox(width: 16),
+                  pw.Container(width: 8, height: 8, color: PdfColors.orange),
+                  pw.SizedBox(width: 4),
+                  pw.Text('${_l10n.dispatched} ($totalOut)',
+                      style: const pw.TextStyle(fontSize: 8)),
+                ],
+              ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  pw.Widget _buildSummaryStatItem(String label, String value, PdfColor color) {
+    return pw.Column(
+      children: [
+        pw.Text(value,
+            style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+                color: color)),
+        pw.SizedBox(height: 2),
+        pw.Text(label,
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+            textAlign: pw.TextAlign.center),
+      ],
+    );
+  }
+
+  pw.Widget _buildSectionHeader(String title, PdfColor color) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: pw.BoxDecoration(
+        color: color,
+        borderRadius: const pw.BorderRadius.only(
+            topLeft: pw.Radius.circular(5), topRight: pw.Radius.circular(5)),
+      ),
+      child: pw.Text(title,
+          style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white)),
     );
   }
 
