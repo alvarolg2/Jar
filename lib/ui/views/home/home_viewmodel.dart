@@ -613,13 +613,13 @@ class HomeViewModel extends ReactiveViewModel {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            _buildStatCard(_l10n.inStock, '${globalStats['totalIn']}',
+            _buildStatCard(_l10n.inStock, '${globalStats['totalIn'] ?? 0}',
                 PdfColors.blue700, primary),
             pw.SizedBox(width: 10),
-            _buildStatCard(_l10n.dispatched, '${globalStats['totalOut']}',
+            _buildStatCard(_l10n.dispatched, '${globalStats['totalOut'] ?? 0}',
                 PdfColors.green700, primary),
             pw.SizedBox(width: 10),
-            _buildStatCard(_l10n.defective, '${globalStats['totalDefective']}',
+            _buildStatCard(_l10n.defective, '${globalStats['totalDefective'] ?? 0}',
                 PdfColors.red700, primary),
           ],
         ),
