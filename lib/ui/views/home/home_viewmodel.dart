@@ -1030,22 +1030,45 @@ class HomeViewModel extends ReactiveViewModel {
     final inData = processed.inData;
     final outData = processed.outData;
     final sortedDates = processed.sortedDates;
-    final maxCount = processed.maxCount == 0 ? 1 : processed.maxCount;
 
     final int totalIn = inData.values.fold(0, (a, b) => a + b);
     final int totalOut = outData.values.fold(0, (a, b) => a + b);
+    final netBalance = totalIn - totalOut;
 
-    final double chartHeight = 130.0;
-    final int labelSkip = sortedDates.length > 12 ? 4 : (sortedDates.length > 6 ? 2 : 1);
+    final now = DateTime.now();
+    final weeklyIn = <int>[];
+    final weeklyOut = <int>[];
+    final weekLabels = <String>[];
+
+    for (int w = 4; w >= 0; w--) {
+      final weekEnd = now.subtract(Duration(days: w * 7));
+      final weekStart = weekEnd.subtract(const Duration(days: 6));
+      final startStr = weekStart.toIso8601String().split('T').first;
+      final endStr = weekEnd.toIso8601String().split('T').first;
+
+      int sumIn = 0, sumOut = 0;
+      for (final date in sortedDates) {
+        if (date.compareTo(startStr) >= 0 && date.compareTo(endStr) <= 0) {
+          sumIn += inData[date] ?? 0;
+          sumOut += outData[date] ?? 0;
+        }
+      }
+      weeklyIn.add(sumIn);
+      weeklyOut.add(sumOut);
+
+      final startDay = weekStart.day.toString().padLeft(2, '0');
+      final endDay = weekEnd.day.toString().padLeft(2, '0');
+      final month = _getMonthShort(weekEnd.month);
+      weekLabels.add('$startDay-$endDay $month');
+    }
+
+    final maxWeekly = [...weeklyIn, ...weeklyOut].reduce((a, b) => a > b ? a : b);
+    final chartHeight = 100.0;
 
     List<pw.Widget> barGroups = [];
-    for (int i = 0; i < sortedDates.length; i++) {
-      final date = sortedDates[i];
-      final inVal = inData[date] ?? 0;
-      final outVal = outData[date] ?? 0;
-
-      final hIn = (inVal / maxCount) * chartHeight;
-      final hOut = (outVal / maxCount) * chartHeight;
+    for (int i = 0; i < weeklyIn.length; i++) {
+      final hIn = maxWeekly > 0 ? (weeklyIn[i] / maxWeekly) * chartHeight : 0.0;
+      final hOut = maxWeekly > 0 ? (weeklyOut[i] / maxWeekly) * chartHeight : 0.0;
 
       barGroups.add(
         pw.Expanded(
@@ -1057,24 +1080,29 @@ class HomeViewModel extends ReactiveViewModel {
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
                   pw.Container(
-                    width: 6,
-                    height: hIn < 1 ? 1 : hIn,
-                    color: inVal > 0 ? PdfColors.green : PdfColors.grey300,
+                    width: 10,
+                    height: hIn,
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.green,
+                      borderRadius: const pw.BorderRadius.only(
+                          topLeft: pw.Radius.circular(2), topRight: pw.Radius.circular(2)),
+                    ),
                   ),
-                  pw.Container(width: 1),
+                  pw.SizedBox(width: 3),
                   pw.Container(
-                    width: 6,
-                    height: hOut < 1 ? 1 : hOut,
-                    color: outVal > 0 ? PdfColors.orange : PdfColors.grey300,
+                    width: 10,
+                    height: hOut,
+                    decoration: pw.BoxDecoration(
+                      color: PdfColors.orange,
+                      borderRadius: const pw.BorderRadius.only(
+                          topLeft: pw.Radius.circular(2), topRight: pw.Radius.circular(2)),
+                    ),
                   ),
                 ],
               ),
-              pw.SizedBox(height: 3),
-              if (i % labelSkip == 0)
-                pw.Text(MovementDataProcessor.formatDateLabel(date),
-                    style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey600))
-              else
-                pw.SizedBox(height: 8),
+              pw.SizedBox(height: 4),
+              pw.Text(weekLabels[i],
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600)),
             ],
           ),
         ),
@@ -1097,7 +1125,7 @@ class HomeViewModel extends ReactiveViewModel {
           child: pw.Column(
             children: [
               pw.Container(
-                height: chartHeight + 12,
+                height: chartHeight + 16,
                 decoration: pw.BoxDecoration(
                   border: pw.Border(
                     left: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
@@ -1109,18 +1137,24 @@ class HomeViewModel extends ReactiveViewModel {
                   children: barGroups,
                 ),
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 10),
               pw.Row(
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  pw.Container(width: 8, height: 8, color: PdfColors.green),
+                  pw.Container(width: 10, height: 8, color: PdfColors.green),
                   pw.SizedBox(width: 4),
-                  pw.Text('${_l10n.inStock} ($totalIn)',
+                  pw.Text('${_l10n.movementIn} ($totalIn)',
                       style: const pw.TextStyle(fontSize: 8)),
-                  pw.SizedBox(width: 16),
-                  pw.Container(width: 8, height: 8, color: PdfColors.orange),
+                  pw.SizedBox(width: 20),
+                  pw.Container(width: 10, height: 8, color: PdfColors.orange),
                   pw.SizedBox(width: 4),
-                  pw.Text('${_l10n.dispatched} ($totalOut)',
+                  pw.Text('${_l10n.movementOut} ($totalOut)',
+                      style: const pw.TextStyle(fontSize: 8)),
+                  pw.SizedBox(width: 20),
+                  pw.Container(width: 10, height: 8,
+                      color: netBalance >= 0 ? PdfColors.green : PdfColors.red),
+                  pw.SizedBox(width: 4),
+                  pw.Text('Balance ($netBalance)',
                       style: const pw.TextStyle(fontSize: 8)),
                 ],
               ),
@@ -1129,6 +1163,11 @@ class HomeViewModel extends ReactiveViewModel {
         ),
       ],
     );
+  }
+
+  String _getMonthShort(int month) {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return months[month - 1];
   }
 
   pw.Widget _buildSummaryStatItem(String label, String value, PdfColor color) {
