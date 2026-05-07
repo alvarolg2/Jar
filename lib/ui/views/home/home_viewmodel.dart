@@ -827,39 +827,47 @@ class HomeViewModel extends ReactiveViewModel {
         padding: const pw.EdgeInsets.only(bottom: 6),
         child: pw.Row(
           children: [
-            pw.Expanded(
-              flex: 3,
+            pw.SizedBox(
+              width: 70,
               child: pw.Text(name,
-                  style: const pw.TextStyle(fontSize: 9),
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
                   overflow: pw.TextOverflow.clip),
             ),
+            pw.SizedBox(width: 8),
             pw.Expanded(
-              flex: 5,
               child: pw.Container(
-                height: 10,
+                height: 8,
                 decoration: pw.BoxDecoration(
                   color: PdfColors.grey200,
-                  borderRadius: pw.BorderRadius.circular(3),
+                  borderRadius: pw.BorderRadius.circular(4),
                 ),
                 child: pw.Row(
                   children: [
-                    pw.Container(
-                      width: (percentage / 100) * 200,
-                      decoration: pw.BoxDecoration(
-                        color: primary,
-                        borderRadius: pw.BorderRadius.circular(3),
+                    pw.Expanded(
+                      flex: percentage.clamp(0.0, 100.0).toInt(),
+                      child: pw.Container(
+                        decoration: pw.BoxDecoration(
+                          color: primary,
+                          borderRadius: pw.BorderRadius.circular(4),
+                        ),
                       ),
                     ),
+                    if (percentage < 100)
+                      pw.Expanded(
+                        flex: (100 - percentage.clamp(0.0, 100.0)).toInt(),
+                        child: pw.Container(),
+                      ),
                   ],
                 ),
               ),
             ),
             pw.SizedBox(width: 8),
-            pw.Text('${percentage.toStringAsFixed(0)}%',
-                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(width: 4),
-            pw.Text('($count)',
-                style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+            pw.SizedBox(
+              width: 40,
+              child: pw.Text('${percentage.toStringAsFixed(0)}%',
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+                  textAlign: pw.TextAlign.right),
+            ),
           ],
         ),
       );
