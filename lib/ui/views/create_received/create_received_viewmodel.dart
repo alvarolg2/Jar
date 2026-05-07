@@ -9,8 +9,10 @@ import 'package:jar/models/lot.dart';
 import 'package:jar/models/product.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
-import 'package:jar/ui/common/database_helper.dart';
 import 'package:jar/services/label_parser_service.dart';
+import 'package:jar/services/product_repository.dart';
+import 'package:jar/services/lot_repository.dart';
+import 'package:jar/services/pallet_repository.dart';
 import 'package:jar/models/parsed_label_data.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -21,6 +23,9 @@ class CreateReceivedViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
   final _labelParserService = locator<LabelParserService>();
+  final _productRepo = locator<ProductRepository>();
+  final _lotRepo = locator<LotRepository>();
+  final _palletRepo = locator<PalletRepository>();
 
   final _productNameController = TextEditingController();
   final _productDescriptionController = TextEditingController();
@@ -34,13 +39,23 @@ class CreateReceivedViewModel extends BaseViewModel {
   TextEditingController get numPalletController => _numPalletController;
 
   late Warehouse _warehouse;
+  TextRecognizer? _textRecognizer;
 
   void init(Warehouse warehouse) {
     _warehouse = warehouse;
   }
 
-  AppLocalizations get l10n =>
-      AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get _l10n {
+    final context = StackedService.navigatorKey?.currentContext;
+    if (context == null) {
+      throw StateError('Localizations accessed before navigator is ready');
+    }
+    final localization = AppLocalizations.of(context);
+    if (localization == null) {
+      throw StateError('Localizations not found in context');
+    }
+    return localization;
+  }
 
   Future<void> captureAndRecognizeText() async {
     setBusy(true);
@@ -54,17 +69,16 @@ class CreateReceivedViewModel extends BaseViewModel {
 
       final imagePath = pictures.first;
       final inputImage = InputImage.fromFilePath(imagePath);
-      final textRecognizer =
-          TextRecognizer(script: TextRecognitionScript.latin);
+      
+      _textRecognizer ??= TextRecognizer(script: TextRecognitionScript.latin);
       final RecognizedText recognizedText =
-          await textRecognizer.processImage(inputImage);
-      textRecognizer.close();
+          await _textRecognizer!.processImage(inputImage);
 
       await _parseRecognizedText(recognizedText);
     } catch (e) {
       await _dialogService.showDialog(
-        title: l10n.scanError,
-        description: l10n.scanErrorDescription(e.toString()),
+        title: _l10n.scanError,
+        description: _l10n.scanErrorDescription(e.toString()),
       );
     } finally {
       setBusy(false);
@@ -105,13 +119,13 @@ class CreateReceivedViewModel extends BaseViewModel {
           productNameController.text, productDescriptionController.text);
       Lot lot = await _findOrCreateLot(lotController.text, product);
       int numPallets = int.tryParse(numPalletController.text) ?? 0;
-      if (numPallets <= 0) throw Exception(l10n.palletsGreaterThanZero);
+      if (numPallets <= 0) throw Exception(_l10n.palletsGreaterThanZero);
       await _generatePallets(numPallets, lot.id!, _warehouse);
       return true;
     } catch (e) {
       await _dialogService.showDialog(
-          title: l10n.saveError,
-          description: l10n.saveErrorDescription(e.toString()));
+          title: _l10n.saveError,
+          description: _l10n.saveErrorDescription(e.toString()));
       return false;
     } finally {
       setBusy(false);
@@ -119,10 +133,10 @@ class CreateReceivedViewModel extends BaseViewModel {
   }
 
   Future<Product> _findOrCreateProduct(String name, String description) async {
-    if (name.trim().isEmpty) throw Exception(l10n.productNameRequired);
+    if (name.trim().isEmpty) throw Exception(_l10n.productNameRequired);
 
     Product? existingProduct =
-        await DatabaseHelper.instance.findProductByName(name);
+        await _productRepo.findByName(name);
 
     if (existingProduct != null) {
       final bool needsUpdate = description.trim().isNotEmpty &&
@@ -134,7 +148,7 @@ class CreateReceivedViewModel extends BaseViewModel {
           name: existingProduct.name,
           description: description,
         );
-        await DatabaseHelper.instance.updateProduct(productToUpdate);
+        await _productRepo.update(productToUpdate);
         return productToUpdate;
       } else {
         return existingProduct;
@@ -142,17 +156,17 @@ class CreateReceivedViewModel extends BaseViewModel {
     } else {
       final newProduct = Product(name: name, description: description);
       int newProductId =
-          await DatabaseHelper.instance.insertProduct(newProduct);
+          await _productRepo.insert(newProduct);
       return Product(id: newProductId, name: name, description: description);
     }
   }
 
   Future<Lot> _findOrCreateLot(String name, Product product) async {
-    if (name.trim().isEmpty) throw Exception(l10n.lotNameRequired);
-    Lot? existingLot = await DatabaseHelper.instance.findLotByName(name);
+    if (name.trim().isEmpty) throw Exception(_l10n.lotNameRequired);
+    Lot? existingLot = await _lotRepo.findByName(name);
     if (existingLot != null) return existingLot;
-    int newLotId = await DatabaseHelper.instance
-        .insertLot(Lot(name: name, product: product));
+    int newLotId = await _lotRepo
+        .insert(Lot(name: name, product: product));
     return Lot(id: newLotId, name: name, product: product);
   }
 
@@ -164,7 +178,7 @@ class CreateReceivedViewModel extends BaseViewModel {
           'Pallet-${random.nextInt(999999).toString().padLeft(6, '0')}';
       Pallet pallet =
           Pallet(name: palletReference, date: null, warehouse: warehouse);
-      await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
+      await _palletRepo.createAndLinkToLot(pallet, lotId);
     }
   }
 
@@ -174,6 +188,7 @@ class CreateReceivedViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    _textRecognizer?.close();
     _productNameController.dispose();
     _productDescriptionController.dispose();
     _lotController.dispose();

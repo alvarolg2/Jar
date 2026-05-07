@@ -135,6 +135,11 @@
     "@importErrorDescription": {
         "placeholders": { "error": { "type": "String" } }
     },
+    "importNotSqlite": "El archivo seleccionado no es una base de datos SQLite válida.",
+    "importCorrupted": "El archivo de base de datos está corrupto o dañado.",
+    "importSchemaMismatch": "El esquema de la base de datos es incompatible con esta versión de la app.",
+    "importBackupRestored": "Error al importar. Tus datos anteriores han sido restaurados.",
+    "importBackupFailed": "Error al importar y no se pudo restaurar la copia de seguridad. Reinstala la app.",
 
     "reportSubject": "Reporte de Almacenes - {date}",
     "@reportSubject": {
@@ -178,7 +183,13 @@
     "globalInventory": "Inventario Global",
     "inStock": "En Stock",
     "dispatched": "Expedido",
+    "dispatchedLast30Days": "{count} en 30 días",
+    "@dispatchedLast30Days": {
+        "placeholders": { "count": { "type": "int" } }
+    },
     "defective": "Defectuoso",
+    "currentStockDesc": "Stock actual",
+    "currentDefectiveDesc": "Defectuosos actuales",
     "warehouseDistribution": "Distribución por Almacén",
     "unknown": "Desconocido",
     "palletsCountLabel": "{count, plural, =1{{count} palé} other{{count} palés}}",
@@ -191,5 +202,19 @@
     "movementLegend": "Verde: Entrada, Naranja: Salida",
     "top5Products": "Top 5 Productos",
     "noDescription": "Sin descripción",
-    "noData": "Sin Datos"
+    "noData": "Sin Datos",
+    "noDate": "Sin fecha",
+    "pdfTotal": "Total",
+    "defectRate": "Tasa de Defectos",
+    "defectRateDesc": "% defectuosos últimos 30 días",
+    "rotationRatio": "Ratio de Rotación",
+    "rotationRatioDesc": "Expedidos últimos 30 días / stock actual",
+    "activeProducts": "Productos Activos",
+    "warehouseOccupancy": "Ocupación por Almacén",
+    "recentActivity": "Actividad Reciente",
+    "movementIn": "Entrada",
+    "movementOut": "Salida",
+    "date": "Fecha",
+    "type": "Tipo",
+    "warehouse": "Almacén"
 }

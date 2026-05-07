@@ -5,7 +5,9 @@ import 'package:jar/models/product.dart';
 import 'package:jar/models/warehouse.dart';
 import 'package:jar/services/filter_service.dart';
 import 'package:jar/services/warehouse_data_service.dart';
-import 'package:jar/ui/common/database_helper.dart';
+import 'package:jar/services/product_repository.dart';
+import 'package:jar/services/lot_repository.dart';
+import 'package:jar/services/pallet_repository.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -13,6 +15,9 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
   final _sheetService = locator<BottomSheetService>();
   final _warehouseDataService = locator<WarehouseDataService>();
   final _filterService = locator<FilterService>();
+  final _productRepo = locator<ProductRepository>();
+  final _lotRepo = locator<LotRepository>();
+  final _palletRepo = locator<PalletRepository>();
 
   final Warehouse warehouse;
   final bool isDefective;
@@ -43,12 +48,12 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
 
   Future<List<Lot>> _fetchData() async {
     if (!isDefective) {
-      allProducts = await DatabaseHelper.instance.getProductsByPalletsNotOutWithCount(warehouse.id!);
+      allProducts = await _productRepo.getNotOutWithCount(warehouse.id!);
     } else {
       allProducts = [];
     }
 
-    lots = await DatabaseHelper.instance.getLotsWithPallets(
+    lots = await _lotRepo.getWithPallets(
       warehouseId: warehouse.id!,
       isDefective: isDefective,
       productId: selectedProduct?.id,
@@ -58,7 +63,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
   }
   
   Future<void> _updateGlobalPalletCount() async {
-      _warehouseDataService.palletCounts.value = await DatabaseHelper.instance.getAllWarehousePalletCounts(isDefective: isDefective);
+      _warehouseDataService.palletCounts.value = await _palletRepo.getAllWarehousePalletCounts(isDefective: isDefective);
   }
 
 
@@ -78,9 +83,9 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
     if (extracNumPallets != null && extracNumPallets > 0) {
       setBusy(true);
       if (isDefective) {
-        await DatabaseHelper.instance.markPalletsAsOutDefective(lot.id!, extracNumPallets, warehouse.id!);
+        await _palletRepo.markAsOutDefective(lot.id!, extracNumPallets, warehouse.id!);
       } else {
-        await DatabaseHelper.instance.markPalletsAsOut(lot.id!, extracNumPallets, warehouse.id!);
+        await _palletRepo.markAsOut(lot.id!, extracNumPallets, warehouse.id!);
       }
       await initialise();
       setBusy(false);
@@ -98,7 +103,7 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
 
     if (defectiveNumPallets != null && defectiveNumPallets > 0) {
       setBusy(true);
-      await DatabaseHelper.instance.markPalletsAsDefectuous(lot.id!, defectiveNumPallets, warehouse.id!);
+      await _palletRepo.markAsDefectuous(lot.id!, defectiveNumPallets, warehouse.id!);
       await initialise();
       setBusy(false);
     }
@@ -106,12 +111,12 @@ class WarehouseDetailsViewModel extends FutureViewModel<List<Lot>> {
 
   int getPalletsNotOut(int lotIndex) {
     if (lotIndex >= lots.length) return 0;
-    return lots[lotIndex].pallet?.where((p) => !p.isOut! && !p.defective!).length ?? 0;
+    return lots[lotIndex].pallet?.where((p) => (p.isOut ?? false) == false && (p.defective ?? false) == false).length ?? 0;
   }
 
   int getPalletsNotOutDefective(int lotIndex) {
     if (lotIndex >= lots.length) return 0;
-    return lots[lotIndex].pallet?.where((p) => !p.isOut! && p.defective!).length ?? 0;
+    return lots[lotIndex].pallet?.where((p) => (p.isOut ?? false) == false && (p.defective ?? false) == true).length ?? 0;
   }
 
   String getTruckLoads(int lotIndex) {

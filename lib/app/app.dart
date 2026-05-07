@@ -1,6 +1,7 @@
 import 'package:jar/services/locale_service.dart';
 import 'package:jar/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:jar/ui/dialogs/info_alert/info_alert_dialog.dart';
+import 'package:jar/ui/views/create_received/create_received_view.dart';
 import 'package:jar/ui/views/home/home_view.dart';
 import 'package:jar/ui/views/startup/startup_view.dart';
 import 'package:jar/ui/views/analysis/analysis_view.dart';
@@ -11,6 +12,11 @@ import 'package:jar/services/update_service.dart';
 import 'package:jar/services/filter_service.dart';
 import 'package:jar/services/label_parser_service.dart';
 import 'package:jar/services/ai_label_parser_service.dart';
+import 'package:jar/services/database_service.dart';
+import 'package:jar/services/warehouse_repository.dart';
+import 'package:jar/services/product_repository.dart';
+import 'package:jar/services/lot_repository.dart';
+import 'package:jar/services/pallet_repository.dart';
 // @stacked-import
 
 @StackedApp(
@@ -18,18 +24,25 @@ import 'package:jar/services/ai_label_parser_service.dart';
     MaterialRoute(page: HomeView),
     MaterialRoute(page: StartupView),
     MaterialRoute(page: AnalysisView),
+    MaterialRoute(page: CreateReceivedView),
     // @stacked-route
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),
     LazySingleton(classType: DialogService),
     LazySingleton(classType: NavigationService),
+    LazySingleton(classType: SnackbarService),
     LazySingleton(classType: WarehouseDataService),
     LazySingleton(classType: UpdateService),
     LazySingleton(classType: FilterService),
     LazySingleton(classType: LocaleService),
     LazySingleton(classType: LabelParserService),
     LazySingleton(classType: AiLabelParserService),
+    LazySingleton(classType: DatabaseService),
+    LazySingleton(classType: WarehouseRepository),
+    LazySingleton(classType: ProductRepository),
+    LazySingleton(classType: LotRepository),
+    LazySingleton(classType: PalletRepository),
 // @stacked-service
   ],
   bottomsheets: [

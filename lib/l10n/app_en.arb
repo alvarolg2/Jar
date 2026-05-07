@@ -135,6 +135,11 @@
     "@importErrorDescription": {
         "placeholders": { "error": { "type": "String" } }
     },
+    "importNotSqlite": "The selected file is not a valid SQLite database.",
+    "importCorrupted": "The database file is corrupted or damaged.",
+    "importSchemaMismatch": "The database schema is incompatible with this version of the app.",
+    "importBackupRestored": "Import failed. Your previous data has been restored.",
+    "importBackupFailed": "Import failed and backup could not be restored. Please reinstall the app.",
 
     "reportSubject": "Warehouse Report - {date}",
     "@reportSubject": {
@@ -178,7 +183,13 @@
     "globalInventory": "Global Inventory",
     "inStock": "In Stock",
     "dispatched": "Dispatched",
+    "dispatchedLast30Days": "{count} in 30 days",
+    "@dispatchedLast30Days": {
+        "placeholders": { "count": { "type": "int" } }
+    },
     "defective": "Defective",
+    "currentStockDesc": "Current stock",
+    "currentDefectiveDesc": "Current defective",
     "warehouseDistribution": "Warehouse Distribution",
     "unknown": "Unknown",
     "palletsCountLabel": "{count, plural, =1{{count} pallet} other{{count} pallets}}",
@@ -191,5 +202,19 @@
     "movementLegend": "Green: In, Orange: Out",
     "top5Products": "Top 5 Products",
     "noDescription": "No description",
-    "noData": "No Data"
+    "noData": "No Data",
+    "noDate": "No date",
+    "pdfTotal": "Total",
+    "defectRate": "Defect Rate",
+    "defectRateDesc": "% defective last 30 days",
+    "rotationRatio": "Rotation Ratio",
+    "rotationRatioDesc": "Shipped last 30 days / current stock",
+    "activeProducts": "Active Products",
+    "warehouseOccupancy": "Warehouse Occupancy",
+    "recentActivity": "Recent Activity",
+    "movementIn": "Entry",
+    "movementOut": "Exit",
+    "date": "Date",
+    "type": "Type",
+    "warehouse": "Warehouse"
 }

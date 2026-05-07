@@ -1,7 +1,10 @@
-import 'package:jar/ui/common/database_helper.dart';
+import 'package:jar/app/app.locator.dart';
+import 'package:jar/services/pallet_repository.dart';
 import 'package:stacked/stacked.dart';
 
 class AnalysisViewModel extends BaseViewModel {
+  final _palletRepo = locator<PalletRepository>();
+
   Map<String, int> _globalStats = {};
   Map<String, int> get globalStats => _globalStats;
 
@@ -27,19 +30,18 @@ class AnalysisViewModel extends BaseViewModel {
   }
 
   Future<void> _fetchGlobalStats() async {
-    _globalStats = await DatabaseHelper.instance.getGlobalStats();
+    _globalStats = await _palletRepo.getGlobalStats();
   }
 
   Future<void> _fetchWarehouseDistribution() async {
-    _warehouseDistribution =
-        await DatabaseHelper.instance.getWarehouseDistribution();
+    _warehouseDistribution = await _palletRepo.getWarehouseDistribution();
   }
 
   Future<void> _fetchTopProducts() async {
-    _topProducts = await DatabaseHelper.instance.getTopProducts(5);
+    _topProducts = await _palletRepo.getTopProducts(5);
   }
 
   Future<void> _fetchMovementStats() async {
-    _movementStats = await DatabaseHelper.instance.getMovementStats(30);
+    _movementStats = await _palletRepo.getMovementStats(30);
   }
 }

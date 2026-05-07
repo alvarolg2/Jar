@@ -137,6 +137,11 @@
             }
         }
     },
+    "importNotSqlite": "Le fichier sélectionné n'est pas une base de données SQLite valide.",
+    "importCorrupted": "Le fichier de base de données est corrompu ou endommagé.",
+    "importSchemaMismatch": "Le schéma de la base de données est incompatible avec cette version de l'application.",
+    "importBackupRestored": "Échec de l'importation. Vos données précédentes ont été restaurées.",
+    "importBackupFailed": "Échec de l'importation et la sauvegarde n'a pas pu être restaurée. Veuillez réinstaller l'application.",
     "reportSubject": "Rapport d'entrepôt - {date}",
     "@reportSubject": {
         "placeholders": {
@@ -203,7 +208,13 @@
     "globalInventory": "Inventaire Global",
     "inStock": "En Stock",
     "dispatched": "Expédié",
+    "dispatchedLast30Days": "{count} en 30 jours",
+    "@dispatchedLast30Days": {
+        "placeholders": { "count": { "type": "int" } }
+    },
     "defective": "Défectueux",
+    "currentStockDesc": "Stock actuel",
+    "currentDefectiveDesc": "Défectueux actuels",
     "warehouseDistribution": "Répartition par entrepôt",
     "unknown": "Inconnu",
     "palletsCountLabel": "{count, plural, =1{{count} palette} other{{count} palettes}}",
@@ -216,5 +227,19 @@
     "movementLegend": "Vert : Entrée, Orange : Sortie",
     "top5Products": "Top 5 des produits",
     "noDescription": "Aucune description",
-    "noData": "Aucune donnée"
+    "noData": "Aucune donnée",
+    "noDate": "Pas de date",
+    "pdfTotal": "Total",
+    "defectRate": "Taux de défauts",
+    "defectRateDesc": "% défectueux 30 derniers jours",
+    "rotationRatio": "Ratio de rotation",
+    "rotationRatioDesc": "Expédiés 30 derniers jours / stock actuel",
+    "activeProducts": "Produits actifs",
+    "warehouseOccupancy": "Occupation par entrepôt",
+    "recentActivity": "Activité récente",
+    "movementIn": "Entrée",
+    "movementOut": "Sortie",
+    "date": "Date",
+    "type": "Type",
+    "warehouse": "Entrepôt"
 }

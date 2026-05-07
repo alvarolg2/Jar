@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:jar/app/app.locator.dart';
 import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PalletsSheetModel extends BaseViewModel {
-  final _snackbarService = SnackbarService();
+  final _snackbarService = locator<SnackbarService>();
 
-  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get _l10n {
+    final context = StackedService.navigatorKey?.currentContext;
+    if (context == null) {
+      throw StateError('Localizations accessed before navigator is ready');
+    }
+    final localization = AppLocalizations.of(context);
+    if (localization == null) {
+      throw StateError('Localizations not found in context');
+    }
+    return localization;
+  }
 
   final TextEditingController palletsController = TextEditingController();
   bool _validationPassed = false;
@@ -38,8 +49,8 @@ class PalletsSheetModel extends BaseViewModel {
     } else {
       _validationPassed = false;
       _snackbarService.showSnackbar(
-        title: l10n.error,
-        message: l10n.snackbarDefective,
+        title: _l10n.error,
+        message: _l10n.snackbarDefective,
         duration: durationSnackbar,
       );
     }

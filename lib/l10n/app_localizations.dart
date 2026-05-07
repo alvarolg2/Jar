@@ -556,6 +556,36 @@ abstract class AppLocalizations {
   /// **'No se pudo importar la base de datos. Asegúrate de que es un archivo válido. Detalle: {error}'**
   String importErrorDescription(String error);
 
+  /// No description provided for @importNotSqlite.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo seleccionado no es una base de datos SQLite válida.'**
+  String get importNotSqlite;
+
+  /// No description provided for @importCorrupted.
+  ///
+  /// In es, this message translates to:
+  /// **'El archivo de base de datos está corrupto o dañado.'**
+  String get importCorrupted;
+
+  /// No description provided for @importSchemaMismatch.
+  ///
+  /// In es, this message translates to:
+  /// **'El esquema de la base de datos es incompatible con esta versión de la app.'**
+  String get importSchemaMismatch;
+
+  /// No description provided for @importBackupRestored.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al importar. Tus datos anteriores han sido restaurados.'**
+  String get importBackupRestored;
+
+  /// No description provided for @importBackupFailed.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al importar y no se pudo restaurar la copia de seguridad. Reinstala la app.'**
+  String get importBackupFailed;
+
   /// No description provided for @reportSubject.
   ///
   /// In es, this message translates to:
@@ -682,11 +712,29 @@ abstract class AppLocalizations {
   /// **'Expedido'**
   String get dispatched;
 
+  /// No description provided for @dispatchedLast30Days.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} en 30 días'**
+  String dispatchedLast30Days(int count);
+
   /// No description provided for @defective.
   ///
   /// In es, this message translates to:
   /// **'Defectuoso'**
   String get defective;
+
+  /// No description provided for @currentStockDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Stock actual'**
+  String get currentStockDesc;
+
+  /// No description provided for @currentDefectiveDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Defectuosos actuales'**
+  String get currentDefectiveDesc;
 
   /// No description provided for @warehouseDistribution.
   ///
@@ -735,6 +783,90 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Sin Datos'**
   String get noData;
+
+  /// No description provided for @noDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin fecha'**
+  String get noDate;
+
+  /// No description provided for @pdfTotal.
+  ///
+  /// In es, this message translates to:
+  /// **'Total'**
+  String get pdfTotal;
+
+  /// No description provided for @defectRate.
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa de Defectos'**
+  String get defectRate;
+
+  /// No description provided for @defectRateDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'% defectuosos últimos 30 días'**
+  String get defectRateDesc;
+
+  /// No description provided for @rotationRatio.
+  ///
+  /// In es, this message translates to:
+  /// **'Ratio de Rotación'**
+  String get rotationRatio;
+
+  /// No description provided for @rotationRatioDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Expedidos últimos 30 días / stock actual'**
+  String get rotationRatioDesc;
+
+  /// No description provided for @activeProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'Productos Activos'**
+  String get activeProducts;
+
+  /// No description provided for @warehouseOccupancy.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocupación por Almacén'**
+  String get warehouseOccupancy;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In es, this message translates to:
+  /// **'Actividad Reciente'**
+  String get recentActivity;
+
+  /// No description provided for @movementIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrada'**
+  String get movementIn;
+
+  /// No description provided for @movementOut.
+  ///
+  /// In es, this message translates to:
+  /// **'Salida'**
+  String get movementOut;
+
+  /// No description provided for @date.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get date;
+
+  /// No description provided for @type.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get type;
+
+  /// No description provided for @warehouse.
+  ///
+  /// In es, this message translates to:
+  /// **'Almacén'**
+  String get warehouse;
 }
 
 class _AppLocalizationsDelegate

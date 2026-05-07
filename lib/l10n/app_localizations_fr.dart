@@ -266,6 +266,26 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get importNotSqlite =>
+      'Le fichier sélectionné n\'est pas une base de données SQLite valide.';
+
+  @override
+  String get importCorrupted =>
+      'Le fichier de base de données est corrompu ou endommagé.';
+
+  @override
+  String get importSchemaMismatch =>
+      'Le schéma de la base de données est incompatible avec cette version de l\'application.';
+
+  @override
+  String get importBackupRestored =>
+      'Échec de l\'importation. Vos données précédentes ont été restaurées.';
+
+  @override
+  String get importBackupFailed =>
+      'Échec de l\'importation et la sauvegarde n\'a pas pu être restaurée. Veuillez réinstaller l\'application.';
+
+  @override
   String reportSubject(String date) {
     return 'Rapport d\'entrepôt - $date';
   }
@@ -345,7 +365,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dispatched => 'Expédié';
 
   @override
+  String dispatchedLast30Days(int count) {
+    return '$count en 30 jours';
+  }
+
+  @override
   String get defective => 'Défectueux';
+
+  @override
+  String get currentStockDesc => 'Stock actuel';
+
+  @override
+  String get currentDefectiveDesc => 'Défectueux actuels';
 
   @override
   String get warehouseDistribution => 'Répartition par entrepôt';
@@ -379,4 +410,46 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noData => 'Aucune donnée';
+
+  @override
+  String get noDate => 'Pas de date';
+
+  @override
+  String get pdfTotal => 'Total';
+
+  @override
+  String get defectRate => 'Taux de défauts';
+
+  @override
+  String get defectRateDesc => '% défectueux 30 derniers jours';
+
+  @override
+  String get rotationRatio => 'Ratio de rotation';
+
+  @override
+  String get rotationRatioDesc => 'Expédiés 30 derniers jours / stock actuel';
+
+  @override
+  String get activeProducts => 'Produits actifs';
+
+  @override
+  String get warehouseOccupancy => 'Occupation par entrepôt';
+
+  @override
+  String get recentActivity => 'Activité récente';
+
+  @override
+  String get movementIn => 'Entrée';
+
+  @override
+  String get movementOut => 'Sortie';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get type => 'Type';
+
+  @override
+  String get warehouse => 'Entrepôt';
 }

@@ -4,15 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/models/pallet.dart';
 import 'package:jar/models/warehouse.dart';
-import 'package:jar/ui/common/database_helper.dart';
+import 'package:jar/app/app.locator.dart';
+import 'package:jar/services/pallet_repository.dart';
 import 'package:jar/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class PalletsInSheetModel extends BaseViewModel {
-  final _snackbarService = SnackbarService();
+  final _snackbarService = locator<SnackbarService>();
+  final _palletRepo = locator<PalletRepository>();
 
-  AppLocalizations get l10n => AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+  AppLocalizations get _l10n {
+    final context = StackedService.navigatorKey?.currentContext;
+    if (context == null) {
+      throw StateError('Localizations accessed before navigator is ready');
+    }
+    final localization = AppLocalizations.of(context);
+    if (localization == null) {
+      throw StateError('Localizations not found in context');
+    }
+    return localization;
+  }
 
   final TextEditingController palletsController = TextEditingController();
   bool _validationPassed = false;
@@ -31,7 +43,7 @@ class PalletsInSheetModel extends BaseViewModel {
   }
 
   void addTwentySixPallets() {
-    palletsController.text = l10n.defaultNumberPallets;
+    palletsController.text = _l10n.defaultNumberPallets;
     notifyListeners();
   }
 
@@ -43,8 +55,8 @@ class PalletsInSheetModel extends BaseViewModel {
     } else {
       _validationPassed = false;
       _snackbarService.showSnackbar(
-        title: l10n.error,
-        message: l10n.snackbarDefective,
+        title: _l10n.error,
+        message: _l10n.snackbarDefective,
         duration: durationSnackbar,
       );
     }
@@ -60,7 +72,7 @@ class PalletsInSheetModel extends BaseViewModel {
 
       Pallet pallet = Pallet(name: palletReference, date: null, warehouse: Warehouse(id: warehouseId));
 
-      await DatabaseHelper.instance.createPalletAndLinkToLot(pallet, lotId);
+      await _palletRepo.createAndLinkToLot(pallet, lotId);
     }
 
     return pallets;
@@ -68,8 +80,8 @@ class PalletsInSheetModel extends BaseViewModel {
 
   void showInvalidInputError() {
     _snackbarService.showSnackbar(
-      title: l10n.error,
-      message: l10n.snackbarDefective,
+      title: _l10n.error,
+      message: _l10n.snackbarDefective,
       duration: durationSnackbar,
     );
   }

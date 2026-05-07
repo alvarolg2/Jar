@@ -19,15 +19,15 @@ class Lot {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
-        /* 'create_date': createDate?.toIso8601String(), */
-        'product': product!.id!,
+        'create_date': createDate?.toIso8601String(),
+        'product': product?.id,
       };
 
   factory Lot.fromJson(Map<String, dynamic> json) => Lot(
         id: json['id'],
         name: json['name'],
         createDate: json['create_date'] != null ? DateTime.parse(json['create_date']).toLocal() : null,
-        product: json['product'] != null ? Product.fromJson(json) : null,
+        product: json['product'] != null ? Product(id: json['product'] as int) : null,
       );
 
   Lot copyWith({List<Pallet>? pallet}) {
