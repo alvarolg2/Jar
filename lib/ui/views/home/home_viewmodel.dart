@@ -363,6 +363,10 @@ class HomeViewModel extends ReactiveViewModel {
           await _palletRepo.getWarehouseDistribution();
       final topProducts = await _palletRepo.getTopProducts(5);
       final movementStats = await _palletRepo.getMovementStats(30);
+      final activeProducts = await _palletRepo.getActiveProductsCount();
+      final recentLotActivity = await _palletRepo.getRecentLotActivity(5);
+      final warehouseOccupancy = await _palletRepo.getWarehouseOccupancy();
+      final defectiveLast30Days = await _palletRepo.getDefectiveLast30Days();
 
       if (normalItems.isEmpty && defectiveItems.isEmpty) {
         _dismissLoadingDialog(context);
@@ -378,6 +382,10 @@ class HomeViewModel extends ReactiveViewModel {
         warehouseDistribution,
         topProducts,
         movementStats,
+        activeProducts,
+        recentLotActivity,
+        warehouseOccupancy,
+        defectiveLast30Days,
       );
 
       final tempDir = await getTemporaryDirectory();
@@ -412,6 +420,10 @@ class HomeViewModel extends ReactiveViewModel {
     List<Map<String, dynamic>> warehouseDistribution,
     List<Map<String, dynamic>> topProducts,
     List<Map<String, dynamic>> movementStats,
+    int activeProducts,
+    List<Map<String, dynamic>> recentLotActivity,
+    List<Map<String, dynamic>> warehouseOccupancy,
+    int defectiveLast30Days,
   ) async {
     final fontRegular = await PdfGoogleFonts.robotoRegular();
     final fontBold = await PdfGoogleFonts.robotoBold();
@@ -435,14 +447,9 @@ class HomeViewModel extends ReactiveViewModel {
         header: (context) => _buildHeader(context, logoImage, brandPrimary),
         footer: (context) => _buildFooter(context, brandPrimary),
         build: (context) => [
-          pw.Text(_l10n.analysisTitle,
-              style: pw.TextStyle(
-                  fontSize: 22,
-                  fontWeight: pw.FontWeight.bold,
-                  color: brandPrimary)),
-          pw.SizedBox(height: 20),
           _buildAnalysisDashboard(globalStats, warehouseDistribution,
-              topProducts, movementStats, brandPrimary, brandAccent),
+              topProducts, movementStats, activeProducts, recentLotActivity,
+              warehouseOccupancy, defectiveLast30Days, brandPrimary, brandAccent),
         ],
       ),
     );
@@ -653,7 +660,8 @@ class HomeViewModel extends ReactiveViewModel {
   pw.Widget _buildHeader(
       pw.Context context, pw.ImageProvider logoImage, PdfColor brandPrimary) {
     return pw.Container(
-      padding: const pw.EdgeInsets.only(bottom: 10),
+      padding: const pw.EdgeInsets.only(bottom: 12),
+      margin: const pw.EdgeInsets.only(bottom: 8),
       decoration: const pw.BoxDecoration(
         border: pw.Border(
             bottom: pw.BorderSide(color: PdfColors.grey300, width: 1.5)),
@@ -691,158 +699,297 @@ class HomeViewModel extends ReactiveViewModel {
       List<Map<String, dynamic>> warehouseDistribution,
       List<Map<String, dynamic>> topProducts,
       List<Map<String, dynamic>> movementStats,
+      int activeProducts,
+      List<Map<String, dynamic>> recentActivity,
+      List<Map<String, dynamic>> warehouseOccupancy,
+      int defectiveLast30Days,
       PdfColor primary,
       PdfColor secondary) {
+    final totalIn = globalStats['totalIn'] ?? 0;
+    final totalOut = globalStats['totalOut'] ?? 0;
+    final totalDefective = globalStats['totalDefective'] ?? 0;
+
+    final last30DaysIn = movementStats
+        .where((m) => m['type'] == 'in')
+        .fold<int>(0, (sum, m) => sum + (m['count'] as int? ?? 0));
+    final last30DaysOut = movementStats
+        .where((m) => m['type'] == 'out')
+        .fold<int>(0, (sum, m) => sum + (m['count'] as int? ?? 0));
+    final last30DaysTotal = last30DaysIn + last30DaysOut + defectiveLast30Days;
+    final defectRate = last30DaysTotal > 0 ? (defectiveLast30Days / last30DaysTotal * 100) : 0.0;
+    final rotationRatio = last30DaysIn > 0 ? (last30DaysOut / last30DaysIn) : 0.0;
+
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         // 1. Global Stats
         pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
           children: [
-            _buildStatCard(_l10n.inStock, '${globalStats['totalIn'] ?? 0}',
-                PdfColors.blue700, primary),
-            pw.SizedBox(width: 10),
-            _buildStatCard(_l10n.dispatched, '${globalStats['totalOut'] ?? 0}',
-                PdfColors.green700, primary),
-            pw.SizedBox(width: 10),
-            _buildStatCard(_l10n.defective, '${globalStats['totalDefective'] ?? 0}',
-                PdfColors.red700, primary),
+            _buildStatCard(_l10n.inStock, '$totalIn',
+                PdfColors.blue700, primary, subtitle: _l10n.currentStockDesc),
+            pw.SizedBox(width: 12),
+            _buildStatCard(_l10n.defective, '$totalDefective',
+                PdfColors.red700, primary, subtitle: _l10n.currentDefectiveDesc),
+            pw.SizedBox(width: 12),
+            _buildStatCard(_l10n.dispatched, '$totalOut',
+                PdfColors.green700, primary, subtitle: _l10n.dispatchedLast30Days(last30DaysOut)),
           ],
         ),
-        pw.SizedBox(height: 20),
+        pw.SizedBox(height: 12),
 
-        pw.SizedBox(height: 20),
-
-        // 2. Tables Row
+        // 2. Secondary KPIs
         pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
           children: [
-            // Warehouse Distribution
-            pw.Expanded(
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(_l10n.warehouseDistribution,
-                      style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                  pw.SizedBox(height: 5),
-                  pw.Table(
-                    border: pw.TableBorder.all(color: PdfColors.grey300),
-                    children: warehouseDistribution.map((item) {
-                      return pw.TableRow(
-                        children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text(
-                                item['warehouseName'] ?? _l10n.unknown,
-                                style: const pw.TextStyle(fontSize: 10)),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('${item['count']}',
-                                style: pw.TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: pw.FontWeight.bold)),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-            pw.SizedBox(width: 20),
-            // Top Products
-            pw.Expanded(
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(_l10n.top5Products,
-                      style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold, fontSize: 14)),
-                  pw.SizedBox(height: 5),
-                  pw.Table(
-                    border: pw.TableBorder.all(color: PdfColors.grey300),
-                    children: topProducts.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final item = entry.value;
-                      PdfColor rankColor = PdfColors.grey300;
-                      if (index == 0) rankColor = PdfColor.fromHex("#FFD700");
-                      if (index == 1) rankColor = PdfColor.fromHex("#C0C0C0");
-                      if (index == 2) rankColor = PdfColor.fromHex("#CD7F32");
-
-                      return pw.TableRow(
-                        children: [
-                          pw.Container(
-                            width: 15,
-                            height: 15,
-                            margin: const pw.EdgeInsets.all(5),
-                            decoration: pw.BoxDecoration(
-                                color: rankColor, shape: pw.BoxShape.circle),
-                            child: pw.Center(
-                                child: pw.Text('${index + 1}',
-                                    style: const pw.TextStyle(fontSize: 8))),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.symmetric(
-                                vertical: 5, horizontal: 2),
-                            child: pw.Column(
-                              crossAxisAlignment: pw.CrossAxisAlignment.start,
-                              children: [
-                                pw.Text(item['productName'] ?? _l10n.unknown,
-                                    style: const pw.TextStyle(fontSize: 10)),
-                                pw.Text(item['description'] ?? '',
-                                    style: const pw.TextStyle(
-                                        fontSize: 8, color: PdfColors.grey600)),
-                              ],
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(5),
-                            child: pw.Text('${item['count']}',
-                                textAlign: pw.TextAlign.right,
-                                style: pw.TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: pw.FontWeight.bold)),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
+            _buildKpiBadge(_l10n.defectRate, '${defectRate.toStringAsFixed(1)}%', PdfColors.red400,
+                description: _l10n.defectRateDesc),
+            pw.SizedBox(width: 12),
+            _buildKpiBadge(_l10n.rotationRatio, rotationRatio.toStringAsFixed(2), PdfColors.teal600,
+                description: _l10n.rotationRatioDesc),
+            pw.SizedBox(width: 12),
+            _buildKpiBadge(_l10n.activeProducts, '$activeProducts', PdfColors.purple600),
           ],
         ),
         pw.SizedBox(height: 20),
 
-        // 4. Movement Chart
+        // 3. Warehouse Occupancy (replaces distribution table)
+        _buildSectionHeader(_l10n.warehouseOccupancy, primary),
+        pw.SizedBox(height: 8),
+        _buildOccupancyBars(warehouseOccupancy, primary),
+        pw.SizedBox(height: 20),
+
+        // 4. Recent Activity
+        _buildSectionHeader(_l10n.recentActivity, secondary),
+        pw.SizedBox(height: 8),
+        _buildRecentActivityTable(recentActivity),
+        pw.SizedBox(height: 20),
+
+        // 5. Movement Chart
         _buildPdfChart(movementStats, primary, secondary),
       ],
     );
   }
 
-  pw.Widget _buildStatCard(
-      String title, String value, PdfColor color, PdfColor textColor) {
+  pw.Widget _buildKpiBadge(String label, String value, PdfColor color, {String? description}) {
     return pw.Expanded(
       child: pw.Container(
-        padding: const pw.EdgeInsets.all(10),
+        height: 70,
+        padding: const pw.EdgeInsets.all(8),
         decoration: pw.BoxDecoration(
           color: PdfColors.white,
           border: pw.Border.all(color: PdfColors.grey300),
           borderRadius: pw.BorderRadius.circular(5),
         ),
         child: pw.Column(
+          mainAxisAlignment: pw.MainAxisAlignment.center,
           children: [
             pw.Text(value,
                 style: pw.TextStyle(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: pw.FontWeight.bold,
                     color: color)),
+            pw.SizedBox(height: 2),
+            pw.Text(label,
+                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
+                textAlign: pw.TextAlign.center),
+            if (description != null) ...[
+              pw.SizedBox(height: 2),
+              pw.Text(description,
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey500),
+                  textAlign: pw.TextAlign.center),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  pw.Widget _buildOccupancyBars(List<Map<String, dynamic>> data, PdfColor primary) {
+    if (data.isEmpty) {
+      return pw.Container(
+        padding: const pw.EdgeInsets.all(12),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(5),
+        ),
+        child: pw.Center(child: pw.Text(_l10n.noData)),
+      );
+    }
+
+    final rows = data.map((item) {
+      final name = item['warehouseName']?.toString() ?? _l10n.unknown;
+      final count = (item['count'] as num?)?.toInt() ?? 0;
+      final percentage = (item['percentage'] as num?)?.toDouble() ?? 0.0;
+
+      return pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 6),
+        child: pw.Row(
+          children: [
+            pw.Expanded(
+              flex: 3,
+              child: pw.Text(name,
+                  style: const pw.TextStyle(fontSize: 9),
+                  overflow: pw.TextOverflow.clip),
+            ),
+            pw.Expanded(
+              flex: 5,
+              child: pw.Container(
+                height: 10,
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey200,
+                  borderRadius: pw.BorderRadius.circular(3),
+                ),
+                child: pw.Row(
+                  children: [
+                    pw.Container(
+                      width: (percentage / 100) * 200,
+                      decoration: pw.BoxDecoration(
+                        color: primary,
+                        borderRadius: pw.BorderRadius.circular(3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            pw.SizedBox(width: 8),
+            pw.Text('${percentage.toStringAsFixed(0)}%',
+                style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(width: 4),
+            pw.Text('($count)',
+                style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+          ],
+        ),
+      );
+    }).toList();
+
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(10),
+      decoration: pw.BoxDecoration(
+        color: PdfColors.white,
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(5),
+      ),
+      child: pw.Column(children: rows),
+    );
+  }
+
+  pw.Widget _buildRecentActivityTable(List<Map<String, dynamic>> data) {
+    if (data.isEmpty) {
+      return pw.Container(
+        padding: const pw.EdgeInsets.all(12),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(5),
+        ),
+        child: pw.Center(child: pw.Text(_l10n.noData)),
+      );
+    }
+
+    final headerStyle = pw.TextStyle(
+        fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 8);
+    const cellStyle = pw.TextStyle(fontSize: 8);
+    const cellPadding = pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5);
+
+    final headerRow = pw.TableRow(
+      decoration: pw.BoxDecoration(color: brandPrimary),
+      children: [
+        pw.Padding(padding: cellPadding, child: pw.Text(_l10n.date, style: headerStyle)),
+        pw.Padding(padding: cellPadding, child: pw.Text(_l10n.type, style: headerStyle)),
+        pw.Padding(padding: cellPadding, child: pw.Text(_l10n.product, style: headerStyle)),
+        pw.Padding(padding: cellPadding, child: pw.Text(_l10n.warehouse, style: headerStyle)),
+      ],
+    );
+
+    final dataRows = data.map((item) {
+      final dateStr = item['date'] != null
+          ? MovementDataProcessor.formatDateLabel(item['date'].toString())
+          : _l10n.noDate;
+      final type = item['type']?.toString() ?? 'in';
+      final isEntry = type == 'in';
+
+      return pw.TableRow(
+        decoration: const pw.BoxDecoration(color: PdfColors.white),
+        children: [
+          pw.Padding(padding: cellPadding, child: pw.Text(dateStr, style: cellStyle)),
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+              decoration: pw.BoxDecoration(
+                color: isEntry ? PdfColors.green : PdfColors.orange,
+                borderRadius: pw.BorderRadius.circular(2),
+              ),
+              child: pw.Text(
+                isEntry ? _l10n.movementIn : _l10n.movementOut,
+                style: const pw.TextStyle(fontSize: 7, color: PdfColors.white),
+              ),
+            ),
+          ),
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text(item['productName'] ?? _l10n.unknown,
+                style: cellStyle, overflow: pw.TextOverflow.clip),
+          ),
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text(item['warehouseName'] ?? _l10n.unknown,
+                style: cellStyle, overflow: pw.TextOverflow.clip),
+          ),
+        ],
+      );
+    }).toList();
+
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.grey300),
+        borderRadius: pw.BorderRadius.circular(5),
+      ),
+      child: pw.Table(
+        columnWidths: const {
+          0: pw.FlexColumnWidth(1.5),
+          1: pw.FlexColumnWidth(1.2),
+          2: pw.FlexColumnWidth(3),
+          3: pw.FlexColumnWidth(2.5),
+        },
+        children: [headerRow, ...dataRows],
+      ),
+    );
+  }
+
+  pw.Widget _buildStatCard(
+      String title, String value, PdfColor color, PdfColor textColor, {String? subtitle}) {
+    return pw.Expanded(
+      child: pw.Container(
+        height: 70,
+        padding: const pw.EdgeInsets.all(8),
+        decoration: pw.BoxDecoration(
+          color: PdfColors.white,
+          border: pw.Border.all(color: PdfColors.grey300),
+          borderRadius: pw.BorderRadius.circular(5),
+        ),
+        child: pw.Column(
+          mainAxisAlignment: pw.MainAxisAlignment.center,
+          children: [
+            pw.Text(value,
+                style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                    color: color)),
+            pw.SizedBox(height: 4),
             pw.Text(title,
                 style:
-                    const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+                    const pw.TextStyle(fontSize: 9, color: PdfColors.grey600),
+                textAlign: pw.TextAlign.center),
+            if (subtitle != null) ...[
+              pw.SizedBox(height: 2),
+              pw.Text(subtitle,
+                  style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey500),
+                  textAlign: pw.TextAlign.center),
+            ],
           ],
         ),
       ),

@@ -712,11 +712,29 @@ abstract class AppLocalizations {
   /// **'Expedido'**
   String get dispatched;
 
+  /// No description provided for @dispatchedLast30Days.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} en 30 días'**
+  String dispatchedLast30Days(int count);
+
   /// No description provided for @defective.
   ///
   /// In es, this message translates to:
   /// **'Defectuoso'**
   String get defective;
+
+  /// No description provided for @currentStockDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Stock actual'**
+  String get currentStockDesc;
+
+  /// No description provided for @currentDefectiveDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Defectuosos actuales'**
+  String get currentDefectiveDesc;
 
   /// No description provided for @warehouseDistribution.
   ///
@@ -777,6 +795,78 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Total'**
   String get pdfTotal;
+
+  /// No description provided for @defectRate.
+  ///
+  /// In es, this message translates to:
+  /// **'Tasa de Defectos'**
+  String get defectRate;
+
+  /// No description provided for @defectRateDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'% defectuosos últimos 30 días'**
+  String get defectRateDesc;
+
+  /// No description provided for @rotationRatio.
+  ///
+  /// In es, this message translates to:
+  /// **'Ratio de Rotación'**
+  String get rotationRatio;
+
+  /// No description provided for @rotationRatioDesc.
+  ///
+  /// In es, this message translates to:
+  /// **'Expedidos últimos 30 días / stock actual'**
+  String get rotationRatioDesc;
+
+  /// No description provided for @activeProducts.
+  ///
+  /// In es, this message translates to:
+  /// **'Productos Activos'**
+  String get activeProducts;
+
+  /// No description provided for @warehouseOccupancy.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocupación por Almacén'**
+  String get warehouseOccupancy;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In es, this message translates to:
+  /// **'Actividad Reciente'**
+  String get recentActivity;
+
+  /// No description provided for @movementIn.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrada'**
+  String get movementIn;
+
+  /// No description provided for @movementOut.
+  ///
+  /// In es, this message translates to:
+  /// **'Salida'**
+  String get movementOut;
+
+  /// No description provided for @date.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get date;
+
+  /// No description provided for @type.
+  ///
+  /// In es, this message translates to:
+  /// **'Tipo'**
+  String get type;
+
+  /// No description provided for @warehouse.
+  ///
+  /// In es, this message translates to:
+  /// **'Almacén'**
+  String get warehouse;
 }
 
 class _AppLocalizationsDelegate

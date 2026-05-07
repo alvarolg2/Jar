@@ -183,7 +183,13 @@
     "globalInventory": "Global Inventory",
     "inStock": "In Stock",
     "dispatched": "Dispatched",
+    "dispatchedLast30Days": "{count} in 30 days",
+    "@dispatchedLast30Days": {
+        "placeholders": { "count": { "type": "int" } }
+    },
     "defective": "Defective",
+    "currentStockDesc": "Current stock",
+    "currentDefectiveDesc": "Current defective",
     "warehouseDistribution": "Warehouse Distribution",
     "unknown": "Unknown",
     "palletsCountLabel": "{count, plural, =1{{count} pallet} other{{count} pallets}}",
@@ -198,5 +204,17 @@
     "noDescription": "No description",
     "noData": "No Data",
     "noDate": "No date",
-    "pdfTotal": "Total"
+    "pdfTotal": "Total",
+    "defectRate": "Defect Rate",
+    "defectRateDesc": "% defective last 30 days",
+    "rotationRatio": "Rotation Ratio",
+    "rotationRatioDesc": "Shipped last 30 days / current stock",
+    "activeProducts": "Active Products",
+    "warehouseOccupancy": "Warehouse Occupancy",
+    "recentActivity": "Recent Activity",
+    "movementIn": "Entry",
+    "movementOut": "Exit",
+    "date": "Date",
+    "type": "Type",
+    "warehouse": "Warehouse"
 }

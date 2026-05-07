@@ -366,7 +366,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dispatched => 'Expedido';
 
   @override
+  String dispatchedLast30Days(int count) {
+    return '$count en 30 días';
+  }
+
+  @override
   String get defective => 'Defectuoso';
+
+  @override
+  String get currentStockDesc => 'Stock actual';
+
+  @override
+  String get currentDefectiveDesc => 'Defectuosos actuales';
 
   @override
   String get warehouseDistribution => 'Distribución por Almacén';
@@ -406,4 +417,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get pdfTotal => 'Total';
+
+  @override
+  String get defectRate => 'Tasa de Defectos';
+
+  @override
+  String get defectRateDesc => '% defectuosos últimos 30 días';
+
+  @override
+  String get rotationRatio => 'Ratio de Rotación';
+
+  @override
+  String get rotationRatioDesc => 'Expedidos últimos 30 días / stock actual';
+
+  @override
+  String get activeProducts => 'Productos Activos';
+
+  @override
+  String get warehouseOccupancy => 'Ocupación por Almacén';
+
+  @override
+  String get recentActivity => 'Actividad Reciente';
+
+  @override
+  String get movementIn => 'Entrada';
+
+  @override
+  String get movementOut => 'Salida';
+
+  @override
+  String get date => 'Fecha';
+
+  @override
+  String get type => 'Tipo';
+
+  @override
+  String get warehouse => 'Almacén';
 }

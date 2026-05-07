@@ -120,6 +120,17 @@ class PalletRepository {
     };
   }
 
+  Future<int> getDefectiveLast30Days() async {
+    final db = await _dbService.database;
+    final now = DateTime.now();
+    final startDate = now.subtract(const Duration(days: 30));
+    final startDateStr = startDate.toIso8601String();
+    final result = Sqflite.firstIntValue(await db.rawQuery(
+        'SELECT COUNT(*) FROM pallet WHERE defective = 1 AND create_date >= ?',
+        [startDateStr]));
+    return result ?? 0;
+  }
+
   Future<List<Map<String, dynamic>>> getWarehouseDistribution() async {
     final db = await _dbService.database;
     return await db.rawQuery('''
@@ -203,5 +214,54 @@ class PalletRepository {
     }
 
     return filledData;
+  }
+
+  Future<int> getActiveProductsCount() async {
+    final db = await _dbService.database;
+    final result = Sqflite.firstIntValue(await db.rawQuery('''
+      SELECT COUNT(DISTINCT pr.id)
+      FROM product pr
+      JOIN lot l ON l.product = pr.id
+      JOIN pallet_lot pl ON pl.id_lot = l.id
+      JOIN pallet p ON p.id = pl.id_pallet
+      WHERE p.is_out = 0 AND p.defective = 0
+    '''));
+    return result ?? 0;
+  }
+
+  Future<List<Map<String, dynamic>>> getRecentLotActivity(int limit) async {
+    final db = await _dbService.database;
+    return await db.rawQuery('''
+      SELECT
+        MAX(p.create_date) as date,
+        pr.name as productName,
+        l.name as lotName,
+        w.name as warehouseName,
+        COUNT(p.id) as palletCount
+      FROM pallet p
+      JOIN pallet_lot pl ON p.id = pl.id_pallet
+      JOIN lot l ON pl.id_lot = l.id
+      JOIN product pr ON l.product = pr.id
+      JOIN warehouse w ON p.warehouse = w.id
+      WHERE p.defective = 0
+      GROUP BY l.id
+      ORDER BY date DESC
+      LIMIT ?
+    ''', [limit]);
+  }
+
+  Future<List<Map<String, dynamic>>> getWarehouseOccupancy() async {
+    final db = await _dbService.database;
+    return await db.rawQuery('''
+      SELECT
+        w.name as warehouseName,
+        COUNT(p.id) as count,
+        ROUND(COUNT(p.id) * 100.0 / (SELECT COUNT(*) FROM pallet WHERE is_out = 0 AND defective = 0), 1) as percentage
+      FROM pallet p
+      JOIN warehouse w ON p.warehouse = w.id
+      WHERE p.is_out = 0 AND p.defective = 0
+      GROUP BY w.id
+      ORDER BY count DESC
+    ''');
   }
 }
