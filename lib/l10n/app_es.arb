@@ -183,7 +183,13 @@
     "globalInventory": "Inventario Global",
     "inStock": "En Stock",
     "dispatched": "Expedido",
+    "dispatchedLast30Days": "{count} en 30 días",
+    "@dispatchedLast30Days": {
+        "placeholders": { "count": { "type": "int" } }
+    },
     "defective": "Defectuoso",
+    "currentStockDesc": "Stock actual",
+    "currentDefectiveDesc": "Defectuosos actuales",
     "warehouseDistribution": "Distribución por Almacén",
     "unknown": "Desconocido",
     "palletsCountLabel": "{count, plural, =1{{count} palé} other{{count} palés}}",
@@ -198,5 +204,17 @@
     "noDescription": "Sin descripción",
     "noData": "Sin Datos",
     "noDate": "Sin fecha",
-    "pdfTotal": "Total"
+    "pdfTotal": "Total",
+    "defectRate": "Tasa de Defectos",
+    "defectRateDesc": "% defectuosos últimos 30 días",
+    "rotationRatio": "Ratio de Rotación",
+    "rotationRatioDesc": "Expedidos últimos 30 días / stock actual",
+    "activeProducts": "Productos Activos",
+    "warehouseOccupancy": "Ocupación por Almacén",
+    "recentActivity": "Actividad Reciente",
+    "movementIn": "Entrada",
+    "movementOut": "Salida",
+    "date": "Fecha",
+    "type": "Tipo",
+    "warehouse": "Almacén"
 }
