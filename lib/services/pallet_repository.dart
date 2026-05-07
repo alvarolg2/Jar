@@ -233,9 +233,9 @@ class PalletRepository {
     final db = await _dbService.database;
     return await db.rawQuery('''
       SELECT
-        MAX(p.create_date) as date,
+        date(MAX(p.create_date)) as date,
+        'in' as type,
         pr.name as productName,
-        l.name as lotName,
         w.name as warehouseName,
         COUNT(p.id) as palletCount
       FROM pallet p
@@ -243,9 +243,9 @@ class PalletRepository {
       JOIN lot l ON pl.id_lot = l.id
       JOIN product pr ON l.product = pr.id
       JOIN warehouse w ON p.warehouse = w.id
-      WHERE p.defective = 0
-      GROUP BY l.id
-      ORDER BY date DESC
+      WHERE p.defective = 0 AND p.is_out = 0
+      GROUP BY date(p.create_date), pr.name, w.name
+      ORDER BY date DESC, palletCount DESC
       LIMIT ?
     ''', [limit]);
   }

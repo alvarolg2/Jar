@@ -901,6 +901,7 @@ class HomeViewModel extends ReactiveViewModel {
         pw.Padding(padding: cellPadding, child: pw.Text(_l10n.type, style: headerStyle)),
         pw.Padding(padding: cellPadding, child: pw.Text(_l10n.product, style: headerStyle)),
         pw.Padding(padding: cellPadding, child: pw.Text(_l10n.warehouse, style: headerStyle)),
+        pw.Padding(padding: cellPadding, child: pw.Text(_l10n.reportPalletCount, style: headerStyle)),
       ],
     );
 
@@ -910,6 +911,7 @@ class HomeViewModel extends ReactiveViewModel {
           : _l10n.noDate;
       final type = item['type']?.toString() ?? 'in';
       final isEntry = type == 'in';
+      final palletCount = (item['palletCount'] as num?)?.toInt() ?? 0;
 
       return pw.TableRow(
         decoration: const pw.BoxDecoration(color: PdfColors.white),
@@ -939,6 +941,12 @@ class HomeViewModel extends ReactiveViewModel {
             child: pw.Text(item['warehouseName'] ?? _l10n.unknown,
                 style: cellStyle, overflow: pw.TextOverflow.clip),
           ),
+          pw.Padding(
+            padding: cellPadding,
+            child: pw.Text('$palletCount',
+                style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold),
+                textAlign: pw.TextAlign.center),
+          ),
         ],
       );
     }).toList();
@@ -951,9 +959,10 @@ class HomeViewModel extends ReactiveViewModel {
       child: pw.Table(
         columnWidths: const {
           0: pw.FlexColumnWidth(1.5),
-          1: pw.FlexColumnWidth(1.2),
-          2: pw.FlexColumnWidth(3),
-          3: pw.FlexColumnWidth(2.5),
+          1: pw.FlexColumnWidth(1),
+          2: pw.FlexColumnWidth(2.5),
+          3: pw.FlexColumnWidth(2),
+          4: pw.FlexColumnWidth(1),
         },
         children: [headerRow, ...dataRows],
       ),
