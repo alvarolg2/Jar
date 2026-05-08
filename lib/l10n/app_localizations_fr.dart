@@ -433,6 +433,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get activeProducts => 'Produits actifs';
 
   @override
+  String get keyPerformanceIndicators => 'Indicateurs Clés';
+
+  @override
   String get warehouseOccupancy => 'Occupation par entrepôt';
 
   @override
@@ -452,4 +455,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get warehouse => 'Entrepôt';
+
+  @override
+  String get monthJan => 'Jan';
+
+  @override
+  String get monthFeb => 'Fév';
+
+  @override
+  String get monthMar => 'Mar';
+
+  @override
+  String get monthApr => 'Avr';
+
+  @override
+  String get monthMay => 'Mai';
+
+  @override
+  String get monthJun => 'Jun';
+
+  @override
+  String get monthJul => 'Jul';
+
+  @override
+  String get monthAug => 'Aoû';
+
+  @override
+  String get monthSep => 'Sep';
+
+  @override
+  String get monthOct => 'Oct';
+
+  @override
+  String get monthNov => 'Nov';
+
+  @override
+  String get monthDec => 'Déc';
 }
