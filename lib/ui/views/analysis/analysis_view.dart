@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/ui/views/analysis/analysis_viewmodel.dart';
+import 'package:jar/ui/views/analysis/widgets/bar_trend_chart.dart';
 import 'package:jar/ui/views/analysis/widgets/stat_card.dart';
-import 'package:jar/ui/views/analysis/widgets/trend_chart.dart';
 import 'package:jar/utils/date_formatter.dart';
 import 'package:stacked/stacked.dart';
 
@@ -294,24 +294,9 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    Text(
-                      l10n.movementLegend,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
                     Container(
-                      height: 200,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                          ]),
-                      child: TrendChart(data: viewModel.movementStats),
+                      height: 220,
+                      child: BarTrendChart(data: viewModel.movementStats),
                     ),
 
                     // 6. Top Products
