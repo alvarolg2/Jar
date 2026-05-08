@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:jar/l10n/app_localizations.dart';
 import 'package:jar/utils/movement_data_processor.dart';
+import 'package:jar/utils/weekly_movement_data.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -374,51 +375,26 @@ class PdfReportBuilder {
       );
     }
 
-    final processed = MovementDataProcessor.process(data);
-    final inData = processed.inData;
-    final outData = processed.outData;
-    final sortedDates = processed.sortedDates;
+    final weekly = WeeklyMovementData.fromRawData(data,
+        getMonthLabel: (month) {
+          final months = [
+            l10n.monthJan, l10n.monthFeb, l10n.monthMar, l10n.monthApr,
+            l10n.monthMay, l10n.monthJun, l10n.monthJul, l10n.monthAug,
+            l10n.monthSep, l10n.monthOct, l10n.monthNov, l10n.monthDec
+          ];
+          return months[month - 1];
+        });
 
-    final int totalIn = inData.values.fold(0, (a, b) => a + b);
-    final int totalOut = outData.values.fold(0, (a, b) => a + b);
-    final netBalance = totalIn - totalOut;
-
-    final now = DateTime.now();
-    final weeklyIn = <int>[];
-    final weeklyOut = <int>[];
-    final weekLabels = <String>[];
-
-    for (int w = 4; w >= 0; w--) {
-      final weekEnd = now.subtract(Duration(days: w * 7));
-      final weekStart = weekEnd.subtract(const Duration(days: 6));
-      final startStr = weekStart.toIso8601String().split('T').first;
-      final endStr = weekEnd.toIso8601String().split('T').first;
-
-      int sumIn = 0, sumOut = 0;
-      for (final date in sortedDates) {
-        if (date.compareTo(startStr) >= 0 && date.compareTo(endStr) <= 0) {
-          sumIn += inData[date] ?? 0;
-          sumOut += outData[date] ?? 0;
-        }
-      }
-      weeklyIn.add(sumIn);
-      weeklyOut.add(sumOut);
-
-      final startDay = weekStart.day.toString().padLeft(2, '0');
-      final endDay = weekEnd.day.toString().padLeft(2, '0');
-      final month = getMonthShort(weekEnd.month);
-      weekLabels.add('$startDay-$endDay $month');
-    }
-
-    final maxWeekly =
-        [...weeklyIn, ...weeklyOut].reduce((a, b) => a > b ? a : b);
-    final chartHeight = 100.0;
+    final chartHeight = 120.0;
 
     List<pw.Widget> barGroups = [];
-    for (int i = 0; i < weeklyIn.length; i++) {
-      final hIn = maxWeekly > 0 ? (weeklyIn[i] / maxWeekly) * chartHeight : 0.0;
-      final hOut =
-          maxWeekly > 0 ? (weeklyOut[i] / maxWeekly) * chartHeight : 0.0;
+    for (int i = 0; i < weekly.weeklyIn.length; i++) {
+      final hIn = weekly.maxWeekly > 0
+          ? (weekly.weeklyIn[i] / weekly.maxWeekly) * chartHeight
+          : 0.0;
+      final hOut = weekly.maxWeekly > 0
+          ? (weekly.weeklyOut[i] / weekly.maxWeekly) * chartHeight
+          : 0.0;
 
       barGroups.add(
         pw.Expanded(
@@ -429,31 +405,53 @@ class PdfReportBuilder {
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
-                  pw.Container(
-                    width: 10,
-                    height: hIn,
-                    decoration: pw.BoxDecoration(
-                      color: PdfColors.green,
-                      borderRadius: const pw.BorderRadius.only(
-                          topLeft: pw.Radius.circular(2),
-                          topRight: pw.Radius.circular(2)),
-                    ),
+                  pw.Column(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      if (weekly.weeklyIn[i] > 0)
+                        pw.Text(
+                          '${weekly.weeklyIn[i]}',
+                          style: const pw.TextStyle(
+                              fontSize: 6, color: PdfColors.green),
+                        ),
+                      pw.Container(
+                        width: 10,
+                        height: hIn,
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.green,
+                          borderRadius: const pw.BorderRadius.only(
+                              topLeft: pw.Radius.circular(2),
+                              topRight: pw.Radius.circular(2)),
+                        ),
+                      ),
+                    ],
                   ),
                   pw.SizedBox(width: 3),
-                  pw.Container(
-                    width: 10,
-                    height: hOut,
-                    decoration: pw.BoxDecoration(
-                      color: PdfColors.orange,
-                      borderRadius: const pw.BorderRadius.only(
-                          topLeft: pw.Radius.circular(2),
-                          topRight: pw.Radius.circular(2)),
-                    ),
+                  pw.Column(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      if (weekly.weeklyOut[i] > 0)
+                        pw.Text(
+                          '${weekly.weeklyOut[i]}',
+                          style: const pw.TextStyle(
+                              fontSize: 6, color: PdfColors.orange),
+                        ),
+                      pw.Container(
+                        width: 10,
+                        height: hOut,
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.orange,
+                          borderRadius: const pw.BorderRadius.only(
+                              topLeft: pw.Radius.circular(2),
+                              topRight: pw.Radius.circular(2)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
               pw.SizedBox(height: 4),
-              pw.Text(weekLabels[i],
+              pw.Text(weekly.weekLabels[i],
                   style:
                       const pw.TextStyle(fontSize: 7, color: PdfColors.grey600)),
             ],
@@ -478,7 +476,7 @@ class PdfReportBuilder {
           child: pw.Column(
             children: [
               pw.Container(
-                height: chartHeight + 16,
+                height: chartHeight + 24,
                 decoration: pw.BoxDecoration(
                   border: pw.Border(
                     left: pw.BorderSide(color: PdfColors.grey400, width: 0.5),
@@ -497,22 +495,22 @@ class PdfReportBuilder {
                 children: [
                   pw.Container(width: 10, height: 8, color: PdfColors.green),
                   pw.SizedBox(width: 4),
-                  pw.Text('${l10n.movementIn} ($totalIn)',
+                  pw.Text('${l10n.movementIn} (${weekly.totalIn})',
                       style: const pw.TextStyle(fontSize: 8)),
                   pw.SizedBox(width: 20),
                   pw.Container(width: 10, height: 8, color: PdfColors.orange),
                   pw.SizedBox(width: 4),
-                  pw.Text('${l10n.movementOut} ($totalOut)',
+                  pw.Text('${l10n.movementOut} (${weekly.totalOut})',
                       style: const pw.TextStyle(fontSize: 8)),
                   pw.SizedBox(width: 20),
                   pw.Container(
                       width: 10,
                       height: 8,
-                      color: netBalance >= 0
+                      color: weekly.netBalance >= 0
                           ? PdfColors.green
                           : PdfColors.red),
                   pw.SizedBox(width: 4),
-                  pw.Text('Balance ($netBalance)',
+                  pw.Text('Balance (${weekly.netBalance})',
                       style: const pw.TextStyle(fontSize: 8)),
                 ],
               ),
