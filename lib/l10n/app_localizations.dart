@@ -757,7 +757,7 @@ abstract class AppLocalizations {
   /// No description provided for @movementTrends30Days.
   ///
   /// In es, this message translates to:
-  /// **'Tendencias de Movimiento (Últimos 30 Días)'**
+  /// **'Tendencias de Movimiento'**
   String get movementTrends30Days;
 
   /// No description provided for @movementLegend.
@@ -826,6 +826,12 @@ abstract class AppLocalizations {
   /// **'Productos Activos'**
   String get activeProducts;
 
+  /// No description provided for @keyPerformanceIndicators.
+  ///
+  /// In es, this message translates to:
+  /// **'Indicadores Clave'**
+  String get keyPerformanceIndicators;
+
   /// No description provided for @warehouseOccupancy.
   ///
   /// In es, this message translates to:
@@ -867,6 +873,78 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Almacén'**
   String get warehouse;
+
+  /// No description provided for @monthJan.
+  ///
+  /// In es, this message translates to:
+  /// **'Ene'**
+  String get monthJan;
+
+  /// No description provided for @monthFeb.
+  ///
+  /// In es, this message translates to:
+  /// **'Feb'**
+  String get monthFeb;
+
+  /// No description provided for @monthMar.
+  ///
+  /// In es, this message translates to:
+  /// **'Mar'**
+  String get monthMar;
+
+  /// No description provided for @monthApr.
+  ///
+  /// In es, this message translates to:
+  /// **'Abr'**
+  String get monthApr;
+
+  /// No description provided for @monthMay.
+  ///
+  /// In es, this message translates to:
+  /// **'May'**
+  String get monthMay;
+
+  /// No description provided for @monthJun.
+  ///
+  /// In es, this message translates to:
+  /// **'Jun'**
+  String get monthJun;
+
+  /// No description provided for @monthJul.
+  ///
+  /// In es, this message translates to:
+  /// **'Jul'**
+  String get monthJul;
+
+  /// No description provided for @monthAug.
+  ///
+  /// In es, this message translates to:
+  /// **'Ago'**
+  String get monthAug;
+
+  /// No description provided for @monthSep.
+  ///
+  /// In es, this message translates to:
+  /// **'Sep'**
+  String get monthSep;
+
+  /// No description provided for @monthOct.
+  ///
+  /// In es, this message translates to:
+  /// **'Oct'**
+  String get monthOct;
+
+  /// No description provided for @monthNov.
+  ///
+  /// In es, this message translates to:
+  /// **'Nov'**
+  String get monthNov;
+
+  /// No description provided for @monthDec.
+  ///
+  /// In es, this message translates to:
+  /// **'Dic'**
+  String get monthDec;
 }
 
 class _AppLocalizationsDelegate
