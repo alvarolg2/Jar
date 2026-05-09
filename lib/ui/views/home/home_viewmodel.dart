@@ -510,13 +510,13 @@ class HomeViewModel extends ReactiveViewModel {
 
     final normalByProduct = <String, int>{};
     for (final item in normalItems) {
-      final key = '${item.productName} - ${item.lotName}';
+      final key = item.productName;
       normalByProduct[key] = (normalByProduct[key] ?? 0) + item.palletCount;
     }
 
     final defectiveByProduct = <String, int>{};
     for (final item in defectiveItems) {
-      final key = '${item.productName} - ${item.lotName}';
+      final key = item.productName;
       defectiveByProduct[key] = (defectiveByProduct[key] ?? 0) + item.palletCount;
     }
 
