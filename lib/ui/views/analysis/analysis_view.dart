@@ -86,14 +86,6 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                       children: [
                         Expanded(
                           child: _buildKpiCard(
-                            label: l10n.defectRate,
-                            value: '${viewModel.defectRate.toStringAsFixed(1)}%',
-                            color: Colors.red.shade400,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildKpiCard(
                             label: l10n.rotationRatio,
                             value: viewModel.rotationRatio.toStringAsFixed(2),
                             color: Colors.teal.shade600,
@@ -105,6 +97,14 @@ class AnalysisView extends StackedView<AnalysisViewModel> {
                             label: l10n.activeProducts,
                             value: '${viewModel.activeProducts}',
                             color: Colors.purple.shade600,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildKpiCard(
+                            label: l10n.defectRate,
+                            value: '${viewModel.defectRate.toStringAsFixed(1)}%',
+                            color: Colors.red.shade400,
                           ),
                         ),
                       ],

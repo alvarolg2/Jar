@@ -396,8 +396,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get movementTrends30Days =>
-      'Tendances de mouvement (30 derniers jours)';
+  String get movementTrends30Days => 'Tendances de mouvement';
 
   @override
   String get movementLegend => 'Vert : Entrée, Orange : Sortie';

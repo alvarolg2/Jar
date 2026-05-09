@@ -223,7 +223,7 @@
             "count": { "type": "int" }
         }
     },
-    "movementTrends30Days": "Tendances de mouvement (30 derniers jours)",
+    "movementTrends30Days": "Tendances de mouvement",
     "movementLegend": "Vert : Entrée, Orange : Sortie",
     "top5Products": "Top 5 des produits",
     "noDescription": "Aucune description",

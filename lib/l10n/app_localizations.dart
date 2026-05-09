@@ -757,7 +757,7 @@ abstract class AppLocalizations {
   /// No description provided for @movementTrends30Days.
   ///
   /// In es, this message translates to:
-  /// **'Tendencias de Movimiento (Últimos 30 Días)'**
+  /// **'Tendencias de Movimiento'**
   String get movementTrends30Days;
 
   /// No description provided for @movementLegend.

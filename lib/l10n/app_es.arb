@@ -198,7 +198,7 @@
             "count": { "type": "int" }
         }
     },
-    "movementTrends30Days": "Tendencias de Movimiento (Últimos 30 Días)",
+    "movementTrends30Days": "Tendencias de Movimiento",
     "movementLegend": "Verde: Entrada, Naranja: Salida",
     "top5Products": "Top 5 Productos",
     "noDescription": "Sin descripción",

@@ -198,7 +198,7 @@
             "count": { "type": "int" }
         }
     },
-    "movementTrends30Days": "Movement Trends (Last 30 Days)",
+    "movementTrends30Days": "Movement Trends",
     "movementLegend": "Green: In, Orange: Out",
     "top5Products": "Top 5 Products",
     "noDescription": "No description",
