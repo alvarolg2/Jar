@@ -433,9 +433,9 @@ class HomeViewModel extends ReactiveViewModel {
     final last30DaysOut = movementStats
         .where((m) => m['type'] == 'out')
         .fold<int>(0, (sum, m) => sum + (m['count'] as int? ?? 0));
-    final last30DaysTotal = last30DaysIn + last30DaysOut + defectiveLast30Days;
-    final defectRate = last30DaysTotal > 0
-        ? (defectiveLast30Days / last30DaysTotal * 100)
+    final totalReceived = last30DaysIn + defectiveLast30Days;
+    final defectRate = totalReceived > 0
+        ? (defectiveLast30Days / totalReceived * 100)
         : 0.0;
     final rotationRatio = last30DaysIn > 0 ? (last30DaysOut / last30DaysIn) : 0.0;
 
