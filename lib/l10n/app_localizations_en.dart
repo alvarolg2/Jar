@@ -394,7 +394,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get movementTrends30Days => 'Movement Trends (Last 30 Days)';
+  String get movementTrends30Days => 'Movement Trends';
 
   @override
   String get movementLegend => 'Green: In, Orange: Out';
@@ -430,6 +430,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeProducts => 'Active Products';
 
   @override
+  String get keyPerformanceIndicators => 'Key Performance Indicators';
+
+  @override
   String get warehouseOccupancy => 'Warehouse Occupancy';
 
   @override
@@ -449,4 +452,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get warehouse => 'Warehouse';
+
+  @override
+  String get monthJan => 'Jan';
+
+  @override
+  String get monthFeb => 'Feb';
+
+  @override
+  String get monthMar => 'Mar';
+
+  @override
+  String get monthApr => 'Apr';
+
+  @override
+  String get monthMay => 'May';
+
+  @override
+  String get monthJun => 'Jun';
+
+  @override
+  String get monthJul => 'Jul';
+
+  @override
+  String get monthAug => 'Aug';
+
+  @override
+  String get monthSep => 'Sep';
+
+  @override
+  String get monthOct => 'Oct';
+
+  @override
+  String get monthNov => 'Nov';
+
+  @override
+  String get monthDec => 'Dec';
 }

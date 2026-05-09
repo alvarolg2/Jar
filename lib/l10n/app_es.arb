@@ -198,7 +198,7 @@
             "count": { "type": "int" }
         }
     },
-    "movementTrends30Days": "Tendencias de Movimiento (Últimos 30 Días)",
+    "movementTrends30Days": "Tendencias de Movimiento",
     "movementLegend": "Verde: Entrada, Naranja: Salida",
     "top5Products": "Top 5 Productos",
     "noDescription": "Sin descripción",
@@ -210,11 +210,24 @@
     "rotationRatio": "Ratio de Rotación",
     "rotationRatioDesc": "Expedidos últimos 30 días / stock actual",
     "activeProducts": "Productos Activos",
+    "keyPerformanceIndicators": "Indicadores Clave",
     "warehouseOccupancy": "Ocupación por Almacén",
     "recentActivity": "Actividad Reciente",
     "movementIn": "Entrada",
     "movementOut": "Salida",
     "date": "Fecha",
     "type": "Tipo",
-    "warehouse": "Almacén"
+    "warehouse": "Almacén",
+    "monthJan": "Ene",
+    "monthFeb": "Feb",
+    "monthMar": "Mar",
+    "monthApr": "Abr",
+    "monthMay": "May",
+    "monthJun": "Jun",
+    "monthJul": "Jul",
+    "monthAug": "Ago",
+    "monthSep": "Sep",
+    "monthOct": "Oct",
+    "monthNov": "Nov",
+    "monthDec": "Dic"
 }
