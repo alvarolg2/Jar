@@ -142,9 +142,9 @@ class PalletRepository {
     ''');
   }
 
-  Future<List<Map<String, dynamic>>> getTopProducts(int limit) async {
+  Future<List<Map<String, dynamic>>> getTopProducts([int? limit]) async {
     final db = await _dbService.database;
-    return await db.rawQuery('''
+    final query = '''
       SELECT pr.name as productName, pr.description as description, COUNT(DISTINCT p.id) as count
       FROM pallet p
       JOIN pallet_lot pl ON p.id = pl.id_pallet
@@ -153,8 +153,9 @@ class PalletRepository {
       WHERE p.is_out = 0 AND p.defective = 0
       GROUP BY pr.id
       ORDER BY count DESC
-      LIMIT ?
-    ''', [limit]);
+      ${limit != null ? 'LIMIT ?' : ''}
+    ''';
+    return await db.rawQuery(query, limit != null ? [limit] : []);
   }
 
   Future<List<Map<String, dynamic>>> getMovementStats(int days) async {
