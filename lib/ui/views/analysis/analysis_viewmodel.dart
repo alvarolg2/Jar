@@ -108,7 +108,7 @@ class AnalysisViewModel extends BaseViewModel {
   }
 
   Future<void> _fetchTopProducts() async {
-    _topProducts = await _palletRepo.getTopProducts(5);
+    _topProducts = await _palletRepo.getTopProducts();
   }
 
   Future<void> _fetchMovementStats() async {

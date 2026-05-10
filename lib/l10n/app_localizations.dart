@@ -769,7 +769,7 @@ abstract class AppLocalizations {
   /// No description provided for @top5Products.
   ///
   /// In es, this message translates to:
-  /// **'Top 5 Productos'**
+  /// **'Todos los Productos'**
   String get top5Products;
 
   /// No description provided for @noDescription.

@@ -402,7 +402,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get movementLegend => 'Vert : Entrée, Orange : Sortie';
 
   @override
-  String get top5Products => 'Top 5 des produits';
+  String get top5Products => 'Tous les produits';
 
   @override
   String get noDescription => 'Aucune description';
