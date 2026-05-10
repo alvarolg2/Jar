@@ -231,9 +231,13 @@ class PalletRepository {
 
   Future<List<Map<String, dynamic>>> getRecentLotActivity(int limit) async {
     final db = await _dbService.database;
+    final now = DateTime.now();
+    final startDate = now.subtract(const Duration(days: 30));
+    final startDateStr = startDate.toIso8601String().split('T').first;
+
     return await db.rawQuery('''
       SELECT
-        date(MAX(p.create_date)) as date,
+        date(p.create_date) as date,
         'in' as type,
         pr.name as productName,
         w.name as warehouseName,
@@ -243,11 +247,28 @@ class PalletRepository {
       JOIN lot l ON pl.id_lot = l.id
       JOIN product pr ON l.product = pr.id
       JOIN warehouse w ON p.warehouse = w.id
-      WHERE p.defective = 0 AND p.is_out = 0
+      WHERE p.create_date >= ? AND p.defective = 0
       GROUP BY date(p.create_date), pr.name, w.name
+
+      UNION ALL
+
+      SELECT
+        date(p.out_date) as date,
+        'out' as type,
+        pr.name as productName,
+        w.name as warehouseName,
+        COUNT(p.id) as palletCount
+      FROM pallet p
+      JOIN pallet_lot pl ON p.id = pl.id_pallet
+      JOIN lot l ON pl.id_lot = l.id
+      JOIN product pr ON l.product = pr.id
+      JOIN warehouse w ON p.warehouse = w.id
+      WHERE p.out_date >= ? AND p.is_out = 1
+      GROUP BY date(p.out_date), pr.name, w.name
+
       ORDER BY date DESC, palletCount DESC
       LIMIT ?
-    ''', [limit]);
+    ''', [startDateStr, startDateStr, limit]);
   }
 
   Future<List<Map<String, dynamic>>> getWarehouseOccupancy() async {
