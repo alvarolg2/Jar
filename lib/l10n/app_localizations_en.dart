@@ -400,7 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get movementLegend => 'Green: In, Orange: Out';
 
   @override
-  String get top5Products => 'Top 5 Products';
+  String get top5Products => 'All Products';
 
   @override
   String get noDescription => 'No description';
